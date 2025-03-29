@@ -1,11 +1,26 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFramework>net8.0</TargetFramework>
+		<TargetFrameworks>net8.0;net9.0</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<Title>LibSodium.Net</Title>
+		<Version>0.0.1-alpha</Version>
+		<Authors>jesuslpm</Authors>
+		<Description>LibSodium.NET is a library that provides .NET bindings for libsodium</Description>
+		<Copyright>Copyright 2025</Copyright>
+		<PackageProjectUrl>https://libsodium-net.github.io/</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/LibSodium-Net/LibSodium.Net</RepositoryUrl>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageTags>libsodium cryptography sodium</PackageTags>
+		<AssemblyVersion>1.0.0</AssemblyVersion>
+		<FileVersion>1.0.0</FileVersion>
+		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+		<EmbedAllSources>true</EmbedAllSources>
+		<AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+
 	</PropertyGroup>
 
 	<ItemGroup>

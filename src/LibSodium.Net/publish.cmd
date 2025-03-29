@@ -1,0 +1,2 @@
+dotnet pack %~dp0LibSodium.Net.csproj -c Release -p:ContinuousIntegrationBuild=true --output %~dp0nupkgs
+REM dotnet nuget push %~dp0nupkgs\LibSodium.Net.0.1.0-alpha.nupkg --api-key %NUGET_API_KEY% --source https://api.nuget.org/v3/index.json
