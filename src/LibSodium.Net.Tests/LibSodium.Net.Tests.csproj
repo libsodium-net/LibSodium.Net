@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="TUnit" Version="0.18.60" />
+		<PackageReference Include="Shouldly" Version="4.3.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\LibSodium.Net.ReadPastAllocatedMemory\LibSodium.Net.ReadPastAllocatedMemory.csproj" />
+	  <ProjectReference Include="..\LibSodium.Net.WriteReadOnlyProtectedMemory\LibSodium.Net.WriteReadOnlyProtectedMemory.csproj" />
+	  <ProjectReference Include="..\LibSodium.Net\LibSodium.Net.csproj" />
+	</ItemGroup>
+
+</Project>

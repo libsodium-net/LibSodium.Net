@@ -1,0 +1,4 @@
+- name: API Documentation
+  href: api/LibSodium.Net.yml
+- name: Guide
+  href: guide.md

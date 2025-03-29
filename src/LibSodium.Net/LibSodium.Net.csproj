@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
+		<RootNamespace>LibSodium</RootNamespace>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<InternalsVisibleTo Include="LibSodium.Net.Tests" />
+		<InternalsVisibleTo Include="LibSodium.Net.ReadPastAllocatedMemory" />
+		<InternalsVisibleTo Include="LibSodium.Net.WriteReadOnlyProtectedMemory" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="..\..\README.md" Link="README.md" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="libsodium" Version="1.0.20.1" />
+		<PackageReference Include="System.Memory" Version="4.6.0" />
+	</ItemGroup>
+
+</Project>

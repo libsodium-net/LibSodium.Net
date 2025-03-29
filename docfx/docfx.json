@@ -1,0 +1,46 @@
+{
+  "$schema": "https://raw.githubusercontent.com/dotnet/docfx/main/schemas/docfx.schema.json",
+  "metadata": [
+    {
+      "src": [
+        {
+          "files": [ "LibSodium.Net/LibSodium.Net.csproj" ],
+          "src": "../src"
+        }
+      ],
+      "output": "api"
+    }
+  ],
+  "build": {
+    "resource":[
+      {
+        "files":["images/**" ]
+      }
+    ],
+    "content": [
+      {
+        "files": [
+          "**/*.{md,yml}"
+        ],
+        "exclude": [
+          "_site/**"
+        ]
+      }
+    ],
+    "output": "_site",
+    "template": [
+      "default",
+      "modern",
+      "templates/material"
+    ],
+    "globalMetadata": {
+      "_appName": " LibSodium.Net",
+      "_appTitle": " LibSodium.Net",
+      "_enableSearch": true,
+      "_appLogoPath": "images/Na.png",
+      "_appFaviconPath": "images/Na.png",
+      "_disableContribution": true,
+      "pdf": false
+    }
+  }
+}
