@@ -1,6 +1,4 @@
-﻿using LibSodium.Net;
-
-namespace LibSodium.WriteReadOnlyProtectedMemory
+﻿namespace LibSodium.WriteReadOnlyProtectedMemory
 {
 	internal class Program
 	{

@@ -8,10 +8,9 @@
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
-		<RootNamespace>LibSodium</RootNamespace>
 		<Version>0.1.0-alpha</Version>
 		<Authors>jesuslpm</Authors>
-		<Description>LibSodium.NET provides .NET bindings for libsodium cryptography native library</Description>
+		<Description>LibSodium.Bindings.Net is a .NET library that provides comprehensive bindings for the libsodium native library</Description>
 		<Copyright>Copyright 2025</Copyright>
 		<PackageProjectUrl>https://libsodium-net.github.io/</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/LibSodium-Net/LibSodium.Net</RepositoryUrl>
@@ -22,8 +21,16 @@
 		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
 		<EmbedAllSources>true</EmbedAllSources>
 		<AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb;.xml</AllowedOutputExtensionsInPackageBuildOutputFolder>
+		<PackageId>LibSodium.Bindings.Net</PackageId>
+		<PackageIcon>Na.png</PackageIcon>
 
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <Compile Remove="Net\**" />
+	  <EmbeddedResource Remove="Net\**" />
+	  <None Remove="Net\**" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<InternalsVisibleTo Include="LibSodium.Net.Tests" />
@@ -41,6 +48,13 @@
 	<ItemGroup>
 		<PackageReference Include="libsodium" Version="1.0.20.1" />
 		<PackageReference Include="System.Memory" Version="4.6.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="Na.png">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
 	</ItemGroup>
 
 </Project>

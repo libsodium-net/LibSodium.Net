@@ -1,6 +1,6 @@
 ﻿using LibSodium.Interop;
 
-namespace LibSodium.Net
+namespace LibSodium
 {
 	/// <summary>
 	/// Provides static methods for authenticated symmetric encryption and decryption using the Sodium secretbox primitives, 

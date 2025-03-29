@@ -1,7 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using Shouldly;
 using System.Diagnostics;
-using LibSodium.Net;
 
 namespace LibSodium.Tests
 {

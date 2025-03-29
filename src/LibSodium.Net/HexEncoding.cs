@@ -1,7 +1,7 @@
 ﻿using LibSodium.Interop;
 using System.Text;
 
-namespace LibSodium.Net
+namespace LibSodium
 {
 	/// <summary>
 	/// Provides methods for encoding and decoding hexadecimal strings and byte buffers.

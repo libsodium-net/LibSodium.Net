@@ -1,6 +1,6 @@
 # Features
 
-LibSodium.Net is designed to eventually support all of libsodium’s features while offering a modern and efficient approach to cryptographic operations
+LibSodium.Bindings.Net is designed to eventually support all of libsodium’s features while offering a modern and efficient approach to cryptographic operations
 
 ## Modern and Efficient
 

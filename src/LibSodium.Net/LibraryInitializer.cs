@@ -1,7 +1,7 @@
 ﻿using LibSodium.Interop;
 using System.Runtime.CompilerServices;
 
-namespace LibSodium.Net
+namespace LibSodium
 {
 	/// <summary>
 	/// Static class that manages the initialization and configuration of libsodium.

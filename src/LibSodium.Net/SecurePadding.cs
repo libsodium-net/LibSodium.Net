@@ -1,6 +1,6 @@
 ﻿using LibSodium.Interop;
 
-namespace LibSodium.Net
+namespace LibSodium
 {
 	/// <summary>
 	/// Provides methods for padding and unpadding byte buffers to ensure they meet specified block sizes.

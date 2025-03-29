@@ -5,7 +5,7 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{9947D40D-E184-45A8-AE03-DD6B4DC4222B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibSodium.Net", "LibSodium.Net\LibSodium.Net.csproj", "{0ACBFB8C-68A8-453C-BA86-F30B6555038F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibSodium.Bindings.Net", "LibSodium.Net\LibSodium.Bindings.Net.csproj", "{0ACBFB8C-68A8-453C-BA86-F30B6555038F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LibSodium.Net.Tests", "LibSodium.Net.Tests\LibSodium.Net.Tests.csproj", "{87F5F354-26D5-4C7D-B530-EB4F8EB865CA}"
 EndProject

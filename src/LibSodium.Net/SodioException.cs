@@ -1,4 +1,4 @@
-﻿namespace LibSodium.Net
+﻿namespace LibSodium
 {
 	/// <summary>
 	/// Represents errors that occur during Sodium operations.

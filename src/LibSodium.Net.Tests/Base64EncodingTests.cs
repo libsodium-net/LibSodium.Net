@@ -1,6 +1,5 @@
 ﻿using TUnit.Assertions.AssertConditions.Throws;
 using System.Text;
-using LibSodium.Net;
 
 namespace LibSodium.Tests
 {

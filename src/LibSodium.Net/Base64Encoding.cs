@@ -1,7 +1,7 @@
 ﻿using LibSodium.Interop;
 using System.Text;
 
-namespace LibSodium.Net
+namespace LibSodium
 {
 	/// <summary>Represents Base64 encoding variants.</summary>
 	public enum Base64Variant

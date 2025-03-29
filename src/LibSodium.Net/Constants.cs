@@ -1,4 +1,4 @@
-﻿namespace LibSodium.Net
+﻿namespace LibSodium
 {
 	/// <summary>
 	/// Provides constant values used throughout the Na.Core library.

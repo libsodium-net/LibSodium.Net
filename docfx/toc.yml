@@ -1,6 +1,6 @@
 - name: Features
   href: features.md
 - name: API Documentation
-  href: api/LibSodium.Net.yml
+  href: api/LibSodium.yml
 - name: Guide
   href: guide.md

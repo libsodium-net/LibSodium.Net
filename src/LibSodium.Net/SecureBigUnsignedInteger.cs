@@ -2,7 +2,7 @@
 using System.Buffers.Binary;
 using System.Runtime.CompilerServices;
 
-namespace LibSodium.Net
+namespace LibSodium
 {
 	/// <summary>
 	/// Provides methods for working with arbitrary large little endian big unsigned integers in a secure way

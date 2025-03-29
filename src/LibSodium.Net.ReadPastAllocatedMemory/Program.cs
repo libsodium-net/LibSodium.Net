@@ -1,6 +1,4 @@
-﻿using LibSodium.Net;
-
-namespace LibSodium.ReadPastAllocatedMemory
+﻿namespace LibSodium.ReadPastAllocatedMemory
 {
 	internal class Program
 	{

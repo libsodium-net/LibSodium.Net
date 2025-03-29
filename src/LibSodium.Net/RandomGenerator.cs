@@ -1,6 +1,6 @@
 ﻿using LibSodium.Interop;
 
-namespace LibSodium.Net
+namespace LibSodium
 {
 	/// <summary>
 	/// Static class for random number generation.

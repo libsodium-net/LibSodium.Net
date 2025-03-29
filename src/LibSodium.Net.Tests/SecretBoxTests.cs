@@ -1,5 +1,4 @@
-﻿using LibSodium.Net;
-using TUnit.Assertions.AssertConditions.Throws;
+﻿using TUnit.Assertions.AssertConditions.Throws;
 
 namespace LibSodium.Tests
 {

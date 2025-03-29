@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace LibSodium.Net
+namespace LibSodium
 {
 	/// <summary>
 	/// Provides methods for secure memory management using libsodium.

@@ -1,7 +1,7 @@
 ﻿using LibSodium.Interop;
 using System.Runtime.InteropServices;
 
-namespace LibSodium.Net
+namespace LibSodium
 {
 	/// <summary>
 	/// Provides methods to retrieve the version information of the Sodium library.

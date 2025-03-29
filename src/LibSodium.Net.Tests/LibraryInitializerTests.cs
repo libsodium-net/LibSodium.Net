@@ -1,6 +1,4 @@
-﻿using LibSodium.Net;
-
-namespace LibSodium.Tests
+﻿namespace LibSodium.Tests
 {
 	public class LibraryInitializerTests
 	{
