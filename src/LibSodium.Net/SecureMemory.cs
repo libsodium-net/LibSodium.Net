@@ -65,7 +65,7 @@ namespace LibSodium
 		/// Locks an unmanaged memory buffer, preventing it from being swapped to disk.
 		/// </summary>
 		/// <param name="buffer">The span representing the unmanaged memory to lock.</param>
-		/// <exception cref="SodioException">Thrown if locking the memory fails.</exception>
+		/// <exception cref="LibSodiumException">Thrown if locking the memory fails.</exception>
 		public static void MemLock(ReadOnlySpan<byte> buffer)
 		{
 			LibraryInitializer.EnsureInitialized();
@@ -73,7 +73,7 @@ namespace LibSodium
 			{
 				if (Native.sodium_mlock((nint)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)), (nuint)buffer.Length) != 0)
 				{
-					throw new SodioException("Failed to lock memory");
+					throw new LibSodiumException("Failed to lock memory");
 				}
 			}
 		}
@@ -82,7 +82,7 @@ namespace LibSodium
 		/// Locks an unmanaged memory buffer, preventing it from being swapped to disk.
 		/// </summary>
 		/// <param name="buffer">The span representing the unmanaged memory to lock.</param>
-		/// <exception cref="SodioException">Thrown if locking the memory fails.</exception>
+		/// <exception cref="LibSodiumException">Thrown if locking the memory fails.</exception>
 		public static void MemLock<T>(ReadOnlySpan<T> buffer) where T : unmanaged
 		{
 			LibraryInitializer.EnsureInitialized();
@@ -90,7 +90,7 @@ namespace LibSodium
 			{
 				if (Native.sodium_mlock((nint)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)), (nuint)buffer.Length * (nuint)Unsafe.SizeOf<T>()) != 0)
 				{
-					throw new SodioException("Failed to lock memory");
+					throw new LibSodiumException("Failed to lock memory");
 				}
 			}
 
@@ -100,7 +100,7 @@ namespace LibSodium
 		/// Unlocks an unmanaged memory buffer, allowing it to be swapped to disk if necessary.
 		/// </summary>
 		/// <param name="buffer">The span of bytes to unlock.</param>
-		/// <exception cref="SodioException">Thrown if unlocking the memory fails.</exception>
+		/// <exception cref="LibSodiumException">Thrown if unlocking the memory fails.</exception>
 
 		public static void MemUnlock(ReadOnlySpan<byte> buffer)
 		{
@@ -109,7 +109,7 @@ namespace LibSodium
 			{
 				if (Native.sodium_munlock((nint)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)), (nuint)buffer.Length) != 0)
 				{
-					throw new SodioException("Failed to unlock memory");
+					throw new LibSodiumException("Failed to unlock memory");
 				}
 			}
 		}
@@ -118,7 +118,7 @@ namespace LibSodium
 		/// Unlocks an unmanaged memory buffer, allowing it to be swapped to disk if necessary.
 		/// </summary>
 		/// <param name="buffer">The span of bytes to unlock.</param>
-		/// <exception cref="SodioException">Thrown if unlocking the memory fails.</exception>
+		/// <exception cref="LibSodiumException">Thrown if unlocking the memory fails.</exception>
 
 		public static void MemUnlock<T>(ReadOnlySpan<T> buffer) where T : unmanaged
 		{
@@ -127,7 +127,7 @@ namespace LibSodium
 			{
 				if (Native.sodium_munlock((nint)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)), (nuint)buffer.Length * (nuint)Unsafe.SizeOf<T>()) != 0)
 				{
-					throw new SodioException("Failed to unlock memory");
+					throw new LibSodiumException("Failed to unlock memory");
 				}
 			}
 		}
@@ -137,7 +137,7 @@ namespace LibSodium
 		/// </summary>
 		/// <param name="size">The size of the buffer to allocate in bytes.</param>
 		/// <returns>A span of bytes representing the allocated memory.</returns>
-		/// <exception cref="SodioException">Thrown if memory allocation fails.</exception>
+		/// <exception cref="LibSodiumException">Thrown if memory allocation fails.</exception>
 		internal static Span<byte> Allocate(int size)
 		{
 			LibraryInitializer.EnsureInitialized();
@@ -146,7 +146,7 @@ namespace LibSodium
 				nint address = Native.sodium_malloc((nuint)size);
 				if (address == 0)
 				{
-					throw new SodioException("Failed to allocate memory");
+					throw new LibSodiumException("Failed to allocate memory");
 				}
 				return new Span<byte>(address.ToPointer(), size);
 			}
@@ -158,7 +158,7 @@ namespace LibSodium
 		/// <typeparam name="T">The type of elements in the array. Must be an unmanaged type.</typeparam>
 		/// <param name="length">The number of elements to allocate.</param>
 		/// <returns>A span of the specified type representing the allocated memory.</returns>
-		/// <exception cref="SodioException">Thrown if memory allocation fails.</exception>
+		/// <exception cref="LibSodiumException">Thrown if memory allocation fails.</exception>
 
 		internal static Span<T> Allocate<T>(int length) where T : unmanaged
 		{
@@ -168,7 +168,7 @@ namespace LibSodium
 				nint address = Native.sodium_allocarray((nuint)length, (nuint)sizeof(T));
 				if (address == 0)
 				{
-					throw new SodioException("Failed to allocate memory");
+					throw new LibSodiumException("Failed to allocate memory");
 				}
 				return new Span<T>(address.ToPointer(), length);
 			}
@@ -210,7 +210,7 @@ namespace LibSodium
 		/// </summary>
 		/// <param name="buffer">The <see cref="Span{Byte}"/> representing the unmanaged memory region to be marked as read-only.</param>
 		/// <returns>The <see cref="ReadOnlySpan{Byte}"/> representing the read-only unmanaged memory region</returns>
-		/// <exception cref="SodioException">Thrown if setting the memory protection fails.</exception>
+		/// <exception cref="LibSodiumException">Thrown if setting the memory protection fails.</exception>
 
 		internal static ReadOnlySpan<byte> ProtectReadOnly(Span<byte> buffer)
 		{
@@ -219,7 +219,7 @@ namespace LibSodium
 			{
 				if (Native.sodium_mprotect_readonly((nint)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer))) != 0)
 				{
-					throw new SodioException("Failed to set memory to read-only");
+					throw new LibSodiumException("Failed to set memory to read-only");
 				}
 			}
 			return (ReadOnlySpan<byte>)buffer;
@@ -232,7 +232,7 @@ namespace LibSodium
 		/// <typeparam name="T">The type of elements in the span. Must be an unmanaged type.</typeparam>
 		/// <param name="buffer">The <see cref="Span{T}"/> representing the unmanaged memory region to be marked as read-only.</param>
 		/// <returns>A <see cref="ReadOnlySpan{T}"/> representing the read-only unmanaged memory region</returns>
-		/// <exception cref="SodioException">Thrown if setting the memory protection fails.</exception>
+		/// <exception cref="LibSodiumException">Thrown if setting the memory protection fails.</exception>
 
 		internal static ReadOnlySpan<T> ProtectReadOnly<T>(Span<T> buffer) where T : unmanaged
 		{
@@ -241,7 +241,7 @@ namespace LibSodium
 			{
 				if (Native.sodium_mprotect_readonly((nint)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer))) != 0)
 				{
-					throw new SodioException("Failed to set memory to read-only");
+					throw new LibSodiumException("Failed to set memory to read-only");
 				}
 			}
 			return (ReadOnlySpan<T>)buffer;
@@ -252,7 +252,7 @@ namespace LibSodium
 		/// </summary>
 		/// <param name="buffer">The <see cref="Span{Byte}"/> representing the unmanaged memory region to be marked as read-write.</param>
 		/// <returns>A <see cref="Span{Byte}"/> representing the writable unmanaged memory region</returns>
-		/// <exception cref="SodioException">Thrown if setting the memory protection fails.</exception>
+		/// <exception cref="LibSodiumException">Thrown if setting the memory protection fails.</exception>
 		internal static Span<byte> ProtectReadWrite(ReadOnlySpan<byte> buffer)
 		{
 			LibraryInitializer.EnsureInitialized();
@@ -260,7 +260,7 @@ namespace LibSodium
 			{
 				if (Native.sodium_mprotect_readwrite((nint)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer))) != 0)
 				{
-					throw new SodioException("Failed to set memory to read-write");
+					throw new LibSodiumException("Failed to set memory to read-write");
 				}
 				return new Span<byte>(Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)), buffer.Length);
 			}
@@ -273,7 +273,7 @@ namespace LibSodium
 		/// <typeparam name="T">The type of elements in the span. Must be an unmanaged type.</typeparam>
 		/// <param name="buffer">The <see cref="Span{T}"/> representing the unmanaged memory region to be marked as read-write.</param>
 		/// <returns>A <see cref="Span{T}"/> representing the writable unmanaged memory region</returns>
-		/// <exception cref="SodioException">Thrown if setting the memory protection fails.</exception>
+		/// <exception cref="LibSodiumException">Thrown if setting the memory protection fails.</exception>
 		internal static Span<T> ProtectReadWrite<T>(ReadOnlySpan<T> buffer) where T : unmanaged
 		{
 			LibraryInitializer.EnsureInitialized();
@@ -281,7 +281,7 @@ namespace LibSodium
 			{
 				if (Native.sodium_mprotect_readwrite((nint)Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer))) != 0)
 				{
-					throw new SodioException("Failed to set memory to read-write");
+					throw new LibSodiumException("Failed to set memory to read-write");
 				}
 				return new Span<T>(Unsafe.AsPointer(ref MemoryMarshal.GetReference(buffer)), buffer.Length);
 			}
@@ -316,14 +316,14 @@ namespace LibSodium
 		/// Initializes a new instance of the <see cref="SecureMemory{T}"/> class with the specified length.
 		/// </summary>
 		/// <param name="length">The number of elements of type <typeparamref name="T"/> to allocate.</param>
-		/// <exception cref="SodioException">Thrown if memory allocation fails.</exception>
+		/// <exception cref="LibSodiumException">Thrown if memory allocation fails.</exception>
 		public SecureMemory(int length)
 		{
 			LibraryInitializer.EnsureInitialized();
 			address = Native.sodium_allocarray((nuint)length, (nuint)Unsafe.SizeOf<T>());
 			if (address == 0)
 			{
-				throw new SodioException("Failed to allocate memory");
+				throw new LibSodiumException("Failed to allocate memory");
 			}
 			Length = length;
 		}
@@ -372,14 +372,14 @@ namespace LibSodium
 		/// Marks the secure unmanaged memory buffer as read-only.
 		/// </summary>
 		/// <exception cref="ObjectDisposedException">Thrown if the object has been disposed.</exception>
-		/// <exception cref="SodioException">Thrown if setting the memory to read-only fails.</exception>
+		/// <exception cref="LibSodiumException">Thrown if setting the memory to read-only fails.</exception>
 		public void ProtectReadOnly()
 		{
 			ObjectDisposedException.ThrowIf(IsDisposed, this);
 			if (IsReadOnly) return;
 			if (Native.sodium_mprotect_readonly(address) != 0)
 			{
-				throw new SodioException("Failed to set memory to read-only");
+				throw new LibSodiumException("Failed to set memory to read-only");
 			}
 			IsReadOnly = true;
 		}
@@ -388,14 +388,14 @@ namespace LibSodium
 		/// Marks the secure unmanaged memory buffer as read-write.
 		/// </summary>
 		/// <exception cref="ObjectDisposedException">Thrown if the object has been disposed.</exception>
-		/// <exception cref="SodioException">Thrown if setting the memory to read-write fails.</exception>
+		/// <exception cref="LibSodiumException">Thrown if setting the memory to read-write fails.</exception>
 		public void ProtectReadWrite()
 		{
 			ObjectDisposedException.ThrowIf(IsDisposed, this);
 			if (IsReadOnly == false) return;
 			if (Native.sodium_mprotect_readwrite(address) != 0)
 			{
-				throw new SodioException("Failed to set memory to read-write");
+				throw new LibSodiumException("Failed to set memory to read-write");
 			}
 			IsReadOnly = false;
 		}

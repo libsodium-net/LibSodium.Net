@@ -39,7 +39,7 @@ namespace LibSodium
 		/// <item>The <paramref name="nonce"/> length is incorrect.</item>
 		/// </list>
 		/// </exception>
-		/// <exception cref="SodioException">Thrown when the underlying encryption operation fails.</exception>
+		/// <exception cref="LibSodiumException">Thrown when the underlying encryption operation fails.</exception>
 		public static Span<byte> EncryptCombined(Span<byte> ciphertext, ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> key, ReadOnlySpan<byte> nonce)
 		{
 			if (ciphertext.Length < plaintext.Length + MacLen)
@@ -58,7 +58,7 @@ namespace LibSodium
 			int rc = Native.crypto_secretbox_easy(ciphertext, plaintext, (ulong)plaintext.Length, nonce, key);
 			if (rc != 0)
 			{
-				throw new SodioException("Failed to encrypt message.");
+				throw new LibSodiumException("Failed to encrypt message.");
 			}
 			return ciphertext.Slice(0, plaintext.Length + MacLen);
 		}
@@ -77,7 +77,7 @@ namespace LibSodium
 		/// <item>The <paramref name="key"/> length is incorrect.</item>
 		/// </list>
 		/// </exception>
-		/// <exception cref="SodioException">Thrown when the underlying encryption operation fails.</exception>
+		/// <exception cref="LibSodiumException">Thrown when the underlying encryption operation fails.</exception>
 
 		public static Span<byte> EncryptCombined(Span<byte> ciphertext, ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> key)
 		{
@@ -96,7 +96,7 @@ namespace LibSodium
 			int rc = Native.crypto_secretbox_easy(cipher, plaintext, (ulong)plaintext.Length, nonce, key);
 			if (rc != 0)
 			{
-				throw new SodioException("Failed to encrypt message.");
+				throw new LibSodiumException("Failed to encrypt message.");
 			}
 			return ciphertext.Slice(0, plaintext.Length + MacLen + NonceLen);
 		}
@@ -118,7 +118,7 @@ namespace LibSodium
 		/// <item>The <paramref name="nonce"/> length is incorrect.</item>
 		/// </list>
 		/// </exception>
-		/// <exception cref="SodioException">Thrown when decryption or verification fails.</exception>
+		/// <exception cref="LibSodiumException">Thrown when decryption or verification fails.</exception>
 
 		public static Span<byte> DecryptCombined(Span<byte> plaintext, ReadOnlySpan<byte> ciphertext, ReadOnlySpan<byte> key, ReadOnlySpan<byte> nonce)
 		{
@@ -142,7 +142,7 @@ namespace LibSodium
 			int rc = Native.crypto_secretbox_open_easy(plaintext, ciphertext, (ulong)ciphertext.Length, nonce, key);
 			if (rc != 0)
 			{
-				throw new SodioException("Couldn't decrypt message. Verification failed");
+				throw new LibSodiumException("Couldn't decrypt message. Verification failed");
 			}
 			return plaintext.Slice(0, ciphertext.Length - MacLen);
 		}
@@ -162,7 +162,7 @@ namespace LibSodium
 		/// <item>The <paramref name="key"/> length is incorrect.</item>
 		/// </list>
 		/// </exception>
-		/// <exception cref="SodioException">Thrown when decryption or verification fails.</exception>
+		/// <exception cref="LibSodiumException">Thrown when decryption or verification fails.</exception>
 
 		public static Span<byte> DecryptCombined(Span<byte> plaintext, ReadOnlySpan<byte> ciphertext, ReadOnlySpan<byte> key)
 		{
@@ -184,7 +184,7 @@ namespace LibSodium
 			int rc = Native.crypto_secretbox_open_easy(plaintext, cipher, (ulong)cipher.Length, nonce, key);
 			if (rc != 0)
 			{
-				throw new SodioException("Couldn't decrypt message. Verification failed");
+				throw new LibSodiumException("Couldn't decrypt message. Verification failed");
 			}
 			return plaintext.Slice(0, ciphertext.Length - MacLen - NonceLen);
 		}
@@ -206,7 +206,7 @@ namespace LibSodium
 		/// <item>The <paramref name="key"/> length is incorrect.</item>
 		/// </list>
 		/// </exception>
-		/// <exception cref="SodioException">Thrown when the encryption operation fails.</exception>
+		/// <exception cref="LibSodiumException">Thrown when the encryption operation fails.</exception>
 		public static Span<byte> EncryptDetached(Span<byte> ciphertext, Span<byte> mac, ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> key, ReadOnlySpan<byte> nonce)
 		{
 			if (ciphertext.Length < plaintext.Length)
@@ -229,7 +229,7 @@ namespace LibSodium
 			int rc = Native.crypto_secretbox_detached(ciphertext, mac, plaintext, (ulong)plaintext.Length, nonce, key);
 			if (rc != 0)
 			{
-				throw new SodioException("Failed to encrypt message.");
+				throw new LibSodiumException("Failed to encrypt message.");
 			}
 			return ciphertext.Slice(0, plaintext.Length);
 		}
@@ -250,7 +250,7 @@ namespace LibSodium
 		/// <item>The <paramref name="key"/> buffer has an incorrect length.</item>
 		/// </list>
 		/// </exception>
-		/// <exception cref="SodioException">Thrown when the encryption operation fails.</exception>
+		/// <exception cref="LibSodiumException">Thrown when the encryption operation fails.</exception>
 		public static Span<byte> EncryptDetached(Span<byte> ciphertext, Span<byte> mac, ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> key)
 		{
 			if (ciphertext.Length < plaintext.Length + NonceLen)
@@ -272,7 +272,7 @@ namespace LibSodium
 			int rc = Native.crypto_secretbox_detached(cipher, mac, plaintext, (ulong)plaintext.Length, nonce, key);
 			if (rc != 0)
 			{
-				throw new SodioException("Failed to encrypt message.");
+				throw new LibSodiumException("Failed to encrypt message.");
 			}
 			return ciphertext.Slice(0, plaintext.Length + NonceLen);
 		}
@@ -294,7 +294,7 @@ namespace LibSodium
 		/// <item>The <paramref name="key"/> length is incorrect.</item>
 		/// </list>
 		/// </exception>
-		/// <exception cref="SodioException">Thrown when decryption or verification fails.</exception>
+		/// <exception cref="LibSodiumException">Thrown when decryption or verification fails.</exception>
 		public static Span<byte> DecryptDetached(Span<byte> plaintext, ReadOnlySpan<byte> ciphertext, ReadOnlySpan<byte> key, ReadOnlySpan<byte> mac, ReadOnlySpan<byte> nonce)
 		{
 			if (plaintext.Length < ciphertext.Length)
@@ -317,7 +317,7 @@ namespace LibSodium
 			int rc = Native.crypto_secretbox_open_detached(plaintext, ciphertext, mac, (ulong)ciphertext.Length, nonce, key);
 			if (rc != 0)
 			{
-				throw new SodioException("Couldn't decrypt message. Verification failed");
+				throw new LibSodiumException("Couldn't decrypt message. Verification failed");
 			}
 			return plaintext.Slice(0, ciphertext.Length);
 		}
@@ -339,7 +339,7 @@ namespace LibSodium
 		/// <item>The <paramref name="ciphertext"/> length is too small.</item>
 		/// </list>
 		/// </exception>
-		/// <exception cref="SodioException">Thrown when decryption or verification fails.</exception>
+		/// <exception cref="LibSodiumException">Thrown when decryption or verification fails.</exception>
 
 		public static Span<byte> DecryptDetached(Span<byte> plaintext, ReadOnlySpan<byte> ciphertext, ReadOnlySpan<byte> key, ReadOnlySpan<byte> mac)
 		{
@@ -361,7 +361,7 @@ namespace LibSodium
 			int rc = Native.crypto_secretbox_open_detached(plaintext, cipher, mac, (ulong)cipher.Length, nonce, key);
 			if (rc != 0)
 			{
-				throw new SodioException("Couldn't decrypt message. Verification failed");
+				throw new LibSodiumException("Couldn't decrypt message. Verification failed");
 			}
 			return plaintext.Slice(0, ciphertext.Length - NonceLen);
 		}

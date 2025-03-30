@@ -25,7 +25,7 @@ namespace LibSodium
 			var result = Native.sodium_bin2hex(hexAsciiBytes, (nuint)hexAsciiBytesLen, bin, (nuint)bin.Length);
 			if (result == 0)
 			{
-				throw new SodioException("sodium_bin2hex failed");
+				throw new LibSodiumException("sodium_bin2hex failed");
 			}
 			return Encoding.ASCII.GetString(hexAsciiBytes.Slice(0, hexAsciiBytes.Length - 1));
 		}
@@ -52,7 +52,7 @@ namespace LibSodium
 			var result = Native.sodium_bin2hex(hexAsciiBytes, (nuint)hexAsciiBytesLen, bin, (nuint)bin.Length);
 			if (result == 0)
 			{
-				throw new SodioException("sodium_bin2hex failed");
+				throw new LibSodiumException("sodium_bin2hex failed");
 			}
 			Encoding.ASCII.GetChars(hexAsciiBytes.Slice(0, hexAsciiBytesLen - 1), hex);
 			return hex.Slice(0, hexAsciiBytesLen - 1);
@@ -92,7 +92,7 @@ namespace LibSodium
 
 			if (Native.sodium_hex2bin(bin, (nuint)bin.Length, hexBytes, (nuint)hex.Length, ignoreBytes, out nuint bin_len, nint.Zero) != 0)
 			{
-				throw new SodioException("sodium_hex2bin failed because hex string contains invalid characters or the destination bin buffer is too short");
+				throw new LibSodiumException("sodium_hex2bin failed because hex string contains invalid characters or the destination bin buffer is too short");
 			}
 			return bin.Slice(0, (int)bin_len);
 		}

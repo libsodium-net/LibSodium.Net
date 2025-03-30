@@ -66,14 +66,14 @@ namespace LibSodium.Tests
 		{
 			string invalidHex = "0123456789abcg"; // 'g' is an invalid hex character
 			byte[] binBuffer = new byte[invalidHex.Length / 2];
-			await Assert.That(() => HexEncoding.HexToBin(invalidHex, binBuffer)).Throws<SodioException>();
+			await Assert.That(() => HexEncoding.HexToBin(invalidHex, binBuffer)).Throws<LibSodiumException>();
 		}
 
 		[Test]
 		public async Task HexToBin_ThrowsSodiumException_OnBufferTooSmall()
 		{
 			byte[] binBuffer = new byte[1];
-			await Assert.That(() => HexEncoding.HexToBin(hex, binBuffer)).Throws<SodioException>();
+			await Assert.That(() => HexEncoding.HexToBin(hex, binBuffer)).Throws<LibSodiumException>();
 		}
 
 		[Test]

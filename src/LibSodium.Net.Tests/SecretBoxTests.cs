@@ -171,7 +171,7 @@ namespace LibSodium.Tests
 
 			byte[] decryptedBuffer = new byte[plaintext.Length];
 
-			await Assert.That(() => SecretBox.DecryptCombined(decryptedBuffer, ciphertext, key, nonce)).Throws<SodioException>();
+			await Assert.That(() => SecretBox.DecryptCombined(decryptedBuffer, ciphertext, key, nonce)).Throws<LibSodiumException>();
 		}
 
 		[Test]
@@ -190,7 +190,7 @@ namespace LibSodium.Tests
 
 			byte[] decryptedBuffer = new byte[plaintext.Length];
 
-			await Assert.That(() => SecretBox.DecryptCombined(decryptedBuffer, ciphertext, key)).Throws<SodioException>();
+			await Assert.That(() => SecretBox.DecryptCombined(decryptedBuffer, ciphertext, key)).Throws<LibSodiumException>();
 		}
 
 		[Test]
@@ -212,7 +212,7 @@ namespace LibSodium.Tests
 
 			byte[] decryptedBuffer = new byte[plaintext.Length];
 
-			await Assert.That(() => SecretBox.DecryptDetached(decryptedBuffer, ciphertext, key, macBuffer, nonce)).Throws<SodioException>();
+			await Assert.That(() => SecretBox.DecryptDetached(decryptedBuffer, ciphertext, key, macBuffer, nonce)).Throws<LibSodiumException>();
 		}
 
 		[Test]
@@ -232,7 +232,7 @@ namespace LibSodium.Tests
 
 			byte[] decryptedBuffer = new byte[plaintext.Length];
 
-			await Assert.That(() => SecretBox.DecryptDetached(decryptedBuffer, ciphertext, key, macBuffer)).Throws<SodioException>();
+			await Assert.That(() => SecretBox.DecryptDetached(decryptedBuffer, ciphertext, key, macBuffer)).Throws<LibSodiumException>();
 		}
 	}
 }

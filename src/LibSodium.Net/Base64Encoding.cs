@@ -71,7 +71,7 @@ namespace LibSodium
 			Encoding.ASCII.GetBytes(b64, b64AsciiBytes);
 			if (Native.sodium_base642bin(bin, (nuint)bin.Length, b64AsciiBytes, (nuint)b64.Length, ignoreBytes, out nuint bin_len, nint.Zero, (int)variant) != 0)
 			{
-				throw new SodioException("sodium_base642bin failed because Base64 contains invalid characters or the destination bin buffer is too short");
+				throw new LibSodiumException("sodium_base642bin failed because Base64 contains invalid characters or the destination bin buffer is too short");
 			}
 			return bin.Slice(0, (int)bin_len);
 		}
@@ -92,7 +92,7 @@ namespace LibSodium
 			var result = Native.sodium_bin2base64(b64AsciiBytes, (nuint)b64AsciiBytes.Length, bin, (nuint)bin.Length, (int)variant);
 			if (result == 0)
 			{
-				throw new SodioException("sodium_bin2base64 failed");
+				throw new LibSodiumException("sodium_bin2base64 failed");
 			}
 			return Encoding.ASCII.GetString(b64AsciiBytes.Slice(0, b64AsciiBytesLen - 1));
 		}
@@ -118,7 +118,7 @@ namespace LibSodium
 			var result = Native.sodium_bin2base64(b64AsciiBytes, (nuint)b64AsciiBytes.Length, bin, (nuint)bin.Length, (int)variant);
 			if (result == 0)
 			{
-				throw new SodioException("sodium_bin2base64 failed");
+				throw new LibSodiumException("sodium_bin2base64 failed");
 			}
 			Encoding.ASCII.GetChars(b64AsciiBytes.Slice(0, b64AsciiBytesLen - 1), b64);
 			return b64.Slice(0, b64AsciiBytesLen - 1);

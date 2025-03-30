@@ -63,13 +63,13 @@ namespace LibSodium
 		/// <summary>
 		/// Closes the random number generator.
 		/// </summary>
-		/// <exception cref="SodioException">Thrown when randombytes_close() fails.</exception>
+		/// <exception cref="LibSodiumException">Thrown when randombytes_close() fails.</exception>
 		public static void Close()
 		{
 			LibraryInitializer.EnsureInitialized();
 			if (Native.randombytes_close() != 0)
 			{
-				throw new SodioException("randombytes_close() failed");
+				throw new LibSodiumException("randombytes_close() failed");
 			}
 		}
 

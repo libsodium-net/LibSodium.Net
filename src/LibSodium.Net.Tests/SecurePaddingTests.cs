@@ -74,8 +74,8 @@ namespace LibSodium.Tests
 		{
 			byte[] invalidPadded1 = { 0x01, 0x02, 0x03, 0x00, 0x00, 0x00, 0x00, 0x00 }; // Missing 0x80 marker
 			byte[] invalidPadded2 = { 0x01, 0x02, 0x80, 0x00, 0x00, 0x00, 0x00, 0x01 }; // wrong padding value
-			await Assert.That(() => SecurePadding.Unpad(invalidPadded1, blockSize: 8)).Throws<SodioException>();
-			await Assert.That(() => SecurePadding.Unpad(invalidPadded2, blockSize: 8)).Throws<SodioException>();
+			await Assert.That(() => SecurePadding.Unpad(invalidPadded1, blockSize: 8)).Throws<LibSodiumException>();
+			await Assert.That(() => SecurePadding.Unpad(invalidPadded2, blockSize: 8)).Throws<LibSodiumException>();
 		}
 
 		[Test]

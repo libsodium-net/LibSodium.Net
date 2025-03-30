@@ -81,7 +81,7 @@ namespace LibSodium.Tests
 				await Assert.That(() => RandomGenerator.Stir()).ThrowsNothing();
 				await Assert.That(() => RandomGenerator.Stir()).ThrowsNothing();
 				await Assert.That(() => RandomGenerator.Close()).ThrowsNothing();
-				await Assert.That(() => RandomGenerator.Close()).Throws<SodioException>();
+				await Assert.That(() => RandomGenerator.Close()).Throws<LibSodiumException>();
 			}
 			finally
 			{

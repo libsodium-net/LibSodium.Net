@@ -79,7 +79,7 @@ namespace LibSodium.Tests
 		{
 			string invalidBase64 = "InvalidBase64!";
 			byte[] binaryBuffer = new byte[Base64Encoding.GetBase64DecodedMaxLen(invalidBase64.Length)];
-			await Assert.That(() => Base64Encoding.Base64ToBin(invalidBase64, binaryBuffer, Base64Variant.Original)).Throws<SodioException>();
+			await Assert.That(() => Base64Encoding.Base64ToBin(invalidBase64, binaryBuffer, Base64Variant.Original)).Throws<LibSodiumException>();
 		}
 
 		[Test]

@@ -40,7 +40,7 @@ namespace LibSodium
 		/// <param name="blockSize">The block size that was used for padding.</param>
 		/// <returns>A span of the unpadded buffer.</returns>
 		/// <exception cref="ArgumentException">Thrown when blockSize is less than or equal to 0.</exception>
-		/// <exception cref="SodioException">Thrown when unpadding fails.</exception>
+		/// <exception cref="LibSodiumException">Thrown when unpadding fails.</exception>
 		public static Span<byte> Unpad(Span<byte> buffer, int blockSize)
 		{
 			LibraryInitializer.EnsureInitialized();
@@ -50,7 +50,7 @@ namespace LibSodium
 			}
 			if (Native.sodium_unpad(out nint unpadded_len, buffer, (nuint)buffer.Length, (nuint)blockSize) != 0)
 			{
-				throw new SodioException("Unpadding failed");
+				throw new LibSodiumException("Unpadding failed");
 			}
 			return buffer.Slice(0, (int)unpadded_len);
 		}

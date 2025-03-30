@@ -34,8 +34,8 @@
       "templates/material"
     ],
     "globalMetadata": {
-      "_appName": "LibSodium.Bindings.Net",
-      "_appTitle": "LibSodium.Bindings.Net",
+      "_appName": "LibSodium.Net",
+      "_appTitle": "LibSodium.Net",
       "_enableSearch": true,
       "_appLogoPath": "images/Na.png",
       "_appFaviconPath": "images/Na.png",

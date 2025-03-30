@@ -38,7 +38,7 @@ namespace LibSodium
 			// sodium_init() returns 0 on success, -1 on failure, and 1 if the library had already been initialized.
 			if (Native.sodium_init() < 0)
 			{
-				throw new SodioException("Failed to initialize libsodium."); // Throw exception on failure.
+				throw new LibSodiumException("Failed to initialize libsodium."); // Throw exception on failure.
 			};
 		}
 
@@ -50,7 +50,7 @@ namespace LibSodium
 		{
 			if (Native.sodium_set_misuse_handler(handler) != 0)
 			{
-				throw new SodioException("Failed to set misuse handler."); // Throw exception on failure.
+				throw new LibSodiumException("Failed to set misuse handler."); // Throw exception on failure.
 			};
 		}
 
@@ -68,8 +68,8 @@ namespace LibSodium
 				{
 					string? version = LibraryVersion.GetString();
 					throw version != null && version != Native.SODIUM_VERSION_STRING
-						? new SodioException($"An error occurred while initializing cryptographic primitives. (Expected libsodium {Native.SODIUM_VERSION_STRING} but found {version}.)")
-						: new SodioException("An error occurred while initializing cryptographic primitives: version mismatch");
+						? new LibSodiumException($"An error occurred while initializing cryptographic primitives. (Expected libsodium {Native.SODIUM_VERSION_STRING} but found {version}.)")
+						: new LibSodiumException("An error occurred while initializing cryptographic primitives: version mismatch");
 				}
 				SetMisuseHandler(MisuseHandler); // Set the misuse handler.
 				SodiumInit(); // Initialize the library.
@@ -90,7 +90,7 @@ namespace LibSodium
 		/// </summary>
 		private static void MisuseHandler()
 		{
-			throw new SodioException("Misuse detected"); // Throw exception on misuse.
+			throw new LibSodiumException("Misuse detected"); // Throw exception on misuse.
 		}
 	}
 }
