@@ -1,7 +1,7 @@
 # LibSodium.Net
 
 
-[![Build and Test](https://github.com/libSodium-net/LibSodium.Net/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/jesuslpm/Na.Core/actions/workflows/build-and-test.yml)
+[![Build and Test](https://github.com/libSodium-net/LibSodium.Net/actions/workflows/build-and-test.yml/badge.svg)](https://github.com//libSodium-net/LibSodium.Net/actions/workflows/build-and-test.yml)
 
 
 LibSodium.Net is a .NET library that provides comprehensive bindings for the [libsodium](https://doc.libsodium.org/) native library, 
