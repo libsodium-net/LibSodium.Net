@@ -1,2 +1,2 @@
 dotnet pack %~dp0LibSodium.Bindings.Net.csproj -c Release -p:ContinuousIntegrationBuild=true --output %~dp0nupkgs
-dotnet nuget push %~dp0nupkgs\LibSodium.Bindings.Net.0.2.0-alpha.nupkg --api-key %NUGET_API_KEY% --source https://api.nuget.org/v3/index.json
+dotnet nuget push %~dp0nupkgs\LibSodium.Bindings.Net.0.3.0-alpha.nupkg --api-key %NUGET_API_KEY% --source https://api.nuget.org/v3/index.json
