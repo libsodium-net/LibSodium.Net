@@ -4,7 +4,7 @@
     {
       "src": [
         {
-          "files": [ "LibSodium.Net/LibSodium.Bindings.Net.csproj" ],
+          "files": [ "LibSodium.Net/LibSodium.Net.csproj" ],
           "src": "../src"
         }
       ],

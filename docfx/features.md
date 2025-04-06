@@ -36,6 +36,7 @@ Pad and unpad data using the ISO/IEC 7816-4 padding algorithm
 ### Secret-Key Cryptography
 
 - Authenticatedd encryption (SecretBox)
+- Encrypted streams and file encryption
 
 ## Additional Features
 
