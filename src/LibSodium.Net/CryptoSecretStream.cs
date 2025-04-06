@@ -28,7 +28,7 @@ namespace LibSodium
 	}
 
 	/// <summary>
-	/// The CryptoSecretStream class provides methods for performing authenticated encryption and decryption of data streams, with optional additional authenticated data.
+	/// The CryptoSecretStream class provides methods for performing authenticated encryption and decryption of data streams, with optional additional authenticated data. It is based on the XChaCha20-Poly1305 algorithm.
 	/// </summary>
 	public static class CryptoSecretStream
 	{

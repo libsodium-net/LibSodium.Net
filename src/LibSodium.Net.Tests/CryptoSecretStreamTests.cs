@@ -13,7 +13,7 @@ namespace LibSodium.Tests
 		}
 
 		[Test]
-		public void GenerateKey_CreatesKeyOfCorrectLength()
+		public void GenerateKey_GeneratesRandomKey()
 		{
 			Span<byte> key = stackalloc byte[CryptoSecretStream.KeyLen];
 			CryptoSecretStream.GenerateKey(key);
@@ -84,16 +84,16 @@ namespace LibSodium.Tests
 			Span<byte> header = stackalloc byte[CryptoSecretStream.HeaderLen];
 			CryptoSecretStream.InitializeEncryption(state, header, key);
 
-			Span<byte> clearText = stackalloc byte[48];
-			RandomGenerator.Fill(clearText);
+			Span<byte> cleartext = stackalloc byte[48];
+			RandomGenerator.Fill(cleartext);
 
-			Span<byte> cipherText = stackalloc byte[clearText.Length + CryptoSecretStream.OverheadLen];
+			Span<byte> ciphertext = stackalloc byte[cleartext.Length + CryptoSecretStream.OverheadLen];
 
-			var encrypted = CryptoSecretStream.EncryptChunk(state, cipherText, clearText, CryptoSecretStreamTag.Message);
-			encrypted.Length.ShouldBe(clearText.Length + CryptoSecretStream.OverheadLen);
+			var encrypted = CryptoSecretStream.EncryptChunk(state, ciphertext, cleartext, CryptoSecretStreamTag.Message);
+			encrypted.Length.ShouldBe(cleartext.Length + CryptoSecretStream.OverheadLen);
 
-			SecureBigUnsignedInteger.Equals(clearText, encrypted.Slice(0, clearText.Length)).ShouldBeFalse(); // Ensure it's encrypted
-			SecureBigUnsignedInteger.Equals(clearText, encrypted.Slice(CryptoSecretStream.OverheadLen)).ShouldBeFalse(); // Ensure it's encrypted
+			SecureBigUnsignedInteger.Equals(cleartext, encrypted.Slice(0, cleartext.Length)).ShouldBeFalse(); // Ensure it's encrypted
+			SecureBigUnsignedInteger.Equals(cleartext, encrypted.Slice(CryptoSecretStream.OverheadLen)).ShouldBeFalse(); // Ensure it's encrypted
 		}
 
 		[Test]
@@ -106,19 +106,19 @@ namespace LibSodium.Tests
 			Span<byte> header = stackalloc byte[CryptoSecretStream.HeaderLen];
 			CryptoSecretStream.InitializeEncryption(state, header, key);
 
-			Span<byte> clearText = stackalloc byte[48];
-			RandomGenerator.Fill(clearText);
+			Span<byte> cleartext = stackalloc byte[48];
+			RandomGenerator.Fill(cleartext);
 
 			Span<byte> additionalData = stackalloc byte[16];
 			RandomGenerator.Fill(additionalData);
 
-			Span<byte> cipherText = stackalloc byte[clearText.Length + CryptoSecretStream.OverheadLen];
+			Span<byte> ciphertext = stackalloc byte[cleartext.Length + CryptoSecretStream.OverheadLen];
 
-			var encrypted = CryptoSecretStream.EncryptChunk(state, cipherText, clearText, CryptoSecretStreamTag.Message, additionalData);
-			encrypted.Length.ShouldBe(clearText.Length + CryptoSecretStream.OverheadLen);
+			var encrypted = CryptoSecretStream.EncryptChunk(state, ciphertext, cleartext, CryptoSecretStreamTag.Message, additionalData);
+			encrypted.Length.ShouldBe(cleartext.Length + CryptoSecretStream.OverheadLen);
 
-			SecureBigUnsignedInteger.Equals(clearText, encrypted.Slice(0, clearText.Length)).ShouldBeFalse(); // Ensure it's encrypted
-			SecureBigUnsignedInteger.Equals(clearText, encrypted.Slice(CryptoSecretStream.OverheadLen)).ShouldBeFalse(); // Ensure it's encrypted
+			SecureBigUnsignedInteger.Equals(cleartext, encrypted.Slice(0, cleartext.Length)).ShouldBeFalse(); // Ensure it's encrypted
+			SecureBigUnsignedInteger.Equals(cleartext, encrypted.Slice(CryptoSecretStream.OverheadLen)).ShouldBeFalse(); // Ensure it's encrypted
 
 		}
 
@@ -128,11 +128,11 @@ namespace LibSodium.Tests
 
 			Should.Throw<ArgumentException>(() =>
 			{
-				Span<byte> clearText = stackalloc byte[48];
+				Span<byte> cleartext = stackalloc byte[48];
 				Span<byte> state = stackalloc byte[CryptoSecretStream.StateLen + 1];
-				Span<byte> cipherText = stackalloc byte[clearText.Length + CryptoSecretStream.OverheadLen];
+				Span<byte> ciphertext = stackalloc byte[cleartext.Length + CryptoSecretStream.OverheadLen];
 
-				CryptoSecretStream.EncryptChunk(state, cipherText, clearText, CryptoSecretStreamTag.Message);
+				CryptoSecretStream.EncryptChunk(state, ciphertext, cleartext, CryptoSecretStreamTag.Message);
 			});
 		}
 
@@ -142,11 +142,11 @@ namespace LibSodium.Tests
 
 			Should.Throw<ArgumentException>(() =>
 			{
-				Span<byte> clearText = stackalloc byte[48];
+				Span<byte> cleartext = stackalloc byte[48];
 				Span<byte> state = stackalloc byte[CryptoSecretStream.StateLen];
-				Span<byte> cipherText = stackalloc byte[clearText.Length + CryptoSecretStream.OverheadLen - 1];
+				Span<byte> ciphertext = stackalloc byte[cleartext.Length + CryptoSecretStream.OverheadLen - 1];
 
-				CryptoSecretStream.EncryptChunk(state, cipherText, clearText, CryptoSecretStreamTag.Message);
+				CryptoSecretStream.EncryptChunk(state, ciphertext, cleartext, CryptoSecretStreamTag.Message);
 			});
 		}
 
@@ -251,11 +251,11 @@ namespace LibSodium.Tests
 
 			Should.Throw<ArgumentException>(() =>
 			{
-				Span<byte> clearText = stackalloc byte[48];
+				Span<byte> cleartext = stackalloc byte[48];
 				Span<byte> state = stackalloc byte[CryptoSecretStream.StateLen + 1];
-				Span<byte> cipherText = stackalloc byte[clearText.Length + CryptoSecretStream.OverheadLen];
+				Span<byte> ciphertext = stackalloc byte[cleartext.Length + CryptoSecretStream.OverheadLen];
 
-				CryptoSecretStream.DecryptChunk(state, clearText , out var _, cipherText);
+				CryptoSecretStream.DecryptChunk(state, cleartext , out var _, ciphertext);
 			});
 		}
 
@@ -265,51 +265,59 @@ namespace LibSodium.Tests
 
 			Should.Throw<ArgumentException>(() =>
 			{
-				Span<byte> cipherText = stackalloc byte[48 + CryptoSecretStream.OverheadLen];
-				Span<byte> clearText = stackalloc byte[cipherText.Length - CryptoSecretStream.OverheadLen - 1];
+				Span<byte> ciphertext = stackalloc byte[48 + CryptoSecretStream.OverheadLen];
+				Span<byte> cleartext = stackalloc byte[ciphertext.Length - CryptoSecretStream.OverheadLen - 1];
 				Span<byte> state = stackalloc byte[CryptoSecretStream.StateLen];
 
-				CryptoSecretStream.DecryptChunk(state, clearText, out var _, cipherText);
+				CryptoSecretStream.DecryptChunk(state, cleartext, out var _, ciphertext);
 			});
 		}
 
 		[Test]
 		public void DecryptChunk_ThrowsLibSodiumException_ForTamperedCiphertext()
 		{
-			var key = GenerateRandomBytes(CryptoSecretStream.KeyLen);
-			var stateEncrypt = new byte[CryptoSecretStream.StateLen];
-			var header = new byte[CryptoSecretStream.HeaderLen];
-			CryptoSecretStream.InitializeEncryption(stateEncrypt, header, key);
-			var clearTextOriginal = GenerateRandomBytes(32);
-			var cipherText = new byte[clearTextOriginal.Length + CryptoSecretStream.OverheadLen];
-			var encrypted = CryptoSecretStream.EncryptChunk(stateEncrypt, cipherText, clearTextOriginal, CryptoSecretStreamTag.Message).ToArray();
+			Span<byte> key = stackalloc byte[CryptoSecretStream.KeyLen];
+			CryptoSecretStream.GenerateKey(key);
+
+			Span<byte> header = stackalloc byte[CryptoSecretStream.HeaderLen];
+			var state = new byte[CryptoSecretStream.StateLen];
+
+			CryptoSecretStream.InitializeEncryption(state, header, key);
+
+			Span<byte> cleartext = stackalloc byte[48];
+			RandomGenerator.Fill(cleartext);
+
+			var ciphertext = new byte[cleartext.Length + CryptoSecretStream.OverheadLen];
+			CryptoSecretStream.EncryptChunk(state, ciphertext, cleartext, CryptoSecretStreamTag.Message);
 
 			// Tamper with the ciphertext
-			encrypted[5]++;
+			ciphertext[5]++;
 
-			var stateDecrypt = new byte[CryptoSecretStream.StateLen];
-			CryptoSecretStream.InitializeDecryption(stateDecrypt, header, key);
-			var clearTextDecrypted = new byte[encrypted.Length - CryptoSecretStream.OverheadLen];
-			Should.Throw<LibSodiumException>(() => CryptoSecretStream.DecryptChunk(stateDecrypt, clearTextDecrypted, out _, encrypted));
+			CryptoSecretStream.InitializeDecryption(state, header, key);
+			Should.Throw<LibSodiumException>(() =>
+			{
+				Span<byte> decrypted = stackalloc byte[ciphertext.Length - CryptoSecretStream.OverheadLen] ;
+				CryptoSecretStream.DecryptChunk(state, decrypted, out _, ciphertext);
+			});
 		}
 
 		[Test]
-		public void DecryptChunk_WithAAD_ThrowsLibSodiumException_ForIncorrectAAD()
+		public void DecryptChunk_With_AAD_Throws_LibSodiumException_ForIncorrect_AAD()
 		{
 			var key = GenerateRandomBytes(CryptoSecretStream.KeyLen);
 			var stateEncrypt = new byte[CryptoSecretStream.StateLen];
 			var header = new byte[CryptoSecretStream.HeaderLen];
 			CryptoSecretStream.InitializeEncryption(stateEncrypt, header, key);
-			var clearTextOriginal = GenerateRandomBytes(32);
+			var cleartextOriginal = GenerateRandomBytes(32);
 			var additionalDataOriginal = GenerateRandomBytes(16);
-			var cipherText = new byte[clearTextOriginal.Length + CryptoSecretStream.OverheadLen];
-			var encrypted = CryptoSecretStream.EncryptChunk(stateEncrypt, cipherText, clearTextOriginal, CryptoSecretStreamTag.Message, additionalDataOriginal).ToArray();
+			var ciphertext = new byte[cleartextOriginal.Length + CryptoSecretStream.OverheadLen];
+			var encrypted = CryptoSecretStream.EncryptChunk(stateEncrypt, ciphertext, cleartextOriginal, CryptoSecretStreamTag.Message, additionalDataOriginal).ToArray();
 
 			var stateDecrypt = new byte[CryptoSecretStream.StateLen];
 			CryptoSecretStream.InitializeDecryption(stateDecrypt, header, key);
-			var clearTextDecrypted = new byte[encrypted.Length - CryptoSecretStream.OverheadLen];
+			var cleartextDecrypted = new byte[encrypted.Length - CryptoSecretStream.OverheadLen];
 			var additionalDataWrong = GenerateRandomBytes(16);
-			Should.Throw<LibSodiumException>(() => CryptoSecretStream.DecryptChunk(stateDecrypt, clearTextDecrypted, out _, encrypted, additionalDataWrong));
+			Should.Throw<LibSodiumException>(() => CryptoSecretStream.DecryptChunk(stateDecrypt, cleartextDecrypted, out _, encrypted, additionalDataWrong));
 		}
 	}
 }
