@@ -21,8 +21,9 @@
 		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
 		<EmbedAllSources>true</EmbedAllSources>
 		<AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb;.xml</AllowedOutputExtensionsInPackageBuildOutputFolder>
-		<PackageId>LibSodium.Bindings.Net</PackageId>
+		<PackageId>LibSodium.Net</PackageId>
 		<PackageIcon>Na.png</PackageIcon>
+		<RootNamespace>LibSodium</RootNamespace>
 
 	</PropertyGroup>
 
@@ -55,6 +56,10 @@
 	    <Pack>True</Pack>
 	    <PackagePath>\</PackagePath>
 	  </None>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="nupkgs\" />
 	</ItemGroup>
 
 </Project>

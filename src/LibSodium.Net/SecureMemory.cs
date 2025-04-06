@@ -22,6 +22,33 @@ namespace LibSodium
 		}
 
 		/// <summary>
+		/// Checks if the given byte buffer is zero.
+		/// </summary>
+		/// <param name="b">The byte buffer to check.</param>
+		/// <returns>True if the byte buffer is zero, false otherwise.</returns>
+		public static bool IsZero(ReadOnlySpan<byte> b)
+		{
+			LibraryInitializer.EnsureInitialized();
+			return Native.sodium_is_zero(b, (nuint)b.Length) == 1;
+		}
+
+		/// <summary>
+		/// Compares two byte buffers for equality in constant time.
+		/// </summary>
+		/// <param name="b1">First buffer to compare.</param>
+		/// <param name="b2">Second buffer to compare.</param>
+		/// <returns>True if the buffers are equal, false otherwise.</returns>
+		public static bool Equals(ReadOnlySpan<byte> b1, ReadOnlySpan<byte> b2)
+		{
+			LibraryInitializer.EnsureInitialized();
+			if (b1.Length != b2.Length)
+			{
+				return false;
+			}
+			return Native.sodium_memcmp(b1, b2, (nuint)b1.Length) == 0;
+		}
+
+		/// <summary>
 		/// Fills a buffer with zeros, effectively erasing its contents.
 		/// </summary>
 		/// <param name="buffer">The span of bytes to zero out.</param>

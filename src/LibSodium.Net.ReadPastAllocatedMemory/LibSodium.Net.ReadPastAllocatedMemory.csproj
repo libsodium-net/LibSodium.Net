@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\LibSodium.Net\LibSodium.Bindings.Net.csproj" />
+    <ProjectReference Include="..\LibSodium.Net\LibSodium.Net.csproj" />
   </ItemGroup>
 
 </Project>

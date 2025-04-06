@@ -6,7 +6,7 @@ namespace LibSodium.Interop
 	internal static partial class Native
 	{
 
-		[LibraryImport("libsodium")]
+		[LibraryImport(LibSodiumNativeLibraryName)]
 		[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
 		internal static partial int template();
 	}

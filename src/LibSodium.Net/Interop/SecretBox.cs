@@ -10,26 +10,26 @@ namespace LibSodium.Interop
 		internal const int crypto_secretbox_NONCEBYTES = 24;
 		internal const int crypto_secretbox_MACBYTES = 16;
 
-		[LibraryImport("libsodium", EntryPoint = nameof(crypto_secretbox_easy))]
+		[LibraryImport(LibSodiumNativeLibraryName, EntryPoint = nameof(crypto_secretbox_easy))]
 		[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
 		internal static partial int crypto_secretbox_easy(
 			Span<byte> ciphertext, ReadOnlySpan<byte> plaintext,
 			ulong plaintext_len, ReadOnlySpan<byte> nonce, ReadOnlySpan<byte> key);
 
-		[LibraryImport("libsodium", EntryPoint = nameof(crypto_secretbox_open_easy))]
+		[LibraryImport(LibSodiumNativeLibraryName, EntryPoint = nameof(crypto_secretbox_open_easy))]
 		[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
 		internal static partial	int crypto_secretbox_open_easy(
 			Span<byte> plaintext, ReadOnlySpan<byte> ciphertext,
 			ulong ciphertext_len, ReadOnlySpan<byte> nonce, ReadOnlySpan<byte> key);
 
-		[LibraryImport("libsodium", EntryPoint = nameof(crypto_secretbox_detached))]
+		[LibraryImport(LibSodiumNativeLibraryName, EntryPoint = nameof(crypto_secretbox_detached))]
 		[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
 		internal static partial int crypto_secretbox_detached(
 			Span<byte> ciphertext, Span<byte> mac,
 			ReadOnlySpan<byte> plaintext,ulong plaintext_len,
 			ReadOnlySpan<byte> nonce, ReadOnlySpan<byte> key);
 
-		[LibraryImport("libsodium", EntryPoint = nameof(crypto_secretbox_open_detached))]
+		[LibraryImport(LibSodiumNativeLibraryName, EntryPoint = nameof(crypto_secretbox_open_detached))]
 		[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
 		internal static partial int crypto_secretbox_open_detached(
 			Span<byte> plaintext, ReadOnlySpan<byte> ciphertext,

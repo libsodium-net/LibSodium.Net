@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace LibSodium.Interop
@@ -9,27 +8,27 @@ namespace LibSodium.Interop
 
 		internal const uint randombytes_SEEDBYTES = 32U;
 
-		[LibraryImport("libsodium")]
+		[LibraryImport(LibSodiumNativeLibraryName, EntryPoint = nameof(randombytes_random))]
 		[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
 		internal static partial uint randombytes_random();
 
-		[LibraryImport("libsodium")]
+		[LibraryImport(LibSodiumNativeLibraryName, EntryPoint = nameof(randombytes_uniform))]
 		[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
 		internal static partial uint randombytes_uniform(uint upper_bound);
 
-		[LibraryImport("libsodium")]
+		[LibraryImport(LibSodiumNativeLibraryName, EntryPoint = nameof(randombytes_buf))]
 		[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
 		internal static partial void randombytes_buf(Span<byte> buffer, nuint size);
 
-		[LibraryImport("libsodium")]
+		[LibraryImport(LibSodiumNativeLibraryName, EntryPoint = nameof(randombytes_buf_deterministic))]
 		[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
 		internal static partial void randombytes_buf_deterministic(Span<byte> buffer, nuint size, ReadOnlySpan<byte> seed);
 
-		[LibraryImport("libsodium")]
+		[LibraryImport(LibSodiumNativeLibraryName, EntryPoint = nameof(randombytes_close))]
 		[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
 		internal static partial int randombytes_close();
 
-		[LibraryImport("libsodium")]
+		[LibraryImport(LibSodiumNativeLibraryName, EntryPoint = nameof(randombytes_stir))]
 		[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
 		internal static partial void randombytes_stir();
 	}
