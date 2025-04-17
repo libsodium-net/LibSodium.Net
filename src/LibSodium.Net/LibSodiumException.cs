@@ -1,10 +1,12 @@
-﻿namespace LibSodium
+﻿using System.Security.Cryptography;
+
+namespace LibSodium
 {
 	/// <summary>
 	/// Represents errors that occur during Sodium operations.
 	/// </summary>
 	[Serializable]
-	public class LibSodiumException : InvalidOperationException
+	public class LibSodiumException : CryptographicException
 	{
 		/// <summary>
 		/// Initializes a new instance of the <see cref="LibSodiumException"/> class.

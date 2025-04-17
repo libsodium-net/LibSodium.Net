@@ -379,6 +379,32 @@ namespace LibSodium
 		}
 
 		/// <summary>
+		/// Gets a <see cref="Memory{T}"/> representing the secure unmanaged memory buffer.
+		/// </summary>
+		/// <returns></returns>
+		/// <exception cref="InvalidOperationException"></exception>
+		public Memory<T> AsMemory()
+		{
+			ObjectDisposedException.ThrowIf(IsDisposed, this);
+			if (IsReadOnly)
+			{
+				throw new InvalidOperationException("Memory region is read-only.");
+			}
+			return new SecureMemoryManager<T>(this).Memory;
+		}
+
+		/// <summary>
+		/// Gets a <see cref="ReadOnlyMemory{T}"/> representing the secure unmanaged memory buffer.
+		/// </summary>
+		/// <returns></returns>
+		/// <exception cref="ObjectDisposedException"></exception>
+		public ReadOnlyMemory<T> AsReadOnlyMemory()
+		{
+			ObjectDisposedException.ThrowIf(IsDisposed, this);
+			return new SecureMemoryManager<T>(this).Memory;
+		}
+
+		/// <summary>
 		/// Gets a <see cref="ReadOnlySpan{T}"/> representing the secure unmanaged memory buffer.
 		/// </summary>
 		/// <remarks>

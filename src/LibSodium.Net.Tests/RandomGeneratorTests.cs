@@ -26,9 +26,9 @@ namespace LibSodium.Tests
 		[Test]
 		public async Task Fill_FillsBufferWithRandomBytes()
 		{
-			var b1 = new byte[32];
-			var b2 = new byte[32];
-			var zeroes = new byte[32];
+			var b1 = new byte[10];
+			var b2 = new byte[10];
+			var zeroes = new byte[10];
 
 			RandomGenerator.Fill(b1);
 			RandomGenerator.Fill(b2);

@@ -1,6 +1,7 @@
 - name: Features
   href: features.md
-- name: API Documentation
+- name: API Reference
   href: api/LibSodium.yml
 - name: Guide
-  href: guide.md
+  href: guide/index.md
+  homepage: guide/index.md

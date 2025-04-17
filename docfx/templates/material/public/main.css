@@ -66,24 +66,31 @@ article h4 {
 }
 
 /** IMAGES **/
+
+/*
 img {
   border-radius: var(--bs-border-radius);
   box-shadow: var(--card-box-shadow);
 }
+*/
 
 /** NAVBAR **/
 .navbar-brand > img {
-  box-shadow: none;
-  color: var(--bs-nav-link-color);
+  display: none !important;
 }
 
 [data-bs-theme='light'] nav.navbar {
-  background-color: var(--bs-primary-bg-subtle);
+  background-color: #eed8fa; /* Light Lavender Mist */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.20);
+  z-index: 1000;
 }
 
 [data-bs-theme='dark'] nav.navbar {
-  background-color: var(--bs-tertiary-bg);
+  background-color: #6b1b8f; /* Dark purple from logo bottom-right */
 }
+
+
+
 
 .navbar-nav > li > a {
   border-radius: var(--border-radius-button);
@@ -183,4 +190,8 @@ code {
 
 #logo {
   padding-right: 4px;
+}
+
+#nextArticle:empty {
+  border-top: none !important;
 }
