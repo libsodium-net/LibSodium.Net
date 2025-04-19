@@ -40,7 +40,7 @@ namespace LibSodium
 		/// </list>
 		/// </exception>
 		/// <exception cref="LibSodiumException">Thrown when the underlying encryption operation fails.</exception>
-		public static Span<byte> EncryptCombined(Span<byte> ciphertext, ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> key, ReadOnlySpan<byte> nonce)
+		internal static Span<byte> EncryptCombined(Span<byte> ciphertext, ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> key, ReadOnlySpan<byte> nonce)
 		{
 			if (ciphertext.Length < plaintext.Length + MacLen)
 			{
@@ -79,7 +79,7 @@ namespace LibSodium
 		/// </exception>
 		/// <exception cref="LibSodiumException">Thrown when the underlying encryption operation fails.</exception>
 
-		public static Span<byte> EncryptCombined(Span<byte> ciphertext, ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> key)
+		internal static Span<byte> EncryptCombined(Span<byte> ciphertext, ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> key)
 		{
 			if (ciphertext.Length < plaintext.Length + MacLen + NonceLen)
 			{
@@ -120,7 +120,7 @@ namespace LibSodium
 		/// </exception>
 		/// <exception cref="LibSodiumException">Thrown when decryption or verification fails.</exception>
 
-		public static Span<byte> DecryptCombined(Span<byte> plaintext, ReadOnlySpan<byte> ciphertext, ReadOnlySpan<byte> key, ReadOnlySpan<byte> nonce)
+		internal static Span<byte> DecryptCombined(Span<byte> plaintext, ReadOnlySpan<byte> ciphertext, ReadOnlySpan<byte> key, ReadOnlySpan<byte> nonce)
 		{
 			if (plaintext.Length < ciphertext.Length - MacLen)
 			{
@@ -164,7 +164,7 @@ namespace LibSodium
 		/// </exception>
 		/// <exception cref="LibSodiumException">Thrown when decryption or verification fails.</exception>
 
-		public static Span<byte> DecryptCombined(Span<byte> plaintext, ReadOnlySpan<byte> ciphertext, ReadOnlySpan<byte> key)
+		internal static Span<byte> DecryptCombined(Span<byte> plaintext, ReadOnlySpan<byte> ciphertext, ReadOnlySpan<byte> key)
 		{
 			if (plaintext.Length < ciphertext.Length - MacLen - NonceLen)
 			{
@@ -207,7 +207,7 @@ namespace LibSodium
 		/// </list>
 		/// </exception>
 		/// <exception cref="LibSodiumException">Thrown when the encryption operation fails.</exception>
-		public static Span<byte> EncryptDetached(Span<byte> ciphertext, Span<byte> mac, ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> key, ReadOnlySpan<byte> nonce)
+		internal static Span<byte> EncryptDetached(Span<byte> ciphertext, Span<byte> mac, ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> key, ReadOnlySpan<byte> nonce)
 		{
 			if (ciphertext.Length < plaintext.Length)
 			{
@@ -251,7 +251,7 @@ namespace LibSodium
 		/// </list>
 		/// </exception>
 		/// <exception cref="LibSodiumException">Thrown when the encryption operation fails.</exception>
-		public static Span<byte> EncryptDetached(Span<byte> ciphertext, Span<byte> mac, ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> key)
+		internal static Span<byte> EncryptDetached(Span<byte> ciphertext, Span<byte> mac, ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> key)
 		{
 			if (ciphertext.Length < plaintext.Length + NonceLen)
 			{
@@ -295,7 +295,7 @@ namespace LibSodium
 		/// </list>
 		/// </exception>
 		/// <exception cref="LibSodiumException">Thrown when decryption or verification fails.</exception>
-		public static Span<byte> DecryptDetached(Span<byte> plaintext, ReadOnlySpan<byte> ciphertext, ReadOnlySpan<byte> key, ReadOnlySpan<byte> mac, ReadOnlySpan<byte> nonce)
+		internal static Span<byte> DecryptDetached(Span<byte> plaintext, ReadOnlySpan<byte> ciphertext, ReadOnlySpan<byte> key, ReadOnlySpan<byte> mac, ReadOnlySpan<byte> nonce)
 		{
 			if (plaintext.Length < ciphertext.Length)
 			{
@@ -341,7 +341,7 @@ namespace LibSodium
 		/// </exception>
 		/// <exception cref="LibSodiumException">Thrown when decryption or verification fails.</exception>
 
-		public static Span<byte> DecryptDetached(Span<byte> plaintext, ReadOnlySpan<byte> ciphertext, ReadOnlySpan<byte> key, ReadOnlySpan<byte> mac)
+		internal static Span<byte> DecryptDetached(Span<byte> plaintext, ReadOnlySpan<byte> ciphertext, ReadOnlySpan<byte> key, ReadOnlySpan<byte> mac)
 		{
 			if (plaintext.Length < ciphertext.Length - NonceLen)
 			{
@@ -364,6 +364,94 @@ namespace LibSodium
 				throw new LibSodiumException("Couldn't decrypt message. Verification failed");
 			}
 			return plaintext.Slice(0, ciphertext.Length - NonceLen);
+		}
+
+		/// <summary>
+		/// Encrypts a message using XSalsa20-Poly1305. Supports combined and detached modes, with optional manual nonce.
+		/// </summary>
+		/// <param name="ciphertext">
+		/// The output buffer. In combined mode, it must include space for the MAC and, if auto-nonce is used, also for the nonce.
+		/// In detached mode with auto-nonce, the nonce is prepended.
+		/// It can be longer than needed.
+		/// </param>
+		/// <param name="plaintext">The plaintext to encrypt.</param>
+		/// <param name="key">The secret key (32 bytes).</param>
+		/// <param name="mac">
+		/// Optional. If provided, encryption is done in detached mode and the MAC is written to this buffer.
+		/// Otherwise, combined mode is used.
+		/// </param>
+		/// <param name="nonce">
+		/// Optional nonce (24 bytes). If not provided, a random nonce is generated and prepended to the ciphertext.
+		/// </param>
+		/// <returns>The span representing the encrypted ciphertext, which may include MAC and nonce depending on the mode.</returns>
+		public static Span<byte> Encrypt(
+			Span<byte> ciphertext,
+			ReadOnlySpan<byte> plaintext,
+			ReadOnlySpan<byte> key,
+			Span<byte> mac = default,
+			ReadOnlySpan<byte> nonce = default)
+		{
+			if (mac == default)
+			{
+				// Combined mode
+				if (nonce == default)
+					return EncryptCombined(ciphertext, plaintext, key);
+				else
+					return EncryptCombined(ciphertext, plaintext, key, nonce);
+			}
+			else
+			{
+				// Detached mode
+				if (nonce == default)
+					return EncryptDetached(ciphertext, mac, plaintext, key);
+				else
+					return EncryptDetached(ciphertext, mac, plaintext, key, nonce);
+			}
+		}
+
+		/// <summary>
+		/// Decrypts a message using XSalsa20-Poly1305. Supports combined and detached modes, with optional manual nonce.
+		/// </summary>
+		/// <param name="plaintext">
+		/// The buffer to receive the decrypted message.
+		/// Must be at least ciphertext length minus MAC and/or nonce depending on mode.
+		/// It can be longer than needed.
+		/// </param>
+		/// <param name="ciphertext">
+		/// The encrypted message. May include MAC and/or nonce depending on the mode.
+		/// </param>
+		/// <param name="key">The secret key (32 bytes).</param>
+		/// <param name="mac">
+		/// Optional. If provided, decryption is done in detached mode using this MAC.
+		/// Otherwise, combined mode is used.
+		/// </param>
+		/// <param name="nonce">
+		/// Optional nonce (24 bytes). If not provided, it is extracted from the ciphertext (auto-nonce mode).
+		/// </param>
+		/// <returns>The span representing the recovered plaintext.</returns>
+		public static Span<byte> Decrypt(
+			Span<byte> plaintext,
+			ReadOnlySpan<byte> ciphertext,
+			ReadOnlySpan<byte> key,
+			ReadOnlySpan<byte> mac = default,
+			ReadOnlySpan<byte> nonce = default)
+		{
+			if (mac == default)
+			{
+				// Combined mode
+				if (nonce == default)
+					return DecryptCombined(plaintext, ciphertext, key);
+				else
+					return DecryptCombined(plaintext, ciphertext, key, nonce);
+			}
+			else
+			{
+				// Detached mode
+				if (nonce == default)
+					return DecryptDetached(plaintext, ciphertext, key, mac);
+				else
+					return DecryptDetached(plaintext, ciphertext, key, mac, nonce);
+			}
 		}
 	}
 }

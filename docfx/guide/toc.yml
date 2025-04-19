@@ -12,3 +12,7 @@
   href: Encoding.md
 - name: Big Integers
   href: SecureBigUnsignedInteger.md
+- name: Authentication
+  href: CryptoAuth.md
+- name: XChaCha20-Poly1305
+  href: XChaCha20-Poly1305.md

@@ -4,6 +4,7 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text;
 
 namespace LibSodium.Tests;
 
@@ -130,5 +131,34 @@ public class SecretStreamTests
 		using var decryptedOutput = new MemoryStream();
 
 		Should.Throw<LibSodiumException>(() => SecretStream.Decrypt(tamperedInput, decryptedOutput, key));
+	}
+
+	[Test]
+	public void Example()
+	{
+Span<byte> key = stackalloc byte[32];
+RandomGenerator.Fill(key);
+
+const string hello = "Hello LibSodium.Net!";
+var helloData = Encoding.UTF8.GetBytes(hello);
+
+using var plaintextStream = new MemoryStream();
+using var ciphertextStream = new MemoryStream();
+using var decryptedStream = new MemoryStream();
+
+plaintextStream.Write(helloData);
+plaintextStream.Position = 0;
+
+SecretStream.Encrypt(plaintextStream, ciphertextStream, key);
+ciphertextStream.Position = 0;
+SecretStream.Decrypt(ciphertextStream, decryptedStream, key);
+decryptedStream.Position = 0;
+
+var isWorking = decryptedStream.ToArray().SequenceEqual(helloData);
+
+Console.WriteLine($"It works: {isWorking}");
+
+		isWorking.ShouldBeTrue();
+
 	}
 }

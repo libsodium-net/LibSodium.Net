@@ -8,14 +8,14 @@
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
-		<Version>0.2.0-alpha</Version>
+		<Version>0.3.0-alpha</Version>
 		<Authors>jesuslpm</Authors>
 		<Description>LibSodium.Bindings.Net is a .NET library that provides comprehensive bindings for the libsodium native library</Description>
 		<Copyright>Copyright 2025</Copyright>
-		<PackageProjectUrl>https://libsodium-net.github.io/</PackageProjectUrl>
+		<PackageProjectUrl>https://libsodium.net/</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/LibSodium-Net/LibSodium.Net</RepositoryUrl>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageTags>libsodium cryptography sodium</PackageTags>
+		<PackageReadmeFile>README.NuGet.md</PackageReadmeFile>
+		<PackageTags>libsodium cryptography sodium XChaCha20-Poly1305 Stream-Encryption SecureMemory</PackageTags>
 		<AssemblyVersion>1.0.0</AssemblyVersion>
 		<FileVersion>1.0.0</FileVersion>
 		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
@@ -41,19 +41,16 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Include="..\..\README.md" Link="README.md">
-	    <Pack>True</Pack>
-	    <PackagePath>\</PackagePath>
-	  </None>
-	</ItemGroup>
-
-	<ItemGroup>
 		<PackageReference Include="libsodium" Version="1.0.20.1" />
 		<PackageReference Include="System.Memory" Version="4.6.0" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <None Update="Na.png">
+	    <Pack>True</Pack>
+	    <PackagePath>\</PackagePath>
+	  </None>
+	  <None Update="README.NuGet.md" Link="README.md">
 	    <Pack>True</Pack>
 	    <PackagePath>\</PackagePath>
 	  </None>

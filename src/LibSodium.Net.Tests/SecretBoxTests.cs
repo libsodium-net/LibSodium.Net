@@ -1,4 +1,7 @@
-﻿using TUnit.Assertions.AssertConditions.Throws;
+﻿using Shouldly;
+using TUnit.Assertions.AssertConditions.Throws;
+
+using static LibSodium.SecretBox;
 
 namespace LibSodium.Tests
 {
@@ -233,6 +236,54 @@ namespace LibSodium.Tests
 			byte[] decryptedBuffer = new byte[plaintext.Length];
 
 			await Assert.That(() => SecretBox.DecryptDetached(decryptedBuffer, ciphertext, key, macBuffer)).Throws<LibSodiumException>();
+		}
+
+		private static byte[] GenerateRandomBytes(int length)
+		{
+			var buffer = new byte[length];
+			Random.Shared.NextBytes(buffer);
+			return buffer;
+		}
+
+		[Test]
+		public void AllCombinedOptions()
+		{
+			var key = GenerateRandomBytes(KeyLen);
+			var nonce = GenerateRandomBytes(NonceLen);
+			var plaintext = GenerateRandomBytes(64);
+			var ciphertext = new byte[NonceLen + plaintext.Length + MacLen];
+			var decrypted = new byte[plaintext.Length];
+
+			Span<byte> encrypted;
+
+			encrypted = Encrypt(ciphertext, plaintext, key);
+			Decrypt(decrypted, encrypted, key);
+			decrypted.SequenceEqual(plaintext).ShouldBeTrue();
+
+			encrypted = Encrypt(ciphertext, plaintext, key, nonce: nonce);
+			Decrypt(decrypted, encrypted, key, nonce: nonce);
+			decrypted.SequenceEqual(plaintext).ShouldBeTrue();
+		}
+
+		[Test]
+		public void AllDetachedOptions()
+		{
+			var key = GenerateRandomBytes(KeyLen);
+			var nonce = GenerateRandomBytes(NonceLen);
+			var plaintext = GenerateRandomBytes(64);
+			var ciphertext = new byte[NonceLen + plaintext.Length];
+			var decrypted = new byte[plaintext.Length];
+			var mac = new byte[MacLen];
+
+			Span<byte> encrypted;
+
+			encrypted = Encrypt(ciphertext, plaintext, key, mac: mac);
+			Decrypt(decrypted, encrypted, key, mac: mac);
+			decrypted.SequenceEqual(plaintext).ShouldBeTrue();
+
+			encrypted = Encrypt(ciphertext, plaintext, key, mac: mac, nonce: nonce);
+			Decrypt(decrypted, encrypted, key, mac: mac, nonce: nonce);
+			decrypted.SequenceEqual(plaintext).ShouldBeTrue();
 		}
 	}
 }
