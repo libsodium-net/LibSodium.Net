@@ -16,9 +16,9 @@ The `SecretStream` class in **LibSodium.Net** provides secure, authenticated str
 
 ---
 
-## 📦 Basic Usage
+## ✨ Basic Usage
 
-### 💻 Generating a Secret Key
+### 📋 Generating a Secret Key
 
 A secret key must be securely generated and managed:
 
@@ -27,7 +27,7 @@ byte[] key = new byte[CryptoSecretStream.KeyLen];
 CryptoSecretStream.GenerateKey(key);
 ```
 
-### 💻 Encrypting Data
+### 📋 Encrypting Data
 
 Encrypting data streams asynchronously:
 
@@ -47,7 +47,7 @@ using var encryptedFile = File.Create("encrypted.dat");
 SecretStream.Encrypt(inputFile, encryptedFile, key);
 ```
 
-### 💻 Decrypting Data
+### 📋 Decrypting Data
 
 Decrypting asynchronously the encrypted data back to plaintext:
 

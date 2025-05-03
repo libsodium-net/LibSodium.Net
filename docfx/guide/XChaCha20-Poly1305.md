@@ -7,7 +7,7 @@ The `XChaCha20Poly1305` API in **LibSodium.Net** provides authenticated encrypti
 
 ---
 
-## ✨ Features
+## 🌟 Features
 
 - Authenticated encryption with associated data (AEAD).
 - 24-byte nonce (192-bit) minimizes risk of nonce reuse.
@@ -18,11 +18,11 @@ The `XChaCha20Poly1305` API in **LibSodium.Net** provides authenticated encrypti
 
 ---
 
-## 📦 Encrypting and Decrypting Messages
+## ✨ Encrypting and Decrypting Messages
 
 Use the `Encrypt` and `Decrypt` methods to perform authenticated encryption. The mode is determined by the presence of the optional `mac` parameter.
 
-### 💻 Combined Mode (Auto Nonce, No AAD)
+### 📋 Combined Mode (Auto Nonce, No AAD)
 
 ```csharp
 Span<byte> key = stackalloc byte[XChaCha20Poly1305.KeyLen];
@@ -38,7 +38,7 @@ XChaCha20Poly1305.Decrypt(decrypted, ciphertext, key);
 Console.WriteLine(Encoding.UTF8.GetString(decrypted));
 ```
 
-### 💻 Combined Mode (Manual Nonce with AAD)
+### 📋 Combined Mode (Manual Nonce with AAD)
 
 ```csharp
 Span<byte> key = stackalloc byte[XChaCha20Poly1305.KeyLen];
@@ -57,7 +57,7 @@ XChaCha20Poly1305.Decrypt(decrypted, ciphertext, key, aad: aad, nonce: nonce);
 Console.WriteLine(Encoding.UTF8.GetString(decrypted));
 ```
 
-### 💻 Detached Mode (Manual Nonce)
+### 📋 Detached Mode (Manual Nonce)
 
 ```csharp
 Span<byte> key = stackalloc byte[XChaCha20Poly1305.KeyLen];

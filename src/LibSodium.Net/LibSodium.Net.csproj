@@ -8,7 +8,7 @@
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
-		<Version>0.3.0-alpha</Version>
+		<Version>0.4.0-alpha</Version>
 		<Authors>jesuslpm</Authors>
 		<Description>LibSodium.Bindings.Net is a .NET library that provides comprehensive bindings for the libsodium native library</Description>
 		<Copyright>Copyright 2025</Copyright>
@@ -46,6 +46,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Update="Aead.tt">
+	    <Generator>TextTemplatingFileGenerator</Generator>
+	    <LastGenOutput>Aead.cs</LastGenOutput>
+	  </None>
 	  <None Update="Na.png">
 	    <Pack>True</Pack>
 	    <PackagePath>\</PackagePath>
@@ -59,6 +63,18 @@
 	<ItemGroup>
 	  <Folder Include="HighLevel\" />
 	  <Folder Include="nupkgs\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="Aead.cs">
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	    <DependentUpon>Aead.tt</DependentUpon>
+	  </Compile>
 	</ItemGroup>
 
 </Project>

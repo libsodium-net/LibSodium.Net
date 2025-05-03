@@ -17,7 +17,7 @@
 
 Here's how you can quickly integrate LibSodium.Net into your .NET projects.
 
-## 📦 Install via NuGet
+## ✨ Install via NuGet
 
 You can easily install LibSodium.Net using the NuGet package manager:
 

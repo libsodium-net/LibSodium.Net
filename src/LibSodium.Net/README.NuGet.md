@@ -1,11 +1,11 @@
-🔐 LibSodium.Net — Modern cryptography for .NET 8+
+# 🔐 LibSodium.Net — Modern cryptography for .NET 8+
 
 Bindings for [libsodium](https://doc.libsodium.org) with a Span-based API.  
 Includes authenticated encryption (XChaCha20-Poly1305), streaming authenticated encryption (SecretStream), secure memory handling (SecureMemory), and many more.
 
 Fast, memory-safe, allocation-free. AOT-ready with `LibraryImport`.
 
-📚 Documentation: https://libsodium.net/
+## 📚 Documentation: https://libsodium.net/
 
 ```csharp
 // XChaCha20Poly1305 — Combined mode, auto-nonce, with AAD

@@ -13,7 +13,7 @@ All operations in this class are evaluated in **constant time with respect to bu
 
 ---
 
-## ✨ Features
+## 🌟 Features
 
 - Constant-time comparison, equality, addition, and subtraction.
 - Increment by 1 or arbitrary 64-bit value.
@@ -23,9 +23,9 @@ All operations in this class are evaluated in **constant time with respect to bu
 
 ---
 
-## 📦 Usage Examples
+## ✨ Usage Examples
 
-### 💻 Constant-Time Equality Check
+### 📋 Constant-Time Equality Check
 
 ```csharp
 Span<byte> a = stackalloc byte[] { 1, 2, 3 };
@@ -33,13 +33,13 @@ Span<byte> b = stackalloc byte[] { 1, 2, 3 };
 bool areEqual = SecureBigUnsignedInteger.Equals(a, b); // true
 ```
 
-### 💻 Constant-Time Compare
+### 📋 Constant-Time Compare
 
 ```csharp
 int cmp = SecureBigUnsignedInteger.Compare(a, b); // 0 if equal, <0 if a < b, >0 if a > b
 ```
 
-### 💻 Increment
+### 📋 Increment
 
 ```csharp
 Span<byte> number = stackalloc byte[4];
@@ -47,7 +47,7 @@ SecureBigUnsignedInteger.Increment(number); // adds 1
 SecureBigUnsignedInteger.Increment(number, 42); // adds 42
 ```
 
-### 💻 Addition and Subtraction
+### 📋 Addition and Subtraction
 
 ```csharp
 Span<byte> a = stackalloc byte[] { 5, 0, 0 };
@@ -59,7 +59,7 @@ SecureBigUnsignedInteger.Subtract(a, b); // a = a - b
 
 > ⚠️ Both operands must have the same length. Otherwise, `ArgumentException` is thrown.
 
-### 💻 Zero Check
+### 📋 Zero Check
 
 ```csharp
 Span<byte> n = stackalloc byte[] { 0, 0, 0 };

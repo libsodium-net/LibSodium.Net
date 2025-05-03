@@ -7,7 +7,7 @@ The `RandomGenerator` class in **LibSodium.Net** provides access to cryptographi
 
 ---
 
-## ✨ Features
+## 🌟 Features
 
 - Generate random 32-bit unsigned integers.
 - Generate bounded random integers.
@@ -17,9 +17,9 @@ The `RandomGenerator` class in **LibSodium.Net** provides access to cryptographi
 
 ---
 
-## 📦 Getting Random Values
+## ✨ Getting Random Values
 
-### 💻 Get a random 32-bit unsigned integer
+### 📋 Get a random 32-bit unsigned integer
 
 ```csharp
 uint value = RandomGenerator.GetUInt32();
@@ -27,7 +27,7 @@ uint value = RandomGenerator.GetUInt32();
 
 Returns a cryptographically secure, uniformly distributed value.
 
-### 💻 Get a random value less than an upper bound
+### 📋 Get a random value less than an upper bound
 
 ```csharp
 uint lessThan100 = RandomGenerator.GetUInt32(100);
@@ -38,9 +38,9 @@ Uses a rejection sampling method to ensure uniform distribution.
 
 ---
 
-## 📦 Filling Buffers
+## ✨ Filling Buffers
 
-### 💻 Fill a buffer with random bytes
+### 📋 Fill a buffer with random bytes
 
 ```csharp
 Span<byte> buffer = stackalloc byte[32];
@@ -49,7 +49,7 @@ RandomGenerator.Fill(buffer);
 
 This fills the buffer with unpredictable cryptographic random bytes.
 
-### 💻 Fill a buffer with deterministic random bytes
+### 📋 Fill a buffer with deterministic random bytes
 
 ```csharp
 Span<byte> seed = stackalloc byte[RandomGenerator.SeedLen];
@@ -65,9 +65,9 @@ The same seed and length will always produce the same output.
 
 ---
 
-## 📦 Stirring and Closing the RNG
+## ✨ Stirring and Closing the RNG
 
-### 💻 Stir the RNG
+### 📋 Stir the RNG
 
 ```csharp
 RandomGenerator.Stir();
@@ -75,7 +75,7 @@ RandomGenerator.Stir();
 
 This reseeds the RNG, recommended after forking a process or when explicitly needed.
 
-### 💻 Close the RNG
+### 📋 Close the RNG
 
 ```csharp
 RandomGenerator.Close();

@@ -7,7 +7,7 @@ The `SecretBox` API in **LibSodium.Net** provides a simple and secure way to per
 
 ---
 
-## ✨ Features
+## 🌟 Features
 
 - Symmetric authenticated encryption using XSalsa20-Poly1305.
 - Combined mode and detached mode support.
@@ -18,11 +18,11 @@ The `SecretBox` API in **LibSodium.Net** provides a simple and secure way to per
 
 ---
 
-## 📦 Encrypting and Decrypting Messages
+## ✨ Encrypting and Decrypting Messages
 
 Use the `Encrypt` and `Decrypt` methods. The behavior depends on whether you pass a `mac` buffer (detached) and/or a `nonce` (manual).
 
-### 💻 Combined Mode (Auto Nonce)
+### 📋 Combined Mode (Auto Nonce)
 
 ```csharp
 Span<byte> key = stackalloc byte[SecretBox.KeyLen];
@@ -38,7 +38,7 @@ SecretBox.Decrypt(decrypted, ciphertext, key);
 Console.WriteLine(Encoding.UTF8.GetString(decrypted));
 ```
 
-### 💻 Combined Mode (Manual Nonce)
+### 📋 Combined Mode (Manual Nonce)
 
 ```csharp
 Span<byte> key = stackalloc byte[SecretBox.KeyLen];
@@ -56,7 +56,7 @@ SecretBox.Decrypt(decrypted, ciphertext, key, nonce: nonce);
 Console.WriteLine(Encoding.UTF8.GetString(decrypted));
 ```
 
-### 💻 Detached Mode (Auto Nonce)
+### 📋 Detached Mode (Auto Nonce)
 
 ```csharp
 Span<byte> key = stackalloc byte[SecretBox.KeyLen];
@@ -73,7 +73,7 @@ SecretBox.Decrypt(decrypted, ciphertext, key, mac);
 Console.WriteLine(Encoding.UTF8.GetString(decrypted));
 ```
 
-### 💻 Detached Mode (Manual Nonce)
+### 📋 Detached Mode (Manual Nonce)
 
 ```csharp
 Span<byte> key = stackalloc byte[SecretBox.KeyLen];

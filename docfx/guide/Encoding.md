@@ -29,7 +29,7 @@ These properties make `HexEncoding` and `Base64Encoding` suitable for encoding s
 
 `HexEncoding` provides methods to encode a byte array into a lowercase hexadecimal string and decode from hexadecimal back into binary. All operations are span-based for performance and safety.
 
-### 💻 Encode to hex
+### 📋 Encode to hex
 
 ```csharp
 Span<byte> bin = stackalloc byte[] { 0x01, 0x23, 0x45 };
@@ -43,7 +43,7 @@ Span<char> hexBuffer = stackalloc char[bin.Length * 2];
 HexEncoding.BinToHex(bin, hexBuffer);
 ```
 
-### 💻 Decode from hex
+### 📋 Decode from hex
 
 ```csharp
 string hex = "0123456789abcdef";
@@ -82,7 +82,7 @@ public enum Base64Variant
 
 These map directly to `sodium_base64_VARIANT_*` in libsodium.
 
-### 💻 Encode to Base64
+### 📋 Encode to Base64
 
 ```csharp
 Span<byte> bin = stackalloc byte[] { 1, 2, 3, 4 };
@@ -96,7 +96,7 @@ Span<char> buffer = stackalloc char[Base64Encoding.GetBase64EncodedLen(bin.Lengt
 Base64Encoding.BinToBase64(bin, buffer, Base64Variant.Original);
 ```
 
-### 💻 Decode from Base64
+### 📋 Decode from Base64
 
 ```csharp
 string b64 = "AQIDBA==";

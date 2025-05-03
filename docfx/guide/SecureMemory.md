@@ -21,7 +21,7 @@ These APIs leverage libsodium’s `sodium_malloc`, `sodium_mlock`, and related m
 
 ---
 
-## 💻 Basic Usage
+## 📋 Basic Usage
 
 ```csharp
 using var secure = SecureMemory.Create<byte>(32); // Allocate secure memory
@@ -44,28 +44,28 @@ var readOnly = secure.AsReadOnlySpan(); // Safe read-only view
 
 ---
 
-## 📦 SecureMemory&lt;T&gt; Utilities
+## ✨ SecureMemory&lt;T&gt; Utilities
 
-### 💻 Allocate Secure Buffers
+### 📋 Allocate Secure Buffers
 
 ```csharp
 using var buffer = SecureMemory.Create<byte>(64);
 ```
 
-### 💻 Zeroing Buffers
+### 📋 Zeroing Buffers
 
 ```csharp
 buffer.MemZero(); // Overwrites memory with zeroes
 ```
 
-### 💻 Protect Memory
+### 📋 Protect Memory
 
 ```csharp
 buffer.ProtectReadOnly();
 buffer.ProtectReadWrite();
 ```
 
-### 💻 Read-Only & Read-Write Access
+### 📋 Read-Only & Read-Write Access
 
 - Use `.AsSpan()` to get mutable access.
 - Use `.AsReadOnlySpan()` to get immutable view.

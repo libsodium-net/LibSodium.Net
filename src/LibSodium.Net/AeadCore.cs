@@ -1,35 +1,41 @@
-﻿using System;
-using System.Security.Cryptography;
-using LibSodium.Interop;
-
-namespace LibSodium
+﻿namespace LibSodium
 {
-	/// <summary>
-	/// Provides high-level access to the XChaCha20-Poly1305 AEAD construction from Libsodium.
-	/// </summary>
-	/// <remarks>
-	/// This class supports both combined and detached modes of authenticated encryption.
-	/// It also supports automatic nonce generation when not provided explicitly.
-	/// </remarks>
-	public static class XChaCha20Poly1305
+	internal static class AeadCore<T> where T : LowLevel.IAead
 	{
 		/// <summary>
-		/// The length, in bytes, of a valid key.
+		/// Encrypts and authenticates a plaintext using <typeparamref name="T"/> in detached mode with a provided nonce.
 		/// </summary>
-		public const int KeyLen = Native.CRYPTO_AEAD_XCHACHA20POLY1305_IETF_KEYBYTES;
+		/// <param name="ciphertext">The buffer to write the ciphertext into.</param>
+		/// <param name="mac">The buffer to write the authentication tag (MAC) into.</param>
+		/// <param name="plaintext">The input data to encrypt.</param>
+		/// <param name="key">The 32-byte encryption key.</param>
+		/// <param name="aad">Optional additional data to authenticate but not encrypt.</param>
+		/// <param name="nonce">The 24-byte nonce.</param>
+		/// <returns>A slice of <paramref name="ciphertext"/> with the encrypted data.</returns>
+		/// <exception cref="ArgumentException">Thrown when inputs do not match expected lengths.</exception>
+		/// <exception cref="LibSodiumException">Thrown when encryption fails internally.</exception>
+
+		internal static Span<byte> EncryptDetached(
+			Span<byte> ciphertext,
+			Span<byte> mac,
+			ReadOnlySpan<byte> plaintext,
+			ReadOnlySpan<byte> key,
+			ReadOnlySpan<byte> aad,
+			ReadOnlySpan<byte> nonce)
+		{
+			if (key.Length != T.KeyLen) throw new ArgumentException($"Key must be {T.KeyLen} bytes");
+			if (nonce.Length != T.NonceLen) throw new ArgumentException($"Nonce must be {T.NonceLen} bytes");
+			if (mac.Length != T.MacLen) throw new ArgumentException($"MAC must be {T.MacLen} bytes");
+			if (ciphertext.Length < plaintext.Length) throw new ArgumentException("Ciphertext buffer too small");
+
+			LibraryInitializer.EnsureInitialized();
+			int rc = T.EncryptDetached(ciphertext, mac, plaintext, aad, nonce, key);
+			if (rc != 0) throw new LibSodiumException("Detached encryption failed.");
+			return ciphertext.Slice(0, plaintext.Length);
+		}
 
 		/// <summary>
-		/// The length, in bytes, of a valid nonce.
-		/// </summary>
-		public const int NonceLen = Native.CRYPTO_AEAD_XCHACHA20POLY1305_IETF_NPUBBYTES;
-
-		/// <summary>
-		/// The length, in bytes, of the authentication tag (MAC).
-		/// </summary>
-		public const int MacLen = Native.CRYPTO_AEAD_XCHACHA20POLY1305_IETF_ABYTES;
-
-		/// <summary>
-		/// Encrypts and authenticates a plaintext using XChaCha20-Poly1305 in detached mode, generating a random nonce.
+		/// Encrypts and authenticates a plaintext using <typeparamref name="T"/> in detached mode, generating a random nonce.
 		/// </summary>
 		/// <param name="ciphertext">The buffer to write the resulting nonce and ciphertext into.</param>
 		/// <param name="mac">The buffer to write the authentication tag (MAC) into.</param>
@@ -41,48 +47,12 @@ namespace LibSodium
 		/// <exception cref="LibSodiumException">Thrown when encryption fails internally.</exception>
 		internal static Span<byte> EncryptDetached(Span<byte> ciphertext, Span<byte> mac, ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> key, ReadOnlySpan<byte> aad = default)
 		{
-			if (ciphertext.Length < plaintext.Length + NonceLen) throw new ArgumentException("Ciphertext buffer too small");
-			var nonce = ciphertext.Slice(0, NonceLen);
+			if (ciphertext.Length < plaintext.Length + T.NonceLen) throw new ArgumentException("Ciphertext buffer too small");
+			var nonce = ciphertext.Slice(0, T.NonceLen);
 			RandomGenerator.Fill(nonce);
-			var cipher = ciphertext.Slice(NonceLen);
+			var cipher = ciphertext.Slice(T.NonceLen);
 			EncryptDetached(cipher, mac, plaintext, key, aad, nonce);
-			return ciphertext.Slice(0, plaintext.Length + NonceLen);
-		}
-
-		/// <summary>
-		/// Encrypts and authenticates a plaintext using XChaCha20-Poly1305 in detached mode with a provided nonce.
-		/// </summary>
-		/// <param name="ciphertext">The buffer to write the ciphertext into.</param>
-		/// <param name="mac">The buffer to write the authentication tag (MAC) into.</param>
-		/// <param name="plaintext">The input data to encrypt.</param>
-		/// <param name="key">The 32-byte encryption key.</param>
-		/// <param name="aad">Optional additional data to authenticate but not encrypt.</param>
-		/// <param name="nonce">The 24-byte nonce.</param>
-		/// <returns>A slice of <paramref name="ciphertext"/> with the encrypted data.</returns>
-		/// <exception cref="ArgumentException">Thrown when inputs do not match expected lengths.</exception>
-		/// <exception cref="LibSodiumException">Thrown when encryption fails internally.</exception>
-		internal static Span<byte> EncryptDetached(Span<byte> ciphertext, Span<byte> mac, ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> key, ReadOnlySpan<byte> aad, ReadOnlySpan<byte> nonce)
-		{
-			if (key.Length != KeyLen) throw new ArgumentException($"Key must be {KeyLen} bytes");
-			if (nonce.Length != NonceLen) throw new ArgumentException($"Nonce must be {NonceLen} bytes");
-			if (mac.Length != MacLen) throw new ArgumentException($"MAC must be {MacLen} bytes");
-			if (ciphertext.Length < plaintext.Length) throw new ArgumentException("Ciphertext buffer too small");
-
-			LibraryInitializer.EnsureInitialized();
-			int rc = Native.crypto_aead_xchacha20poly1305_ietf_encrypt_detached(
-				ciphertext,
-				mac,
-				out ulong _,
-				plaintext,
-				(ulong)plaintext.Length,
-				aad,
-				(ulong)aad.Length,
-				nsec: IntPtr.Zero,
-				nonce,
-				key
-			);
-			if (rc != 0) throw new LibSodiumException("Detached encryption failed.");
-			return ciphertext.Slice(0, plaintext.Length);
+			return ciphertext.Slice(0, plaintext.Length + T.NonceLen);
 		}
 
 		/// <summary>
@@ -99,23 +69,13 @@ namespace LibSodium
 		/// <exception cref="LibSodiumException">Thrown when MAC verification fails or decryption fails.</exception>
 		internal static Span<byte> DecryptDetached(Span<byte> plaintext, ReadOnlySpan<byte> ciphertext, ReadOnlySpan<byte> key, ReadOnlySpan<byte> mac, ReadOnlySpan<byte> additionalData, ReadOnlySpan<byte> nonce)
 		{
-			if (key.Length != KeyLen) throw new ArgumentException($"Key must be {KeyLen} bytes");
-			if (nonce.Length != NonceLen) throw new ArgumentException($"Nonce must be {NonceLen} bytes");
-			if (mac.Length != MacLen) throw new ArgumentException($"MAC must be {MacLen} bytes");
+			if (key.Length != T.KeyLen) throw new ArgumentException($"Key must be {T.KeyLen} bytes");
+			if (nonce.Length != T.NonceLen) throw new ArgumentException($"Nonce must be {T.NonceLen} bytes");
+			if (mac.Length != T.MacLen) throw new ArgumentException($"MAC must be {T.MacLen} bytes");
 			if (plaintext.Length < ciphertext.Length) throw new ArgumentException("Plaintext buffer too small");
 
 			LibraryInitializer.EnsureInitialized();
-			int rc = Native.crypto_aead_xchacha20poly1305_ietf_decrypt_detached(
-				plaintext, 
-				nsec: IntPtr.Zero,
-				ciphertext,
-				(ulong)ciphertext.Length,
-				mac,
-				additionalData,
-				(ulong)additionalData.Length,
-				nonce,
-				key
-			);
+			int rc = T.DecryptDetached(plaintext, ciphertext, mac, additionalData, nonce, key);
 			if (rc != 0) throw new LibSodiumException("Detached decryption failed or MAC verification failed.");
 			return plaintext.Slice(0, ciphertext.Length);
 		}
@@ -133,15 +93,15 @@ namespace LibSodium
 		/// <exception cref="LibSodiumException">Thrown when MAC verification fails or decryption fails.</exception>
 		internal static Span<byte> DecryptDetached(Span<byte> plaintext, ReadOnlySpan<byte> ciphertext, ReadOnlySpan<byte> key, ReadOnlySpan<byte> mac, ReadOnlySpan<byte> additionalData)
 		{
-			if (ciphertext.Length < NonceLen) throw new ArgumentException("Ciphertext too short", nameof(ciphertext));
-			if (plaintext.Length < ciphertext.Length - NonceLen) throw new ArgumentException("Plaintext buffer too small");
-			var nonce = ciphertext.Slice(0, NonceLen);
-			var cipher = ciphertext.Slice(NonceLen);
+			if (ciphertext.Length < T.NonceLen) throw new ArgumentException("Ciphertext too short", nameof(ciphertext));
+			if (plaintext.Length < ciphertext.Length - T.NonceLen) throw new ArgumentException("Plaintext buffer too small");
+			var nonce = ciphertext.Slice(0, T.NonceLen);
+			var cipher = ciphertext.Slice(T.NonceLen);
 			return DecryptDetached(plaintext, cipher, key, mac, additionalData, nonce);
 		}
 
 		/// <summary>
-		/// Encrypts and authenticates plaintext using XChaCha20-Poly1305 in combined mode (MAC is appended).
+		/// Encrypts and authenticates plaintext using <typeparamref name="T"/> in combined mode (MAC is appended).
 		/// </summary>
 		/// <param name="ciphertext">The buffer to write the resulting ciphertext and MAC into.</param>
 		/// <param name="plaintext">The data to encrypt.</param>
@@ -153,22 +113,14 @@ namespace LibSodium
 		/// <exception cref="LibSodiumException">Thrown when encryption fails internally.</exception>
 		internal static Span<byte> EncryptCombined(Span<byte> ciphertext, ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> key, ReadOnlySpan<byte> aad, ReadOnlySpan<byte> nonce)
 		{
-			if (ciphertext.Length < plaintext.Length + MacLen) throw new ArgumentException("Ciphertext buffer too small");
+			if (ciphertext.Length < plaintext.Length + T.MacLen) throw new ArgumentException("Ciphertext buffer too small");
+			if (key.Length != T.KeyLen) throw new ArgumentException($"Key must be {T.KeyLen} bytes");
+			if (nonce.Length != T.NonceLen) throw new ArgumentException($"Nonce must be {T.NonceLen} bytes");
 
 			LibraryInitializer.EnsureInitialized();
-			int rc = Native.crypto_aead_xchacha20poly1305_ietf_encrypt(
-				ciphertext,
-				out ulong clen,
-				plaintext,
-				(ulong)plaintext.Length,
-				aad,
-				(ulong) aad.Length,
-				nsec: IntPtr.Zero,
-				nonce,
-				key
-			);
+			int rc = T.EncryptCombined(ciphertext, plaintext, aad, nonce, key);
 			if (rc != 0) throw new LibSodiumException("Encryption failed.");
-			return ciphertext.Slice(0, plaintext.Length + MacLen);
+			return ciphertext.Slice(0, plaintext.Length + T.MacLen);
 		}
 
 		/// <summary>
@@ -183,12 +135,12 @@ namespace LibSodium
 		/// <exception cref="LibSodiumException">Thrown when encryption fails internally.</exception>
 		internal static Span<byte> EncryptCombined(Span<byte> ciphertext, ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> key, ReadOnlySpan<byte> aad = default)
 		{
-			if (ciphertext.Length < plaintext.Length + MacLen + NonceLen) throw new ArgumentException("Ciphertext buffer too small");
-			var nonce = ciphertext.Slice(0, NonceLen);
+			if (ciphertext.Length < plaintext.Length + T.MacLen + T.NonceLen) throw new ArgumentException("Ciphertext buffer too small");
+			var nonce = ciphertext.Slice(0, T.NonceLen);
 			RandomGenerator.Fill(nonce);
-			var cipher = ciphertext.Slice(NonceLen);
+			var cipher = ciphertext.Slice(T.NonceLen);
 			EncryptCombined(cipher, plaintext, key, aad, nonce);
-			return ciphertext.Slice(0, plaintext.Length + MacLen + NonceLen);
+			return ciphertext.Slice(0, plaintext.Length + T.MacLen + T.NonceLen);
 		}
 
 		/// <summary>
@@ -204,22 +156,15 @@ namespace LibSodium
 		/// <exception cref="LibSodiumException">Thrown when MAC verification fails or decryption fails.</exception>
 		internal static Span<byte> DecryptCombined(Span<byte> plaintext, ReadOnlySpan<byte> ciphertext, ReadOnlySpan<byte> key, ReadOnlySpan<byte> aad, ReadOnlySpan<byte> nonce)
 		{
-			if (plaintext.Length < ciphertext.Length - MacLen) throw new ArgumentException("Plaintext buffer too small");
+			if (ciphertext.Length < T.MacLen) throw new ArgumentException("ciphertext buffer too short");
+			if (plaintext.Length < ciphertext.Length - T.MacLen) throw new ArgumentException("Plaintext buffer too small");
+			if (key.Length != T.KeyLen) throw new ArgumentException($"Key must be {T.KeyLen} bytes");
+			if (nonce.Length != T.NonceLen) throw new ArgumentException($"Nonce must be {T.NonceLen} bytes");
 
 			LibraryInitializer.EnsureInitialized();
-			int rc = Native.crypto_aead_xchacha20poly1305_ietf_decrypt(
-				plaintext,
-				out ulong plaintext_len,
-				nsec: IntPtr.Zero,
-				ciphertext,
-				(ulong)ciphertext.Length,
-				aad,
-				(ulong) aad.Length,
-				nonce,
-				key
-			);
+			int rc = T.DecryptCombined(plaintext, ciphertext, aad, nonce, key);
 			if (rc != 0) throw new LibSodiumException("Decryption failed or MAC verification failed.");
-			return plaintext.Slice(0, (int)plaintext_len);
+			return plaintext.Slice(0, ciphertext.Length - T.MacLen);
 		}
 
 		/// <summary>
@@ -234,15 +179,14 @@ namespace LibSodium
 		/// <exception cref="LibSodiumException">Thrown when MAC verification fails or decryption fails.</exception>
 		internal static Span<byte> DecryptCombined(Span<byte> plaintext, ReadOnlySpan<byte> ciphertext, ReadOnlySpan<byte> key, ReadOnlySpan<byte> aad = default)
 		{
-			if (ciphertext.Length < MacLen + NonceLen) throw new ArgumentException("Ciphertext too short");
-			var nonce = ciphertext.Slice(0, NonceLen);
-			var cipher = ciphertext.Slice(NonceLen);
-			if (plaintext.Length < cipher.Length - MacLen) throw new ArgumentException("Plaintext buffer too small");
+			if (ciphertext.Length < T.MacLen + T.NonceLen) throw new ArgumentException("Ciphertext too short");
+			var nonce = ciphertext.Slice(0, T.NonceLen);
+			var cipher = ciphertext.Slice(T.NonceLen);
 			return DecryptCombined(plaintext, cipher, key, aad, nonce);
 		}
 
 		/// <summary>
-		/// Encrypts a message using XChaCha20-Poly1305. Supports combined and detached modes,
+		/// Encrypts a message using <typeparamref name="T"/>. Supports combined and detached modes,
 		/// with optional AAD and nonce.
 		/// </summary>
 		/// <param name="ciphertext">
@@ -259,11 +203,13 @@ namespace LibSodium
 		/// Optional additional authenticated data. Not encrypted, but authenticated.
 		/// </param>
 		/// <param name="nonce">
-		/// Optional nonce (24 bytes). If not provided, a random nonce is generated and prepended (combined) or returned (detached).
+		/// Optional nonce. If not provided, a random nonce is generated and prepended.
 		/// </param>
 		/// <returns>
 		/// The span representing the full ciphertext, including MAC and possibly nonce.
 		/// </returns>
+		/// <exception cref="ArgumentException">Thrown when buffer sizes are incorrect or parameters are invalid.</exception>
+		/// <exception cref="LibSodiumException">Thrown when encryption fails.</exception>
 
 		public static Span<byte> Encrypt(
 			Span<byte> ciphertext,
@@ -292,14 +238,14 @@ namespace LibSodium
 		}
 
 		/// <summary>
-		/// Decrypts a message using XChaCha20-Poly1305. Supports combined and detached modes,
+		/// Decrypts a message using <typeparamref name="T"/>. Supports combined and detached modes,
 		/// with optional AAD and nonce.
 		/// </summary>
 		/// <param name="plaintext">The buffer where the decrypted message will be written. It can be longer than needed</param>
 		/// <param name="ciphertext">
 		/// The encrypted message. May include MAC and nonce (combined) or exclude them (detached).
 		/// </param>
-		/// <param name="key">The secret decryption key (32 bytes).</param>
+		/// <param name="key">The secret decryption key</param>
 		/// <param name="mac">
 		/// Optional. If provided, decryption is done in detached mode. If null, combined mode is used.
 		/// </param>
@@ -307,9 +253,11 @@ namespace LibSodium
 		/// Optional additional authenticated data. Must match what was used for encryption.
 		/// </param>
 		/// <param name="nonce">
-		/// Optional nonce (24 bytes). Required for manual nonce mode.
+		/// Optional nonce. Required for manual nonce mode.
 		/// </param>
 		/// <returns>The span representing the decrypted plaintext.</returns>
+		/// <exception cref="ArgumentException">Thrown when buffer sizes are incorrect or parameters are invalid.</exception>
+		/// <exception cref="LibSodiumException">Thrown when MAC verification fails or decryption fails.</exception>
 		public static Span<byte> Decrypt(
 			Span<byte> plaintext,
 			ReadOnlySpan<byte> ciphertext,
@@ -335,6 +283,5 @@ namespace LibSodium
 					return DecryptDetached(plaintext, ciphertext, key, mac, aad, nonce);
 			}
 		}
-
 	}
 }
