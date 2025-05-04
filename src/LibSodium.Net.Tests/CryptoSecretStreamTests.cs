@@ -1,5 +1,4 @@
-﻿using Shouldly;
-using System;
+﻿using System;
 
 namespace LibSodium.Tests
 {
@@ -23,13 +22,13 @@ namespace LibSodium.Tests
 		[Test]
 		public void GenerateKey_ThrowsArgumentException_ForInvalidKeyLength()
 		{
-			Should.Throw<ArgumentException>(() =>
+			AssertLite.Throws<ArgumentException>(() =>
 			{
 				Span<byte> key = stackalloc byte[CryptoSecretStream.KeyLen - 1];
 				CryptoSecretStream.GenerateKey(key);
 			});
 
-			Should.Throw<ArgumentException>(() =>
+			AssertLite.Throws<ArgumentException>(() =>
 			{
 				Span<byte> key = stackalloc byte[CryptoSecretStream.KeyLen + 1];
 				CryptoSecretStream.GenerateKey(key);
@@ -52,21 +51,21 @@ namespace LibSodium.Tests
 		public void InitializeEncryption_ThrowsArgumentException_ForInvalidLengths()
 		{
 			var key = GenerateRandomBytes(CryptoSecretStream.KeyLen);
-			Should.Throw<ArgumentException>(() =>
+			AssertLite.Throws<ArgumentException>(() =>
 			{
 				Span<byte> state = stackalloc byte[CryptoSecretStream.StateLen - 1];
 				Span<byte> header = stackalloc byte[CryptoSecretStream.HeaderLen];
 				CryptoSecretStream.InitializeEncryption(state, header, key);
 			});
 
-			Should.Throw<ArgumentException>(() =>
+			AssertLite.Throws<ArgumentException>(() =>
 			{
 				Span<byte> state = stackalloc byte[CryptoSecretStream.StateLen];
 				Span<byte> header = stackalloc byte[CryptoSecretStream.HeaderLen - 1];
 				CryptoSecretStream.InitializeEncryption(state, header, key);
 			});
 
-			Should.Throw<ArgumentException>(() =>
+			AssertLite.Throws<ArgumentException>(() =>
 			{
 				Span<byte> state = stackalloc byte[CryptoSecretStream.StateLen];
 				Span<byte> header = stackalloc byte[CryptoSecretStream.HeaderLen - 1];
@@ -126,7 +125,7 @@ namespace LibSodium.Tests
 		public void EncryptChunk_ThrowsArgumentException_ForInvalidStateLen()
 		{
 
-			Should.Throw<ArgumentException>(() =>
+			AssertLite.Throws<ArgumentException>(() =>
 			{
 				Span<byte> cleartext = stackalloc byte[48];
 				Span<byte> state = stackalloc byte[CryptoSecretStream.StateLen + 1];
@@ -140,7 +139,7 @@ namespace LibSodium.Tests
 		public void EncryptChunk_ThrowsArgumentException_ForInvalidCipherTextLen()
 		{
 
-			Should.Throw<ArgumentException>(() =>
+			AssertLite.Throws<ArgumentException>(() =>
 			{
 				Span<byte> cleartext = stackalloc byte[48];
 				Span<byte> state = stackalloc byte[CryptoSecretStream.StateLen];
@@ -153,37 +152,33 @@ namespace LibSodium.Tests
 		[Test]
 		public void InitializeDecryption_DoesNotThrow_WithValidArgumentLengths()
 		{
-			
-			Should.NotThrow(() =>
-			{
-				Span<byte> key = stackalloc byte[CryptoSecretStream.KeyLen];
-				CryptoSecretStream.GenerateKey(key);
-				Span<byte> state = stackalloc byte[CryptoSecretStream.StateLen];
-				Span<byte> header = stackalloc byte[CryptoSecretStream.HeaderLen];
-				RandomGenerator.Fill(header);
-				CryptoSecretStream.InitializeDecryption(state, header, key);
-			});
+			Span<byte> key = stackalloc byte[CryptoSecretStream.KeyLen];
+			CryptoSecretStream.GenerateKey(key);
+			Span<byte> state = stackalloc byte[CryptoSecretStream.StateLen];
+			Span<byte> header = stackalloc byte[CryptoSecretStream.HeaderLen];
+			RandomGenerator.Fill(header);
+			CryptoSecretStream.InitializeDecryption(state, header, key);
 		}
 
 		[Test]
 		public void InitializeDecryption_ThrowsArgumentException_ForInvalidLengths()
 		{
 			var key = GenerateRandomBytes(CryptoSecretStream.KeyLen);
-			Should.Throw<ArgumentException>(() =>
+			AssertLite.Throws<ArgumentException>(() =>
 			{
 				Span<byte> state = stackalloc byte[CryptoSecretStream.StateLen - 1];
 				Span<byte> header = stackalloc byte[CryptoSecretStream.HeaderLen];
 				CryptoSecretStream.InitializeDecryption(state, header, key);
 			});
 
-			Should.Throw<ArgumentException>(() =>
+			AssertLite.Throws<ArgumentException>(() =>
 			{
 				Span<byte> state = stackalloc byte[CryptoSecretStream.StateLen];
 				Span<byte> header = stackalloc byte[CryptoSecretStream.HeaderLen - 1];
 				CryptoSecretStream.InitializeDecryption(state, header, key);
 			});
 
-			Should.Throw<ArgumentException>(() =>
+			AssertLite.Throws<ArgumentException>(() =>
 			{
 				Span<byte> state = stackalloc byte[CryptoSecretStream.StateLen];
 				Span<byte> header = stackalloc byte[CryptoSecretStream.HeaderLen - 1];
@@ -214,7 +209,7 @@ namespace LibSodium.Tests
 			CryptoSecretStream.DecryptChunk(state, decrypted, out var tag, encrypted);
 
 			SecureMemory.Equals(decrypted, cleartext).ShouldBeTrue();
-			tag.ShouldBe(CryptoSecretStreamTag.Message);
+			(tag == CryptoSecretStreamTag.Message).ShouldBeTrue();
 		}
 
 		[Test]
@@ -242,14 +237,14 @@ namespace LibSodium.Tests
 			CryptoSecretStream.DecryptChunk(state, decrypted, out var tag, encrypted, ad);
 
 			SecureMemory.Equals(decrypted, cleartext).ShouldBeTrue();
-			tag.ShouldBe(CryptoSecretStreamTag.Message);
+			(tag == CryptoSecretStreamTag.Message).ShouldBeTrue();
 		}
 
 		[Test]
 		public void DecryptChunk_ThrowsArgumentException_ForInvalidStateLen()
 		{
 
-			Should.Throw<ArgumentException>(() =>
+			AssertLite.Throws<ArgumentException>(() =>
 			{
 				Span<byte> cleartext = stackalloc byte[48];
 				Span<byte> state = stackalloc byte[CryptoSecretStream.StateLen + 1];
@@ -263,7 +258,7 @@ namespace LibSodium.Tests
 		public void DecryptChunk_ThrowsArgumentException_ForInvalidCleartextLen()
 		{
 
-			Should.Throw<ArgumentException>(() =>
+			AssertLite.Throws<ArgumentException>(() =>
 			{
 				Span<byte> ciphertext = stackalloc byte[48 + CryptoSecretStream.OverheadLen];
 				Span<byte> cleartext = stackalloc byte[ciphertext.Length - CryptoSecretStream.OverheadLen - 1];
@@ -294,7 +289,7 @@ namespace LibSodium.Tests
 			ciphertext[5]++;
 
 			CryptoSecretStream.InitializeDecryption(state, header, key);
-			Should.Throw<LibSodiumException>(() =>
+			AssertLite.Throws<LibSodiumException>(() =>
 			{
 				Span<byte> decrypted = stackalloc byte[ciphertext.Length - CryptoSecretStream.OverheadLen] ;
 				CryptoSecretStream.DecryptChunk(state, decrypted, out _, ciphertext);
@@ -317,7 +312,7 @@ namespace LibSodium.Tests
 			CryptoSecretStream.InitializeDecryption(stateDecrypt, header, key);
 			var cleartextDecrypted = new byte[encrypted.Length - CryptoSecretStream.OverheadLen];
 			var additionalDataWrong = GenerateRandomBytes(16);
-			Should.Throw<LibSodiumException>(() => CryptoSecretStream.DecryptChunk(stateDecrypt, cleartextDecrypted, out _, encrypted, additionalDataWrong));
+			AssertLite.Throws<LibSodiumException>(() => CryptoSecretStream.DecryptChunk(stateDecrypt, cleartextDecrypted, out _, encrypted, additionalDataWrong));
 		}
 	}
 }

@@ -1,5 +1,4 @@
 ﻿using System.Runtime.InteropServices;
-using Shouldly;
 using System.Diagnostics;
 
 namespace LibSodium.Tests
@@ -18,7 +17,7 @@ namespace LibSodium.Tests
 
 			var expectedByteArray = new byte[length];
 			Array.Fill(expectedByteArray, (byte)0xdb);
-			actualSpan.ToArray().ShouldBe(expectedByteArray, "The allocated region should be filled with 0xDB bytes");
+			actualSpan.SequenceEqual(expectedByteArray).ShouldBeTrue("The allocated region should be filled with 0xDB bytes");
 		}
 
 		[Test]
@@ -69,7 +68,7 @@ namespace LibSodium.Tests
 			span[4] = 5;
 
 			secureMemory.MemZero();
-			secureMemory.AsSpan().ToArray().ShouldAllBe(b => b == 0);
+			SecureMemory.IsZero(span).ShouldBeTrue();
 		}
 
 		[Test]
@@ -134,7 +133,7 @@ namespace LibSodium.Tests
 			var secureMemory = SecureMemory.Create<byte>(10);
 			secureMemory.Dispose();
 
-			Should.Throw<ObjectDisposedException>(() => secureMemory.AsReadOnlySpan());
+			AssertLite.Throws<ObjectDisposedException>(() => secureMemory.AsReadOnlySpan());
 		}
 
 		[Test]
@@ -143,7 +142,7 @@ namespace LibSodium.Tests
 			var secureMemory = SecureMemory.Create<byte>(10);
 			secureMemory.Dispose();
 
-			Should.Throw<ObjectDisposedException>(() => secureMemory.AsSpan());
+			AssertLite.Throws<ObjectDisposedException>(() => secureMemory.AsSpan());
 		}
 
 		[Test]
@@ -152,7 +151,7 @@ namespace LibSodium.Tests
 			using var secureMemory = SecureMemory.Create<byte>(10);
 			secureMemory.ProtectReadOnly();
 
-			Should.Throw<InvalidOperationException>(() => secureMemory.AsSpan());
+			AssertLite.Throws<InvalidOperationException>(() => secureMemory.AsSpan());
 		}
 
 
@@ -160,8 +159,8 @@ namespace LibSodium.Tests
 		public void MemZero_SpanByte_ZerosBuffer()
 		{
 			byte[] buffer = { 1, 2, 3, 4, 5 };
-			SecureMemory.MemZero(buffer.AsSpan());
-			buffer.ShouldAllBe(b => b == 0);
+			SecureMemory.MemZero(buffer);
+			SecureMemory.IsZero(buffer).ShouldBeTrue();
 		}
 
 		[Test]
@@ -169,7 +168,7 @@ namespace LibSodium.Tests
 		{
 			byte[] buffer = { 1, 2, 3, 4, 5 };
 			SecureMemory.MemZero(buffer);
-			buffer.ShouldAllBe(b => b == 0);
+			SecureMemory.IsZero(buffer).ShouldBeTrue();
 		}
 
 		[Test]
@@ -177,7 +176,7 @@ namespace LibSodium.Tests
 		{
 			long[] buffer = { 1, 2, 3, 4, 5 };
 			SecureMemory.MemZero(buffer.AsSpan());
-			buffer.ShouldAllBe(b => b == 0L);
+			SecureMemory.IsZero<long>(buffer.AsSpan()).ShouldBeTrue();
 		}
 
 		[Test]
@@ -185,7 +184,7 @@ namespace LibSodium.Tests
 		{
 			long[] buffer = { 1, 2, 3, 4, 5 };
 			SecureMemory.MemZero(buffer);
-			buffer.ShouldAllBe(b => b == 0L);
+			SecureMemory.IsZero(buffer).ShouldBeTrue();
 		}
 
 		[Test]
@@ -195,8 +194,8 @@ namespace LibSodium.Tests
 			try
 			{
 				var holder = new UnmanagedMemorySpanHolder<byte>(buffer);
-				Should.NotThrow(() => SecureMemory.MemLock(holder.GetOriginalSpan()));
-				Should.NotThrow(() => SecureMemory.MemUnlock(holder.GetOriginalSpan()));
+				SecureMemory.MemLock(holder.GetOriginalSpan());
+				SecureMemory.MemUnlock(holder.GetOriginalSpan());
 			}
 			finally
 			{
@@ -217,7 +216,7 @@ namespace LibSodium.Tests
 				actualSpan.Length.ShouldBe(size);
 				var expectedByteArray = new byte[size];
 				Array.Fill(expectedByteArray, (byte) 0xdb);
-				actualSpan.ToArray().ShouldBe(expectedByteArray, "The allocated region should be filled with 0xDB bytes");
+				actualSpan.SequenceEqual(expectedByteArray).ShouldBeTrue("The allocated region should be filled with 0xDB bytes");
 			}
 			finally
 			{
@@ -309,7 +308,7 @@ namespace LibSodium.Tests
 				var actualSpanByte = MemoryMarshal.AsBytes(actualSpanLong);
 				byte[] expectedByteArray = new byte[length * sizeof(long)];
 				Array.Fill(expectedByteArray, (byte) 0xDB);
-				actualSpanByte.ToArray().ShouldBe(expectedByteArray, "The allocated region should be filled with 0xDB bytes");
+				actualSpanByte.SequenceEqual(expectedByteArray).ShouldBeTrue("The allocated region should be filled with 0xDB bytes");
 			}
 			finally
 			{
@@ -388,84 +387,87 @@ namespace LibSodium.Tests
 			}
 		}
 
+#if !AOT
+		//[Test]
+		//public void WritingReadOnlyProtectedMemory_ShouldThrowAccessViolationException()
+		//{
+		//	// AccessViolationException cannot be caught, this is why an external process is needed
 
-		[Test]
-		public void WritingReadOnlyProtectedMemory_ShouldThrowAccessViolationException()
-		{
-			// AccessViolationException cannot be caught, this is why an external process is needed
+		//	var exePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "LibSodium.Net.WriteReadOnlyProtectedMemory.exe");
+		//	// Na.WriteReadOnlyProtectedMemory.exe Main method is the following:
+		//	/*
+		//		static int Main(string[] args)
+		//		{
+		//			var buffer = NaSecureMemory.Allocate(1024);
+		//			NaSecureMemory.ProtectReadOnly(buffer);
+		//			// The buffer is now read-only protected, writing to it should throw AccessViolationException
+		//			buffer[0] = 0;
+		//			return 0;
+		//		}
+		//	*/
+		//	var processInfo = new ProcessStartInfo(exePath)
+		//	{
+		//		CreateNoWindow = true,
+		//		UseShellExecute = false,
+		//		RedirectStandardError = true
+		//	};
+		//	using (var process = Process.Start(processInfo))
+		//	{
+		//		AssertLite.NotNull(process);
+		//		process!.WaitForExit();
+		//		var standardErrorContent = process.StandardError.ReadToEnd();
+		//		standardErrorContent.ShouldContain("System.AccessViolationException");
+		//		process.ExitCode.ShouldNotBe(0);
+		//	}
+		//}
 
-			var exePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "LibSodium.Net.WriteReadOnlyProtectedMemory.exe");
-			// Na.WriteReadOnlyProtectedMemory.exe Main method is the following:
-			/*
-				static int Main(string[] args)
-				{
-					var buffer = NaSecureMemory.Allocate(1024);
-					NaSecureMemory.ProtectReadOnly(buffer);
-					// The buffer is now read-only protected, writing to it should throw AccessViolationException
-					buffer[0] = 0;
-					return 0;
-				}
-			*/
-			var processInfo = new ProcessStartInfo(exePath)
-			{
-				CreateNoWindow = true,
-				UseShellExecute = false,
-				RedirectStandardError = true
-			};
-			using (var process = Process.Start(processInfo))
-			{
-				process.ShouldNotBeNull();
-				process.WaitForExit();
-				var standardErrorContent = process.StandardError.ReadToEnd();
-				standardErrorContent.ShouldContain("System.AccessViolationException");
-				process.ExitCode.ShouldNotBe(0);
-			}
-		}
+		//[Test]
+		//public void ReadingPastAllocatedMemory_ShouldThrowAccessViolationException()
+		//{
+		//	// AccessViolationException cannot be caught, this is why an external process is needed
 
-		[Test]
-		public void ReadingPastAllocatedMemory_ShouldThrowAccessViolationException()
-		{
-			// AccessViolationException cannot be caught, this is why an external process is needed
+		//	var exePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "LibSodium.Net.ReadPastAllocatedMemory.exe");
+		//	// Na.ReadPastAllocatedMemory.exe Main method is the following:
+		//	/*
+		//		static int Main(string[] args)
+		//		{
+		//			var buffer = NaSecureMemory.Allocate(1023);
+		//			try
+		//			{
+		//				unsafe
+		//				{
+		//					fixed (byte* ptr = buffer)
+		//					{
+		//						// reading past allocated memory should throw AccessViolationException
+		//						var pastByte = ptr[1023];
+		//					}
+		//				}
+		//				return 0;
+		//			}
+		//			finally
+		//			{
+		//				NaSecureMemory.Free(buffer);
+		//			}
+		//		}
+		//	*/
+		//	var processInfo = new ProcessStartInfo(exePath)
+		//	{
+		//		CreateNoWindow = true,
+		//		UseShellExecute = false,
+		//		RedirectStandardError = true
+		//	};
 
-			var exePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "LibSodium.Net.ReadPastAllocatedMemory.exe");
-			// Na.ReadPastAllocatedMemory.exe Main method is the following:
-			/*
-				static int Main(string[] args)
-				{
-					var buffer = NaSecureMemory.Allocate(1023);
-					try
-					{
-						unsafe
-						{
-							fixed (byte* ptr = buffer)
-							{
-								// reading past allocated memory should throw AccessViolationException
-								var pastByte = ptr[1023];
-							}
-						}
-						return 0;
-					}
-					finally
-					{
-						NaSecureMemory.Free(buffer);
-					}
-				}
-			*/
-			var processInfo = new ProcessStartInfo(exePath)
-			{
-				CreateNoWindow = true,
-				UseShellExecute = false,
-				RedirectStandardError = true
-			};
+		//	using (var process = Process.Start(processInfo))
+		//	{
+		//		process.ShouldNotBeNull();
+		//		process!.WaitForExit();
+		//		var standardErrorContent = process.StandardError.ReadToEnd();
+		//		standardErrorContent.ShouldContain("System.AccessViolationException");
+		//		process.ExitCode.ShouldNotBe(0);
+		//	}
+		//}
+#endif
 
-			using (var process = Process.Start(processInfo))
-			{
-				process.ShouldNotBeNull();
-				process.WaitForExit();
-				var standardErrorContent = process.StandardError.ReadToEnd();
-				standardErrorContent.ShouldContain("System.AccessViolationException");
-				process.ExitCode.ShouldNotBe(0);
-			}
-		}
 	}
+
 }

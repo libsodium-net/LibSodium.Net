@@ -1,8 +1,6 @@
 
 using System;
 using System.Linq;
-using NUnit.Framework;
-using Shouldly;
 
 namespace LibSodium.Tests
 {
@@ -95,7 +93,7 @@ namespace LibSodium.Tests
             var enc = CryptoBox.EncryptWithKeypair(ciphertext, message, recipientPublicKey, senderPrivateKey);
             enc[^1] ^= 0x01;
 
-            Should.Throw<LibSodiumException>(() =>
+            AssertLite.Throws<LibSodiumException>(() =>
                 CryptoBox.DecryptWithKeypair(decrypted, ciphertext, senderPublicKey, recipientPrivateKey));
         }
 
@@ -212,7 +210,7 @@ namespace LibSodium.Tests
             byte[] message = RandomBytes(64);
             byte[] ciphertext = new byte[message.Length];
 
-            Should.Throw<ArgumentException>(() =>
+            AssertLite.Throws<ArgumentException>(() =>
                 CryptoBox.EncryptWithKeypair(ciphertext, message, pk, sk));
         }
 
@@ -229,7 +227,7 @@ namespace LibSodium.Tests
 
             byte[] tooSmall = new byte[message.Length - 1];
 
-            Should.Throw<ArgumentException>(() =>
+            AssertLite.Throws<ArgumentException>(() =>
                 CryptoBox.DecryptWithKeypair(tooSmall, ciphertext, pk, sk));
         }
 
@@ -241,7 +239,7 @@ namespace LibSodium.Tests
             byte[] ciphertext = new byte[message.Length + CryptoBox.NonceLen];
             byte[] mac = new byte[CryptoBox.MacLen - 1];
 
-            Should.Throw<ArgumentException>(() =>
+            AssertLite.Throws<ArgumentException>(() =>
                 CryptoBox.EncryptWithSharedKey(ciphertext, message, shared, mac));
         }
 
@@ -254,7 +252,7 @@ namespace LibSodium.Tests
             byte[] mac = new byte[CryptoBox.MacLen];
             byte[] nonce = new byte[CryptoBox.NonceLen - 1];
 
-            Should.Throw<ArgumentException>(() =>
+            AssertLite.Throws<ArgumentException>(() =>
                 CryptoBox.EncryptWithSharedKey(ciphertext, message, shared, mac, nonce));
         }
 
@@ -265,7 +263,7 @@ namespace LibSodium.Tests
             byte[] ciphertext = new byte[64 + CryptoBox.MacLen + CryptoBox.NonceLen];
             byte[] plaintext = new byte[64];
 
-            Should.Throw<ArgumentException>(() =>
+            AssertLite.Throws<ArgumentException>(() =>
                 CryptoBox.DecryptWithSharedKey(plaintext, ciphertext, shared));
         }
 
@@ -297,15 +295,15 @@ namespace LibSodium.Tests
             byte[] shortOut = new byte[CryptoBox.SharedKeyLen - 1];
 
             // sharedKey buffer demasiado corto
-            Should.Throw<ArgumentException>(() =>
+            AssertLite.Throws<ArgumentException>(() =>
                 CryptoBox.CalculateSharedKey(shortOut, validPk, validSk));
 
             // publicKey demasiado corto
-            Should.Throw<ArgumentException>(() =>
+            AssertLite.Throws<ArgumentException>(() =>
                 CryptoBox.CalculateSharedKey(sharedKey, shortPk, validSk));
 
-            // privateKey demasiado corto
-            Should.Throw<ArgumentException>(() =>
+			// privateKey demasiado corto
+			AssertLite.Throws<ArgumentException>(() =>
                 CryptoBox.CalculateSharedKey(sharedKey, validPk, shortSk));
         }
     }

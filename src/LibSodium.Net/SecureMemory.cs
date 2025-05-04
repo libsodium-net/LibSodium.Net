@@ -32,6 +32,30 @@ namespace LibSodium
 			return Native.sodium_is_zero(b, (nuint)b.Length) == 1;
 		}
 
+
+		/// <summary>
+		/// Checks if the given buffer is zero.
+		/// </summary>
+		/// <param name="b">The byte buffer to check.</param>
+		/// <returns>True if the byte buffer is zero, false otherwise.</returns>
+		public static bool IsZero<T>(ReadOnlySpan<T> b) where T: unmanaged
+		{
+			LibraryInitializer.EnsureInitialized();
+			return Native.sodium_is_zero(MemoryMarshal.AsBytes(b), (nuint)(b.Length * Unsafe.SizeOf<T>())) == 1;
+		}
+
+		/// <summary>
+		/// Checks if the given buffer is zero.
+		/// </summary>
+		/// <param name="b">The byte buffer to check.</param>
+		/// <returns>True if the byte buffer is zero, false otherwise.</returns>
+		public static bool IsZero<T>(T[] b) where T : unmanaged
+		{
+			LibraryInitializer.EnsureInitialized();
+			var byteSpan = MemoryMarshal.AsBytes(b.AsSpan());
+			return Native.sodium_is_zero(byteSpan, (nuint)(b.Length * Unsafe.SizeOf<T>())) == 1;
+		}
+
 		/// <summary>
 		/// Compares two byte buffers for equality in constant time.
 		/// </summary>

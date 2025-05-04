@@ -1,10 +1,4 @@
-﻿using Shouldly;
-using TUnit;
-using System;
-using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Text;
+﻿using System.Text;
 
 namespace LibSodium.Tests;
 
@@ -79,7 +73,7 @@ public class SecretStreamTests
 		using var input = new MemoryStream();
 		using var output = new MemoryStream();
 
-		await Should.ThrowAsync<ArgumentException>(() => SecretStream.EncryptAsync(input, output, invalidKey));
+		await AssertLite.ThrowsAsync<ArgumentException>(() => SecretStream.EncryptAsync(input, output, invalidKey));
 	}
 
 	[Test]
@@ -99,7 +93,7 @@ public class SecretStreamTests
 		encryptedOutput.Position = 0;
 		using var decryptedOutput = new MemoryStream();
 
-		await Should.ThrowAsync<LibSodiumException>(() => SecretStream.DecryptAsync(encryptedOutput, decryptedOutput, invalidKey));
+		await AssertLite.ThrowsAsync<LibSodiumException>(() => SecretStream.DecryptAsync(encryptedOutput, decryptedOutput, invalidKey));
 	}
 
 	[Test]
@@ -110,7 +104,7 @@ public class SecretStreamTests
 
 		using var output = new MemoryStream();
 
-		Should.Throw<ArgumentNullException>(() => SecretStream.Encrypt(null!, output, key));
+		AssertLite.Throws<ArgumentNullException>(() => SecretStream.Encrypt(null!, output, key));
 	}
 
 	[Test]
@@ -130,7 +124,7 @@ public class SecretStreamTests
 		using var tamperedInput = new MemoryStream(ciphertext);
 		using var decryptedOutput = new MemoryStream();
 
-		Should.Throw<LibSodiumException>(() => SecretStream.Decrypt(tamperedInput, decryptedOutput, key));
+		AssertLite.Throws<LibSodiumException>(() => SecretStream.Decrypt(tamperedInput, decryptedOutput, key));
 	}
 
 	[Test]

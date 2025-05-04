@@ -1,7 +1,7 @@
-﻿using Shouldly;
-using TUnit.Assertions.AssertConditions;
+﻿using TUnit.Assertions.AssertConditions;
 using TUnit.Assertions.AssertConditions.Interfaces;
 using TUnit.Assertions.AssertionBuilders;
+using TUnit.Assertions.Exceptions;
 
 namespace LibSodium.Tests
 {
@@ -15,7 +15,7 @@ namespace LibSodium.Tests
 			}
 			var actualHex = Convert.ToHexString(actual);
 			var expectedHex = Convert.ToHexString(expected);
-			throw new ShouldAssertException(new ExpectedActualShouldlyMessage(expectedHex, actualHex, customMessage).ToString());
+			throw new AssertionException($"'Should be sequence equal to' failed. Expected:{expectedHex} but got {actualHex}. {customMessage}");
 		}
 
 		public static InvokableValueAssertionBuilder<IEnumerable<TInner>> IsSequenceEqualTo<TInner>(this IValueSource<IEnumerable<TInner>> valueSource, IEnumerable<TInner> expected)

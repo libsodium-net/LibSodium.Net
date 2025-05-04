@@ -1,13 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<Title>LibSodium.Net</Title>
-		<Version>0.0.1-alpha</Version>
+		<Version>0.0.5-alpha</Version>
 		<Authors>jesuslpm</Authors>
 		<Description>LibSodium.NET is a library that provides .NET bindings for libsodium</Description>
 		<Copyright>Copyright 2025</Copyright>
@@ -20,6 +20,7 @@
 		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
 		<EmbedAllSources>true</EmbedAllSources>
 		<AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
+		<GenerateTestingPlatformEntryPoint>true</GenerateTestingPlatformEntryPoint>
 
 	</PropertyGroup>
 	<ItemGroup>
@@ -30,16 +31,19 @@
 	  </None>
 	</ItemGroup>
 
-	<ItemGroup>
+	<ItemGroup Condition="'$(PublishAot)' != 'true'">
 		<PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="17.14.2" />
-		<PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="1.6.3" />
-		<PackageReference Include="TUnit" Version="0.18.60" />
-		<PackageReference Include="Shouldly" Version="4.3.0" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="TUnit" Version="0.19.116" />
 	</ItemGroup>
 
+	<!--<ItemGroup Condition="'$(PublishAot)' != 'true'">
+		<ProjectReference Include="..\LibSodium.Net.ReadPastAllocatedMemory\LibSodium.Net.ReadPastAllocatedMemory.csproj" />
+		<ProjectReference Include="..\LibSodium.Net.WriteReadOnlyProtectedMemory\LibSodium.Net.WriteReadOnlyProtectedMemory.csproj" />
+	</ItemGroup>-->
+
 	<ItemGroup>
-	  <ProjectReference Include="..\LibSodium.Net.ReadPastAllocatedMemory\LibSodium.Net.ReadPastAllocatedMemory.csproj" />
-	  <ProjectReference Include="..\LibSodium.Net.WriteReadOnlyProtectedMemory\LibSodium.Net.WriteReadOnlyProtectedMemory.csproj" />
 	  <ProjectReference Include="..\LibSodium.Net\LibSodium.Net.csproj" />
 	</ItemGroup>
 

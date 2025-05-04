@@ -1,0 +1,2 @@
+dotnet build ./LibSodium.Net.Tests/LibSodium.Net.Tests.csproj  -c Release -r win-x64 -f net8.0 /p:OutputType=Exe
+dotnet publish ./LibSodium.Net.Tests/LibSodium.Net.Tests.csproj  -c Release -r win-x64 -f net8.0 /p:OutputType=Exe

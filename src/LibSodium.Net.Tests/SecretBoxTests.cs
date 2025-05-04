@@ -1,5 +1,4 @@
-﻿using Shouldly;
-using TUnit.Assertions.AssertConditions.Throws;
+﻿using TUnit.Assertions.AssertConditions.Throws;
 
 using static LibSodium.SecretBox;
 

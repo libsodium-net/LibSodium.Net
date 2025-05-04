@@ -1,10 +1,10 @@
 {
   "profiles": {
-    "LibSodium.Net.Tests": {
+    "Coverage": {
       "commandName": "Project",
-      "commandLineArgs": "--report-trx --coverage"
+      "commandLineArgs": "--coverage"
     },
-    "Dev": {
+    "Debug": {
       "commandName": "Project"
     }
   }

@@ -1,5 +1,4 @@
-﻿using Shouldly;
-using TUnit;
+﻿using TUnit;
 using System;
 
 namespace LibSodium.Tests;
@@ -24,13 +23,13 @@ public class CryptoAuthTests
 	[Test]
 	public void GenerateKey_ThrowsIfWrongLength()
 	{
-		Should.Throw<ArgumentException>(() =>
+		AssertLite.Throws<ArgumentException>(() =>
 		{
 			Span<byte> key = stackalloc byte[CryptoAuth.KeyLen - 1];
 			CryptoAuth.GenerateKey(key);
 		});
 
-		Should.Throw<ArgumentException>(() =>
+		AssertLite.Throws<ArgumentException>(() =>
 		{
 			Span<byte> key = stackalloc byte[CryptoAuth.KeyLen + 1];
 			CryptoAuth.GenerateKey(key);
@@ -70,7 +69,7 @@ public class CryptoAuthTests
 	[Test]
 	public void VerifyMac_ThrowsLibSodiumException_WhenMacIsInvalid()
 	{
-		Should.Throw<LibSodiumException>(() =>
+		AssertLite.Throws<LibSodiumException>(() =>
 		{
 			Span<byte> key = stackalloc byte[CryptoAuth.KeyLen];
 			Span<byte> mac = stackalloc byte[CryptoAuth.MacLen];
@@ -87,7 +86,7 @@ public class CryptoAuthTests
 	[Test]
 	public void ComputeMac_ThrowsArgumentException_IfBufferWrongSize()
 	{
-		Should.Throw<ArgumentException>(() =>
+		AssertLite.Throws<ArgumentException>(() =>
 		{
 			Span<byte> message = stackalloc byte[10];
 			Span<byte> key = stackalloc byte[CryptoAuth.KeyLen];
@@ -99,7 +98,7 @@ public class CryptoAuthTests
 	[Test]
 	public void ComputeMac_ThrowsArgumentException_IfKeyWrongSize()
 	{
-		Should.Throw<ArgumentException>(() =>
+		AssertLite.Throws<ArgumentException>(() =>
 		{
 			Span<byte> message = stackalloc byte[10];
 			Span<byte> mac = stackalloc byte[CryptoAuth.MacLen];
