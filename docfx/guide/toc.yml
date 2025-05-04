@@ -4,9 +4,9 @@
   href: DesignPhilosophy.md
 - name: Random Generator
   href: RandomGenerator.md
-- name: Secret Box
+- name: Symmetric Authenticated Encryption
   href: SecretBox.md
-- name: Secret Stream
+- name: Authenticated Stream Encryption 
   href: SecretStream.md
 - name: Secure Memory
   href: SecureMemory.md
@@ -18,3 +18,5 @@
   href: CryptoAuth.md
 - name: AEAD
   href: AEAD.md
+- name: Public-Key Authenticated Encryption
+  href: CryptoBox.md

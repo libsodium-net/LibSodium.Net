@@ -1,4 +1,4 @@
-# 🔒 SecretStream
+# 🔒 Authenticated Stream Encryption with SecretStream
 
 The `SecretStream` class in **LibSodium.Net** provides secure, authenticated stream-based encryption and decryption using the **XChaCha20-Poly1305** algorithm. It's designed to handle large streams of data efficiently and securely.
 

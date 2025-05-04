@@ -42,7 +42,7 @@ namespace LibSodium
         /// Optional additional authenticated data. Not encrypted, but authenticated.
         /// </param>
         /// <param name="nonce">
-        /// Optional nonce (24 bytes). If not provided, a random nonce is generated and prepended (combined) or returned (detached).
+        /// Optional nonce (24 bytes). If not provided, a random nonce is generated and prepended.
         /// </param>
         /// <returns>
         /// The span representing the full ciphertext, including MAC and possibly nonce.
@@ -128,7 +128,7 @@ namespace LibSodium
         /// Optional additional authenticated data. Not encrypted, but authenticated.
         /// </param>
         /// <param name="nonce">
-        /// Optional nonce (32 bytes). If not provided, a random nonce is generated and prepended (combined) or returned (detached).
+        /// Optional nonce (32 bytes). If not provided, a random nonce is generated and prepended.
         /// </param>
         /// <returns>
         /// The span representing the full ciphertext, including MAC and possibly nonce.
@@ -214,7 +214,7 @@ namespace LibSodium
         /// Optional additional authenticated data. Not encrypted, but authenticated.
         /// </param>
         /// <param name="nonce">
-        /// Optional nonce (12 bytes). If not provided, a random nonce is generated and prepended (combined) or returned (detached).
+        /// Optional nonce (12 bytes). If not provided, a random nonce is generated and prepended.
         /// </param>
         /// <returns>
         /// The span representing the full ciphertext, including MAC and possibly nonce.
@@ -300,7 +300,7 @@ namespace LibSodium
         /// Optional additional authenticated data. Not encrypted, but authenticated.
         /// </param>
         /// <param name="nonce">
-        /// Optional nonce (12 bytes). If not provided, a random nonce is generated and prepended (combined) or returned (detached).
+        /// Optional nonce (12 bytes). If not provided, a random nonce is generated and prepended.
         /// </param>
         /// <returns>
         /// The span representing the full ciphertext, including MAC and possibly nonce.
@@ -386,7 +386,7 @@ namespace LibSodium
         /// Optional additional authenticated data. Not encrypted, but authenticated.
         /// </param>
         /// <param name="nonce">
-        /// Optional nonce (8 bytes). If not provided, a random nonce is generated and prepended (combined) or returned (detached).
+        /// Optional nonce (8 bytes). If not provided, a random nonce is generated and prepended.
         /// </param>
         /// <returns>
         /// The span representing the full ciphertext, including MAC and possibly nonce.
@@ -472,7 +472,7 @@ namespace LibSodium
         /// Optional additional authenticated data. Not encrypted, but authenticated.
         /// </param>
         /// <param name="nonce">
-        /// Optional nonce (16 bytes). If not provided, a random nonce is generated and prepended (combined) or returned (detached).
+        /// Optional nonce (16 bytes). If not provided, a random nonce is generated and prepended.
         /// </param>
         /// <returns>
         /// The span representing the full ciphertext, including MAC and possibly nonce.

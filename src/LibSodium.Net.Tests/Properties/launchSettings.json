@@ -3,6 +3,9 @@
     "LibSodium.Net.Tests": {
       "commandName": "Project",
       "commandLineArgs": "--report-trx --coverage"
+    },
+    "Dev": {
+      "commandName": "Project"
     }
   }
 }

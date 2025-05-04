@@ -10,7 +10,7 @@
 ## 🌟 Features
 
 * Comprehensive API coverage of all major libsodium primitives
-* Unified high-level API for AEAD
+* Unified high-level API for all six AEAD algorithms
 * Low-level bindings for granular control
 * Ergonomic `Span<byte>`-based API with zero allocations where possible
 * Optional automatic nonce generation and AAD support

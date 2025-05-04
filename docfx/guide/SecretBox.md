@@ -1,4 +1,4 @@
-# 🔒 SecretBox
+# 🔒 Symmetric Authenticated Encryption with SecretBox
 
 The `SecretBox` API in **LibSodium.Net** provides a simple and secure way to perform symmetric authenticated encryption using the XSalsa20 stream cipher and Poly1305 MAC. It supports both **combined** and **detached** encryption modes, as well as **manual** or **automatic** nonce handling — all from a single, unified API.
 

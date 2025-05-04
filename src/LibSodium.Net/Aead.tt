@@ -101,7 +101,7 @@ foreach (var algo in algorithms) {
         /// Optional additional authenticated data. Not encrypted, but authenticated.
         /// </param>
         /// <param name="nonce">
-        /// Optional nonce (<#= algo.NonceLen #> bytes). If not provided, a random nonce is generated and prepended (combined) or returned (detached).
+        /// Optional nonce (<#= algo.NonceLen #> bytes). If not provided, a random nonce is generated and prepended.
         /// </param>
         /// <returns>
         /// The span representing the full ciphertext, including MAC and possibly nonce.

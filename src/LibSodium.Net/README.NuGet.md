@@ -1,7 +1,7 @@
-# 🔐 LibSodium.Net — Modern cryptography for .NET 8+
+# 🔐 Modern cryptography for .NET 8+
 
-Bindings for [libsodium](https://doc.libsodium.org) with a Span-based API.  
-Includes authenticated encryption (XChaCha20-Poly1305), streaming authenticated encryption (SecretStream), secure memory handling (SecureMemory), and many more.
+.NET Bindings for [libsodium](https://doc.libsodium.org) with a Span-based API.  
+Includes authenticated encryption (AEAD: XChaCha20-Poly1305, ChaCha20-Poly1305-IETF, ChaCha20-Poly1305, AES256-GCM, AEGIS-256, AEGIS-128L), public-key authenticated encryption (CryptoBox), streaming authenticated encryption (SecretStream), secure memory handling (SecureMemory), and many more.
 
 Fast, memory-safe, allocation-free. AOT-ready with `LibraryImport`.
 
@@ -47,4 +47,25 @@ decryptedStream.Position = 0;
 var isWorking = decryptedStream.ToArray().SequenceEqual(helloData);
 
 Console.WriteLine($"It works: {isWorking}");
+```
+
+```csharp
+// CryptoBox — Authenticated encryption using public-key cryptography
+Span<byte> senderPk = stackalloc byte[CryptoBox.PublicKeyLen];
+Span<byte> senderSk = stackalloc byte[CryptoBox.PrivateKeyLen];
+Span<byte> recipientPk = stackalloc byte[CryptoBox.PublicKeyLen];
+Span<byte> recipientSk = stackalloc byte[CryptoBox.PrivateKeyLen];
+
+CryptoBox.GenerateKeypair(senderPk, senderSk);
+CryptoBox.GenerateKeypair(recipientPk, recipientSk);
+
+var message = Encoding.UTF8.GetBytes("Top secret");
+var ciphertext = new byte[message.Length + CryptoBox.MacLen + CryptoBox.NonceLen];
+
+CryptoBox.EncryptWithKeypair(ciphertext, message, recipientPk, senderSk);
+
+var decrypted = new byte[message.Length];
+CryptoBox.DecryptWithKeypair(decrypted, ciphertext, senderPk, recipientSk);
+
+Console.WriteLine($"It works: {decrypted.SequenceEqual(message)}");
 ```
