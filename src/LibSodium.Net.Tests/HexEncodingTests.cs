@@ -8,32 +8,32 @@ namespace LibSodium.Tests
 		static string hex = "0123456789abcdef";
 
 		[Test]
-		public async Task BinToHex_ConvertsCorrectly()
+		public void BinToHex_ConvertsCorrectly()
 		{
 			string actualHex = HexEncoding.BinToHex(bin);
-			await Assert.That(actualHex).IsEqualTo(hex);
+			actualHex.ShouldBe(hex);
 		}
 
 		[Test]
-		public async Task BinToHex_EmptyBin_ReturnsEmptyString()
+		public void BinToHex_EmptyBin_ReturnsEmptyString()
 		{
 			string actualHex = HexEncoding.BinToHex(Array.Empty<byte>());
-			await Assert.That(actualHex).IsEqualTo(string.Empty);
+			actualHex.ShouldBe(string.Empty);
 		}
 
 		[Test]
-		public async Task BinToHex_Span_ConvertsCorrectly()
+		public void BinToHex_Span_ConvertsCorrectly()
 		{
 			Span<char> hexBuffer = stackalloc char[bin.Length * 2];
 			var actualHex = HexEncoding.BinToHex(bin, hexBuffer).ToString();
-			await Assert.That(actualHex).IsEqualTo(hex);
+			actualHex.ShouldBe(hex);
 		}
 
 		[Test]
-		public async Task BinToHex_Span_ThrowsArgumentException_WhenBufferTooSmall()
+		public void BinToHex_Span_ThrowsArgumentException_WhenBufferTooSmall()
 		{
 			char[] hexBuffer = new char[bin.Length];
-			await Assert.That(() => HexEncoding.BinToHex(bin, hexBuffer)).Throws<ArgumentException>();
+			AssertLite.Throws<ArgumentException>(() => HexEncoding.BinToHex(bin, hexBuffer));
 		}
 
 		[Test]
@@ -41,15 +41,15 @@ namespace LibSodium.Tests
 		{
 			Span<byte> binBuffer = stackalloc byte[hex.Length / 2];
 			var binArray = HexEncoding.HexToBin(hex, binBuffer).ToArray();
-			binArray.SequenceEqual(bin).ShouldBeTrue();
+			binArray.ShouldBe(bin);
 		}
 
 		[Test]
-		public async Task HexToBin_EmptyHex_ReturnsEmptyBin()
+		public void HexToBin_EmptyHex_ReturnsEmptyBin()
 		{
 			string hex = string.Empty;
 			var binSpan = HexEncoding.HexToBin(hex, Array.Empty<byte>());
-			await Assert.That(binSpan.Length).IsEqualTo(0);
+			binSpan.Length.ShouldBe(0);
 		}
 
 		[Test]
@@ -58,37 +58,37 @@ namespace LibSodium.Tests
 			string hex = "01:23:45:67:89:AB:CD:EF";
 			Span<byte> binBuffer = stackalloc byte[8];
 			var binArray = HexEncoding.HexToBin(hex, binBuffer, ":").ToArray();
-			binArray.SequenceEqual(bin).ShouldBeTrue();
+			binArray.ShouldBe(bin);
 		}
 
 		[Test]
-		public async Task HexToBin_ThrowsSodiumException_OnInvalidHex()
+		public void HexToBin_ThrowsSodiumException_OnInvalidHex()
 		{
 			string invalidHex = "0123456789abcg"; // 'g' is an invalid hex character
 			byte[] binBuffer = new byte[invalidHex.Length / 2];
-			await Assert.That(() => HexEncoding.HexToBin(invalidHex, binBuffer)).Throws<LibSodiumException>();
+			AssertLite.Throws<LibSodiumException>(() => HexEncoding.HexToBin(invalidHex, binBuffer));
 		}
 
 		[Test]
-		public async Task HexToBin_ThrowsSodiumException_OnBufferTooSmall()
+		public void HexToBin_ThrowsSodiumException_OnBufferTooSmall()
 		{
 			byte[] binBuffer = new byte[1];
-			await Assert.That(() => HexEncoding.HexToBin(hex, binBuffer)).Throws<LibSodiumException>();
+			AssertLite.Throws<LibSodiumException>(() => HexEncoding.HexToBin(hex, binBuffer));
 		}
 
 		[Test]
 		public void HexToBin_SpanChar_ConvertsCorrectly()
 		{
 			Span<byte> binBuffer = stackalloc byte[hex.Length / 2];
-			var binArray = HexEncoding.HexToBin(hex.AsSpan(), binBuffer).ToArray();
-			binArray.SequenceEqual(bin).ShouldBeTrue();
+			var binSpan = HexEncoding.HexToBin(hex.AsSpan(), binBuffer);
+			binSpan.ShouldBe(bin);
 		}
 
 		[Test]
-		public async Task HexToBin_SpanChar_EmptyHex_ReturnsEmptyBin()
+		public void HexToBin_SpanChar_EmptyHex_ReturnsEmptyBin()
 		{
 			var binSpanLen = HexEncoding.HexToBin(string.Empty.AsSpan(), Array.Empty<byte>()).Length;
-			await Assert.That(binSpanLen).IsEqualTo(0);
+			binSpanLen.ShouldBe(0);
 		}
 	}
 }

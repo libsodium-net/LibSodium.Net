@@ -42,7 +42,42 @@ public static class AssertLite
 		}
 	}
 
-    public static void ShouldBe(this int actual, int expected, string? message = null)
+    public static void ShouldBe(this Span<byte> actual, Span<byte> expected, string? message = null)
+	{
+		if (actual.Length != expected.Length || !actual.SequenceEqual(expected))
+		{
+			throw new AssertionException($"Should be {HexEncoding.BinToHex(expected)}, but got {HexEncoding.BinToHex(actual)}. {message}");
+		}
+	}
+
+	public static void ShouldNotBe(this Span<byte> actual, Span<byte> expected, string? message = null)
+	{
+		if (actual.Length == expected.Length && actual.SequenceEqual(expected))
+		{
+			throw new AssertionException($"Should not be {HexEncoding.BinToHex(expected)}, but got {HexEncoding.BinToHex(actual)}. {message}");
+		}
+	}
+
+	public static void ShouldNotBe(this byte[] actual, byte[] expected, string? message = null)
+	{
+		if (actual.Length == expected.Length && actual.SequenceEqual(expected))
+		{
+			throw new AssertionException($"Should not be {HexEncoding.BinToHex(expected)}, but got {HexEncoding.BinToHex(actual)}. {message}");
+		}
+	}
+
+
+
+
+	public static void ShouldBe(this byte[] actual, byte[] expected, string? message = null)
+    {
+		if (actual.Length != expected.Length || !actual.SequenceEqual(expected))
+		{
+			throw new AssertionException($"Should be {HexEncoding.BinToHex(expected)}, but got {HexEncoding.BinToHex(actual)}. {message}");
+		}
+	}
+
+	public static void ShouldBe(this int actual, int expected, string? message = null)
 	{
 		if (actual != expected)
 		{
@@ -58,6 +93,29 @@ public static class AssertLite
 		}
 	}
 
+	public static void ShouldNotBe(this uint actual, uint expected, string? message = null)
+	{
+		if (actual == expected)
+		{
+			throw new AssertionException($"Should not be {expected}, but got {actual}. {message}");
+		}
+	}
+
+    public static void ShouldBeLessThan(this int actual, int expected, string? message = null)
+    {
+        if (actual >= expected)
+        {
+            throw new AssertionException($"Should be less than {expected}, but got {actual}. {message}");
+        }
+    }
+	public static void ShouldBeLessThan(this uint actual, uint expected, string? message = null)
+	{
+		if (actual >= expected)
+		{
+			throw new AssertionException($"Should be less than {expected}, but got {actual}. {message}");
+		}
+	}
+
 	public static void ShouldBe<T>(this T actual, T expected, string? message = null) where T : IEquatable<T>
     {
         if (!actual.Equals(expected))
@@ -65,6 +123,14 @@ public static class AssertLite
 			throw new AssertionException(message ?? $"Should be {expected}, but got {actual}");
 		}
 	}
+
+    public static void ShouldBeGreaterThanOrEqualTo(this int actual, int expected, string? message = null)
+    {
+        if (actual < expected)
+        {
+            throw new AssertionException(message ?? $"Should be greater or equal to {expected}, but got {actual}");
+        }
+    }
 
 	public static void Equal<T>(T expected, T actual)
     {

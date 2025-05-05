@@ -31,7 +31,7 @@ namespace LibSodium.Tests
 			var decrypted = SecretBox.DecryptCombined(decryptedBuffer, ciphertext, key, nonce).ToArray();
 
 			ciphertextLen.ShouldBe(plaintext.Length + SecretBox.MacLen);
-			decrypted.SequenceEqual(plaintext).ShouldBeTrue();
+			decrypted.ShouldBe(plaintext);
 		}
 
 		[Test]
@@ -46,7 +46,7 @@ namespace LibSodium.Tests
 			var ciphertext = SecretBox.EncryptCombined(ciphertextBuffer, plaintext, key);
 			Span<byte> decryptedBuffer = stackalloc byte[plaintext.Length];
 			var decrypted = SecretBox.DecryptCombined(decryptedBuffer, ciphertext, key).ToArray();
-			decrypted.SequenceEqual(plaintext).ShouldBeTrue();
+			decrypted.ShouldBe(plaintext);
 		}
 
 		[Test]
@@ -64,8 +64,7 @@ namespace LibSodium.Tests
 			var ciphertext = SecretBox.EncryptDetached(ciphertextBuffer, macBuffer, plaintext, key, nonce);
 			Span<byte> decryptedBuffer = stackalloc byte[plaintext.Length];
 			var decrypted = SecretBox.DecryptDetached(decryptedBuffer, ciphertext, key, macBuffer, nonce).ToArray();
-
-			decrypted.SequenceEqual(plaintext).ShouldBeTrue();
+			decrypted.ShouldBe(plaintext);
 		}
 
 		[Test]
@@ -82,11 +81,11 @@ namespace LibSodium.Tests
 			Span<byte> decryptedBuffer = stackalloc byte[plaintext.Length];
 			var decrypted = SecretBox.DecryptDetached(decryptedBuffer, ciphertext, key, macBuffer).ToArray();
 
-			decrypted.SequenceEqual(plaintext).ShouldBeTrue();
+			decrypted.ShouldBe(plaintext);
 		}
 
 		[Test]
-		public async Task EncryptCombined_InvalidCiphertextBuffer_ThrowsArgumentException()
+		public void EncryptCombined_InvalidCiphertextBuffer_ThrowsArgumentException()
 		{
 			byte[] key = new byte[SecretBox.KeyLen];
 			byte[] nonce = new byte[SecretBox.NonceLen];
@@ -96,11 +95,15 @@ namespace LibSodium.Tests
 			var plaintext = GenerateRandomPlainText();
 			byte[] ciphertextBuffer = new byte[plaintext.Length + SecretBox.MacLen - 1]; // Buffer too small
 
-			await Assert.That(() => SecretBox.EncryptCombined(ciphertextBuffer, plaintext, key, nonce)).Throws<ArgumentException>();
+			AssertLite.Throws<ArgumentException>(() =>
+			{
+				SecretBox.EncryptCombined(ciphertextBuffer, plaintext, key, nonce);
+			});
+
 		}
 
 		[Test]
-		public async Task EncryptCombined_InvalidKeyLength_ThrowsArgumentException()
+		public void EncryptCombined_InvalidKeyLength_ThrowsArgumentException()
 		{
 			byte[] key = new byte[SecretBox.KeyLen - 1];
 			byte[] nonce = new byte[SecretBox.NonceLen];
@@ -109,11 +112,14 @@ namespace LibSodium.Tests
 			var plaintext = GenerateRandomPlainText();
 			byte[] ciphertextBuffer = new byte[plaintext.Length + SecretBox.MacLen];
 
-			await Assert.That(() => SecretBox.EncryptCombined(ciphertextBuffer, plaintext, key, nonce)).Throws<ArgumentException>();
+			AssertLite.Throws<ArgumentException>(() =>
+			{
+				SecretBox.EncryptCombined(ciphertextBuffer, plaintext, key, nonce);
+			});
 		}
 
 		[Test]
-		public async Task EncryptCombined_InvalidNonceLength_ThrowsArgumentException()
+		public void EncryptCombined_InvalidNonceLength_ThrowsArgumentException()
 		{
 			byte[] key = new byte[SecretBox.KeyLen];
 			byte[] nonce = new byte[SecretBox.NonceLen - 1];
@@ -122,11 +128,14 @@ namespace LibSodium.Tests
 			var plaintext = GenerateRandomPlainText();
 			byte[] ciphertextBuffer = new byte[plaintext.Length + SecretBox.MacLen];
 
-			await Assert.That(() => SecretBox.EncryptCombined(ciphertextBuffer, plaintext, key, nonce)).Throws<ArgumentException>();
+			AssertLite.Throws<ArgumentException>(() =>
+			{
+				SecretBox.EncryptCombined(ciphertextBuffer, plaintext, key, nonce);
+			});
 		}
 
 		[Test]
-		public async Task DecryptCombined_InvalidCiphertextLength_ThrowsArgumentException()
+		public void DecryptCombined_InvalidCiphertextLength_ThrowsArgumentException()
 		{
 			byte[] key = new byte[SecretBox.KeyLen];
 			byte[] nonce = new byte[SecretBox.NonceLen];
@@ -136,11 +145,14 @@ namespace LibSodium.Tests
 			byte[] ciphertextBuffer = new byte[SecretBox.MacLen - 1]; // Buffer too small
 			byte[] plaintextBuffer = new byte[10];
 
-			await Assert.That(() => SecretBox.DecryptCombined(plaintextBuffer, ciphertextBuffer, key, nonce)).Throws<ArgumentException>();
+			AssertLite.Throws<ArgumentException>(() =>
+			{
+				SecretBox.DecryptCombined(plaintextBuffer, ciphertextBuffer, key, nonce);
+			});
 		}
 
 		[Test]
-		public async Task DecryptDetached_InvalidMacLength_ThrowsArgumentException()
+		public void DecryptDetached_InvalidMacLength_ThrowsArgumentException()
 		{
 			byte[] key = new byte[SecretBox.KeyLen];
 			byte[] nonce = new byte[SecretBox.NonceLen];
@@ -151,11 +163,14 @@ namespace LibSodium.Tests
 			byte[] macBuffer = new byte[SecretBox.MacLen - 1]; // mac too short
 			byte[] plaintextBuffer = new byte[10];
 
-			await Assert.That(() => SecretBox.DecryptDetached(plaintextBuffer, ciphertextBuffer, key, macBuffer, nonce)).Throws<ArgumentException>();
+			AssertLite.Throws<ArgumentException>(() =>
+			{
+				SecretBox.DecryptDetached(plaintextBuffer, ciphertextBuffer, key, macBuffer, nonce);
+			});
 		}
 
 		[Test]
-		public async Task DecryptCombined_TamperedCiphertext_ThrowsSodiumException()
+		public void DecryptCombined_TamperedCiphertext_ThrowsSodiumException()
 		{
 			byte[] key = new byte[SecretBox.KeyLen];
 			byte[] nonce = new byte[SecretBox.NonceLen];
@@ -172,11 +187,14 @@ namespace LibSodium.Tests
 
 			byte[] decryptedBuffer = new byte[plaintext.Length];
 
-			await Assert.That(() => SecretBox.DecryptCombined(decryptedBuffer, ciphertext, key, nonce)).Throws<LibSodiumException>();
+			AssertLite.Throws<LibSodiumException>(() =>
+			{
+				SecretBox.DecryptCombined(decryptedBuffer, ciphertext, key, nonce);
+			});
 		}
 
 		[Test]
-		public async Task DecryptCombined_AutoNonce_TamperedCiphertext_ThrowsSodiumException()
+		public void DecryptCombined_AutoNonce_TamperedCiphertext_ThrowsSodiumException()
 		{
 			byte[] key = new byte[SecretBox.KeyLen];
 			RandomGenerator.Fill(key);
@@ -191,11 +209,14 @@ namespace LibSodium.Tests
 
 			byte[] decryptedBuffer = new byte[plaintext.Length];
 
-			await Assert.That(() => SecretBox.DecryptCombined(decryptedBuffer, ciphertext, key)).Throws<LibSodiumException>();
+			AssertLite.Throws<LibSodiumException>(() =>
+			{
+				SecretBox.DecryptCombined(decryptedBuffer, ciphertext, key);
+			});
 		}
 
 		[Test]
-		public async Task DecryptDetached_TamperedCiphertext_ThrowsSodiumException()
+		public void DecryptDetached_TamperedCiphertext_ThrowsSodiumException()
 		{
 			byte[] key = new byte[SecretBox.KeyLen];
 			byte[] nonce = new byte[SecretBox.NonceLen];
@@ -213,11 +234,14 @@ namespace LibSodium.Tests
 
 			byte[] decryptedBuffer = new byte[plaintext.Length];
 
-			await Assert.That(() => SecretBox.DecryptDetached(decryptedBuffer, ciphertext, key, macBuffer, nonce)).Throws<LibSodiumException>();
+			AssertLite.Throws<LibSodiumException>(() =>
+			{
+				SecretBox.DecryptDetached(decryptedBuffer, ciphertext, key, macBuffer, nonce);
+			});
 		}
 
 		[Test]
-		public async Task DecryptDetached_AutoNonce_TamperedCiphertext_ThrowsSodiumException()
+		public void DecryptDetached_AutoNonce_TamperedCiphertext_ThrowsSodiumException()
 		{
 			byte[] key = new byte[SecretBox.KeyLen];
 			RandomGenerator.Fill(key);
@@ -233,7 +257,10 @@ namespace LibSodium.Tests
 
 			byte[] decryptedBuffer = new byte[plaintext.Length];
 
-			await Assert.That(() => SecretBox.DecryptDetached(decryptedBuffer, ciphertext, key, macBuffer)).Throws<LibSodiumException>();
+			AssertLite.Throws<LibSodiumException>(() =>
+			{
+				SecretBox.DecryptDetached(decryptedBuffer, ciphertext, key, macBuffer);
+			});
 		}
 
 		private static byte[] GenerateRandomBytes(int length)
@@ -256,11 +283,11 @@ namespace LibSodium.Tests
 
 			encrypted = Encrypt(ciphertext, plaintext, key);
 			Decrypt(decrypted, encrypted, key);
-			decrypted.SequenceEqual(plaintext).ShouldBeTrue();
+			decrypted.ShouldBe(plaintext);
 
 			encrypted = Encrypt(ciphertext, plaintext, key, nonce: nonce);
 			Decrypt(decrypted, encrypted, key, nonce: nonce);
-			decrypted.SequenceEqual(plaintext).ShouldBeTrue();
+			decrypted.ShouldBe(plaintext);
 		}
 
 		[Test]
@@ -277,11 +304,11 @@ namespace LibSodium.Tests
 
 			encrypted = Encrypt(ciphertext, plaintext, key, mac: mac);
 			Decrypt(decrypted, encrypted, key, mac: mac);
-			decrypted.SequenceEqual(plaintext).ShouldBeTrue();
+			decrypted.ShouldBe(plaintext);
 
 			encrypted = Encrypt(ciphertext, plaintext, key, mac: mac, nonce: nonce);
 			Decrypt(decrypted, encrypted, key, mac: mac, nonce: nonce);
-			decrypted.SequenceEqual(plaintext).ShouldBeTrue();
+			decrypted.ShouldBe(plaintext);
 		}
 	}
 }

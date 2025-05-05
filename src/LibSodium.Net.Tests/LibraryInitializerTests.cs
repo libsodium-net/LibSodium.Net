@@ -3,12 +3,11 @@
 	public class LibraryInitializerTests
 	{
 		[Test]
-		public async Task EnsureInitializedTest()
+		public void EnsureInitializedTest()
 		{
 			LibraryInitializer.EnsureInitialized();
-			
-			await Assert.That(LibraryInitializer.IsInitialized).IsTrue();
-			await Assert.That(LibSodium.Interop.Native.sodium_init()).IsEqualTo(1);
+			LibraryInitializer.IsInitialized.ShouldBeTrue();
+			Interop.Native.sodium_init().ShouldBe(1);
 		}
 	}
 }

@@ -5,22 +5,19 @@ namespace LibSodium.Tests
 	public class RandomGeneratorTests
 	{
 		[Test]
-		public async Task GetUInt32_ReturnsRandomUInt32()
+		public void GetUInt32_ReturnsRandomUInt32()
 		{
 			uint random1 = RandomGenerator.GetUInt32();
 			uint random2 = RandomGenerator.GetUInt32();
-			
-			await Assert.That(random1).IsNotEqualTo(random2);
-			
+			random1.ShouldNotBe(random2);
 		}
 
 		[Test]
-		public async Task GetUInt32_WithUpperBound_ReturnsRandomUInt32LessThanUpperBound()
+		public void GetUInt32_WithUpperBound_ReturnsRandomUInt32LessThanUpperBound()
 		{
 			uint upperBound = 100;
 			uint random = RandomGenerator.GetUInt32(upperBound);
-
-			await Assert.That(random).IsLessThan(upperBound);
+			random.ShouldBeLessThan(upperBound);
 		}
 
 		[Test]
@@ -33,10 +30,9 @@ namespace LibSodium.Tests
 			RandomGenerator.Fill(b1);
 			RandomGenerator.Fill(b2);
 
-			b1.SequenceEqual(b2).ShouldBeFalse();
-			b1.SequenceEqual(zeroes).ShouldBeFalse();
-			b2.SequenceEqual(zeroes).ShouldBeFalse();
-
+			b1.ShouldNotBe(b2);
+			b1.ShouldNotBe(zeroes);
+			b2.ShouldNotBe(zeroes);
 		}
 
 		[Test]
@@ -56,29 +52,32 @@ namespace LibSodium.Tests
 			RandomGenerator.FillDeterministic(b1s1, s1);
 			RandomGenerator.FillDeterministic(b2s1, s1);
 			RandomGenerator.FillDeterministic(b3s2, s2);
-			b1s1.SequenceEqual(b2s1).ShouldBeTrue();
-			b1s1.SequenceEqual(b3s2).ShouldBeFalse();
+
+			b1s1.ShouldBe(b2s1);
+			b1s1.ShouldNotBe(b3s2);
 		}
 
 		[Test]
-		public async Task FillDeterministic_ThrowsArgumentException_WhenSeedLengthIsInvalid()
+		public void FillDeterministic_ThrowsArgumentException_WhenSeedLengthIsInvalid()
 		{
-			byte[] seed = new byte[RandomGenerator.SeedLen - 1];
-			byte[] buffer = new byte[32];
-
-			await Assert.That(() => RandomGenerator.FillDeterministic(buffer, seed)).Throws<ArgumentException>();
+			AssertLite.Throws<ArgumentException>(() =>
+			{
+				Span<byte> seed = stackalloc byte[RandomGenerator.SeedLen - 1];
+				Span<byte> buffer = stackalloc byte[32];
+				RandomGenerator.FillDeterministic(buffer, seed);
+			});
 		}
 
 		[Test]
 		[NotInParallel]
-		public async Task CloseAndStir_WorksAsExpected()
+		public void CloseAndStir_WorksAsExpected()
 		{
 			try
 			{
-				await Assert.That(() => RandomGenerator.Stir()).ThrowsNothing();
-				await Assert.That(() => RandomGenerator.Stir()).ThrowsNothing();
-				await Assert.That(() => RandomGenerator.Close()).ThrowsNothing();
-				await Assert.That(() => RandomGenerator.Close()).Throws<LibSodiumException>();
+				RandomGenerator.Stir();
+				RandomGenerator.Stir();
+				RandomGenerator.Close();
+				AssertLite.Throws<LibSodiumException>(() => RandomGenerator.Close());
 			}
 			finally
 			{

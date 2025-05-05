@@ -35,7 +35,7 @@ public class SecretStreamTests
 		encryptedOutput.Position = 0;
 		using var decryptedOutput = new MemoryStream();
 		await SecretStream.DecryptAsync(encryptedOutput, decryptedOutput, key);
-		decryptedOutput.ToArray().SequenceEqual(plaintext).ShouldBeTrue();
+		decryptedOutput.ToArray().ShouldBe(plaintext);
 	}
 
 	[Test]
@@ -62,7 +62,7 @@ public class SecretStreamTests
 		using var decryptedOutput = new MemoryStream();
 		SecretStream.Decrypt(encryptedOutput, decryptedOutput, key);
 
-		decryptedOutput.ToArray().SequenceEqual(plaintext).ShouldBeTrue();
+		decryptedOutput.ToArray().ShouldBe(plaintext);
 	}
 
 	[Test]
@@ -74,6 +74,7 @@ public class SecretStreamTests
 		using var output = new MemoryStream();
 
 		await AssertLite.ThrowsAsync<ArgumentException>(() => SecretStream.EncryptAsync(input, output, invalidKey));
+
 	}
 
 	[Test]
