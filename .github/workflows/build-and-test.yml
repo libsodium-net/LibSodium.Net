@@ -26,9 +26,37 @@ jobs:
       run: dotnet restore .\src\LibSodium.Net\LibSodium.Net.csproj
     - name: Build LibSodium.Net
       run: dotnet build .\src\LibSodium.Net\LibSodium.Net.csproj --configuration Release --no-restore
-    - name: Install workloads
-      run: dotnet workload install macos
     - name: Publish LibSodium.Net.Tests AOT
-      run: dotnet publish .\src\LibSodium.Net.Tests\LibSodium.Net.Tests.csproj -c Release -f net8.0 -r win-x64 /p:PublishAot=true /p:SelfContained=true /p:PublishTrimmed=true /p:DefineConstants=AOT
+      run: dotnet publish .\src\LibSodium.Net.Tests\LibSodium.Net.Tests.Win.csproj -c Release
     - name: Execute LibSodium.Net.Tests AOT
-      run: .\src\LibSodium.Net.Tests\bin\Release\net8.0\win-x64\publish\LibSodium.Net.Tests.exe
+      run: .\src\LibSodium.Net.Tests\bin\Release\net8.0\win-x64\publish\LibSodium.Net.Tests.Win.exe
+
+  test-mac:
+    runs-on: macos-latest
+    steps:
+    - name: Set up .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Display .NET Info
+      run: dotnet --info
+
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install macOS workload
+      run: dotnet workload install macos
+
+    - name: Restore dependencies LibSodium.Net
+      run: dotnet restore ./src/LibSodium.Net/LibSodium.Net.csproj
+
+    - name: Build LibSodium.Net
+      run: dotnet build ./src/LibSodium.Net/LibSodium.Net.csproj --configuration Release --no-restore
+
+    - name: Publish LibSodium.Net.Tests AOT (macOS)
+      run: dotnet publish ./src/LibSodium.Net.Tests/LibSodium.Net.Tests.Mac.csproj -c Release
+
+    - name: Execute LibSodium.Net.Tests AOT (macOS)
+      run: ./src/LibSodium.Net.Tests/bin/Release/net8.0-macos/osx-arm64/publish/LibSodium.Net.Tests.Mac
+

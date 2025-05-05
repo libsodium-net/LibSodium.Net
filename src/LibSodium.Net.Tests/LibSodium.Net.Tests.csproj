@@ -1,63 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="LibSodium.Net.Tests.Core.csproj" />
 	<PropertyGroup>
-		<OutputType>Exe</OutputType>
-		<TargetFrameworks>net8.0;net8.0-macos</TargetFrameworks>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-		<Title>LibSodium.Net</Title>
-		<Version>0.5.0-alpha</Version>
-		<Authors>jesuslpm</Authors>
-		<Description>LibSodium.NET is a library that provides .NET bindings for libsodium</Description>
-		<Copyright>Copyright 2025</Copyright>
-		<PackageProjectUrl>https://libsodium-net.github.io/</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/LibSodium-Net/LibSodium.Net</RepositoryUrl>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<AssemblyVersion>1.0.0</AssemblyVersion>
-		<FileVersion>1.0.0</FileVersion>
-		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-		<GenerateTestingPlatformEntryPoint>true</GenerateTestingPlatformEntryPoint>
-
+		<TargetFramework>net8.0</TargetFramework>
 	</PropertyGroup>
-
-	<ItemGroup Condition="'$(PublishAot)' != 'true'">
-		<PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="17.14.2" />
-	</ItemGroup>
-	<ItemGroup>
-		<PackageReference Include="TUnit" Version="0.19.116" />
-	</ItemGroup>
-
-	<!--<ItemGroup Condition="'$(PublishAot)' != 'true'">
-		<ProjectReference Include="..\LibSodium.Net.ReadPastAllocatedMemory\LibSodium.Net.ReadPastAllocatedMemory.csproj" />
-		<ProjectReference Include="..\LibSodium.Net.WriteReadOnlyProtectedMemory\LibSodium.Net.WriteReadOnlyProtectedMemory.csproj" />
-	</ItemGroup>-->
-
-	<ItemGroup>
-	  <ProjectReference Include="..\LibSodium.Net\LibSodium.Net.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <None Update="AeadTests.tt">
-	    <Generator>TextTemplatingFileGenerator</Generator>
-	    <LastGenOutput>AeadTests.cs</LastGenOutput>
-	  </None>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Compile Update="AeadTests.cs">
-	    <DesignTime>True</DesignTime>
-	    <AutoGen>True</AutoGen>
-	    <DependentUpon>AeadTests.tt</DependentUpon>
-	  </Compile>
-	</ItemGroup>
-
-	<ItemGroup>
-	  <Folder Include="Properties\" />
-	</ItemGroup>
-
 </Project>

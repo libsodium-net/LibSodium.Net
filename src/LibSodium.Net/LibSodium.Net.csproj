@@ -41,7 +41,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<InternalsVisibleTo Include="LibSodium.Net.Tests.Core" />
 		<InternalsVisibleTo Include="LibSodium.Net.Tests" />
+		<InternalsVisibleTo Include="LibSodium.Net.Tests.Win" />
+		<InternalsVisibleTo Include="LibSodium.Net.Tests.Mac" />
+		
 		<InternalsVisibleTo Include="LibSodium.Net.ReadPastAllocatedMemory" />
 		<InternalsVisibleTo Include="LibSodium.Net.WriteReadOnlyProtectedMemory" />
 	</ItemGroup>
