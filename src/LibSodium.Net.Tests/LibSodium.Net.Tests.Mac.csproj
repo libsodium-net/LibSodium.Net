@@ -6,6 +6,7 @@
 		<SelfContained>true</SelfContained>
 		<PublishAot>true</PublishAot>
 		<PublishTrimmed>true</PublishTrimmed>
+		<UseMacOSAppHost>false</UseMacOSAppHost>
 		<DefineConstants>MACOS;AOT</DefineConstants>
 	</PropertyGroup>
 </Project>
