@@ -57,6 +57,9 @@ jobs:
     - name: Publish LibSodium.Net.Tests AOT (macOS)
       run: dotnet publish ./src/LibSodium.Net.Tests/LibSodium.Net.Tests.Mac.csproj -c Release
 
+    - name: List published files (macOS)
+      run: ls -l ./src/LibSodium.Net.Tests/bin/Release/net8.0/osx-arm64/publish
+
     - name: Execute LibSodium.Net.Tests AOT (macOS)
-      run: ./src/LibSodium.Net.Tests/bin/Release/net8.0-macos/osx-arm64/publish/LibSodium.Net.Tests.Mac
+      run: ./src/LibSodium.Net.Tests/bin/Release/net8.0-macos/osx-arm64/publish/LibSodium.Net.Tests.Mac.exe
 
