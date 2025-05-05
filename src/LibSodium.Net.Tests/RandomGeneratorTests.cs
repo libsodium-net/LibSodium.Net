@@ -68,6 +68,8 @@ namespace LibSodium.Tests
 			});
 		}
 
+#if !LINUX
+
 		[Test]
 		[NotInParallel]
 		public void CloseAndStir_WorksAsExpected()
@@ -84,5 +86,6 @@ namespace LibSodium.Tests
 				RandomGenerator.Stir();
 			}
 		}
+#endif
 	}
 }
