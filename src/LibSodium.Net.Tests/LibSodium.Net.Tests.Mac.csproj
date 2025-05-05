@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<Import Project="LibSodium.Net.Tests.Core.csproj" />
 	<PropertyGroup>
-		<TargetFramework>net8.0-macos</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework> 
 		<RuntimeIdentifier>osx-arm64</RuntimeIdentifier>
 		<SelfContained>true</SelfContained>
 		<PublishAot>true</PublishAot>
 		<PublishTrimmed>true</PublishTrimmed>
-		<UseMacOSAppHost>false</UseMacOSAppHost>
 		<DefineConstants>MACOS;AOT</DefineConstants>
+		<OutputType>Exe</OutputType>
 	</PropertyGroup>
 </Project>
