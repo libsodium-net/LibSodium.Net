@@ -1,35 +1,25 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFramework>net8.0</TargetFramework>
+		<TargetFrameworks>net8.0;net8.0-macos</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<Title>LibSodium.Net</Title>
-		<Version>0.0.5-alpha</Version>
+		<Version>0.5.0-alpha</Version>
 		<Authors>jesuslpm</Authors>
 		<Description>LibSodium.NET is a library that provides .NET bindings for libsodium</Description>
 		<Copyright>Copyright 2025</Copyright>
 		<PackageProjectUrl>https://libsodium-net.github.io/</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/LibSodium-Net/LibSodium.Net</RepositoryUrl>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-		<PackageTags>libsodium cryptography sodium</PackageTags>
 		<AssemblyVersion>1.0.0</AssemblyVersion>
 		<FileVersion>1.0.0</FileVersion>
 		<PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
-		<EmbedAllSources>true</EmbedAllSources>
-		<AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
 		<GenerateTestingPlatformEntryPoint>true</GenerateTestingPlatformEntryPoint>
 
 	</PropertyGroup>
-	<ItemGroup>
-	  <None Include="AeadTests.cs">
-	    <DesignTime>True</DesignTime>
-	    <AutoGen>True</AutoGen>
-	    <DependentUpon>AeadTests.tt</DependentUpon>
-	  </None>
-	</ItemGroup>
 
 	<ItemGroup Condition="'$(PublishAot)' != 'true'">
 		<PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="17.14.2" />

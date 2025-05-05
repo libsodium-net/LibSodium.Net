@@ -22,13 +22,11 @@ jobs:
       uses: actions/checkout@v4
     - name: Display current directory
       run: pwd
-    - name: Restore dependencies
-      run: dotnet restore .\src\LibSodium.Net.sln
-    - name: Build (Debug)
-      run: dotnet build .\src\LibSodium.Net.sln --configuration Debug --no-restore
-    - name: Test (Debug)
-      run: dotnet test .\src\LibSodium.Net.sln --configuration Debug --no-restore --verbosity normal
-    - name: Build (Release)
-      run: dotnet build .\src\LibSodium.Net.sln --configuration Release --no-restore
-    - name: Test (Release)
-      run: dotnet test .\src\LibSodium.Net.sln --configuration Release --no-restore --verbosity normal
+    - name: Restore dependencies LibSodium.Net
+      run: dotnet restore .\src\LibSodium.Net\LibSodium.Net.csproj
+    - name: Build LibSodium.Net
+      run: dotnet build .\src\LibSodium.Net\LibSodium.Net.csproj --configuration Release --no-restore
+    - name: Publish LibSodium.Net.Tests AOT
+      run: dotnet publish .\src\LibSodium.Net.Tests\LibSodium.Net.Tests.csproj -c Release -f net8.0 -r win-x64 /p:PublishAot=true /p:SelfContained=true /p:PublishTrimmed=true /p:DefineConstants=AOT
+    - name: Execute LibSodium.Net.Tests AOT
+      run: .\src\LibSodium.Net.Tests\bin\Release\net8.0\win-x64\publish\LibSodium.Net.Tests.exe
