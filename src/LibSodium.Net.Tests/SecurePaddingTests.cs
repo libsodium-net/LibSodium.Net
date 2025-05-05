@@ -5,16 +5,16 @@ namespace LibSodium.Tests
 	public class SecurePaddingTests
 	{
 		[Test]
-		public async Task Pad_ShortData_PadsCorrectly()
+		public void Pad_ShortData_PadsCorrectly()
 		{
 			Span<byte> buffer = stackalloc byte[] { 0x01, 0x02, 0x03, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF } ;
 			var padded = SecurePadding.Pad(buffer, unpaddedLen: 3, blockSize: 8).ToArray();
 			byte[] expected = { 0x01, 0x02, 0x03, 0x80, 0x00, 0x00, 0x00, 0x00 };
-			await Assert.That(padded).IsSequenceEqualTo(expected);
+			padded.SequenceEqual(expected).ShouldBeTrue();
 		}
 
 		[Test]
-		public async Task Pad_ExactBlockSize_PadsCorrectly()
+		public void Pad_ExactBlockSize_PadsCorrectly()
 		{
 			Span<byte> buffer = stackalloc byte[] { 
 				0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
@@ -27,29 +27,31 @@ namespace LibSodium.Tests
 				0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 
 			};
 
-			await Assert.That(padded).IsSequenceEqualTo(expected);
+			padded.SequenceEqual(expected).ShouldBeTrue();
+
 		}
 
 		[Test]
-		public async Task Pad_EmptyData_PadsCorrectly()
+		public void Pad_EmptyData_PadsCorrectly()
 		{
 			Span<byte> buffer = stackalloc byte[8];
 			var padded = SecurePadding.Pad(buffer, unpaddedLen: 0, blockSize: 8).ToArray();
 			byte[] expected = { 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-			await Assert.That(padded).IsSequenceEqualTo(expected);
+
+			padded.SequenceEqual(expected).ShouldBeTrue();
 		}
 
 		[Test]
-		public async Task Unpad_PaddedData_UnpadsCorrectly()
+		public void Unpad_PaddedData_UnpadsCorrectly()
 		{
 			Span<byte> padded = stackalloc byte[] { 0x01, 0x02, 0x03, 0x80, 0x00, 0x00, 0x00, 0x00 };
 			var unpadded = SecurePadding.Unpad(padded, blockSize: 8).ToArray();
 			byte[] expected = { 0x01, 0x02, 0x03 };
-			await Assert.That(unpadded).IsSequenceEqualTo(expected);
+			unpadded.SequenceEqual(expected).ShouldBeTrue();
 		}
 
 		[Test]
-		public async Task Unpad_ExactBlockSize_UnpadsCorrectly()
+		public void Unpad_ExactBlockSize_UnpadsCorrectly()
 		{
 			Span<byte> padded = stackalloc byte[] { 
 				0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 
@@ -58,15 +60,15 @@ namespace LibSodium.Tests
 			var unpadded = SecurePadding.Unpad(padded, blockSize: 8).ToArray();
 
 			byte[] expected = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08 };
-			await Assert.That(unpadded).IsSequenceEqualTo(expected);
+			unpadded.SequenceEqual(expected).ShouldBeTrue();
 		}
 
 		[Test]
-		public async Task Unpad_OnlyPadding_UnpadsCorrectly()
+		public void Unpad_OnlyPadding_UnpadsCorrectly()
 		{
 			Span<byte> padded = stackalloc byte[] { 0x80, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
 			var unpaddedLen = SecurePadding.Unpad(padded, blockSize: 8).Length;
-			await Assert.That(unpaddedLen).IsEqualTo(0);
+			unpaddedLen.ShouldBe(0);
 		}
 
 		[Test]

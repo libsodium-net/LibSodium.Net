@@ -24,7 +24,7 @@ namespace LibSodium.Tests
 		}
 
 		[Test]
-		public async Task Fill_FillsBufferWithRandomBytes()
+		public void Fill_FillsBufferWithRandomBytes()
 		{
 			var b1 = new byte[10];
 			var b2 = new byte[10];
@@ -33,15 +33,14 @@ namespace LibSodium.Tests
 			RandomGenerator.Fill(b1);
 			RandomGenerator.Fill(b2);
 
-
-			await Assert.That(b1).IsNotSequenceEqualTo(b2);
-			await Assert.That(b1).IsNotSequenceEqualTo(zeroes);
-			await Assert.That(b2).IsNotSequenceEqualTo(zeroes);
+			b1.SequenceEqual(b2).ShouldBeFalse();
+			b1.SequenceEqual(zeroes).ShouldBeFalse();
+			b2.SequenceEqual(zeroes).ShouldBeFalse();
 
 		}
 
 		[Test]
-		public async Task FillDeterministic_FillsBufferWithDeterministicRandomBytes()
+		public void FillDeterministic_FillsBufferWithDeterministicRandomBytes()
 		{
 			Span<byte> s1 = stackalloc byte[RandomGenerator.SeedLen];
 			Span<byte> s2 = stackalloc byte[RandomGenerator.SeedLen];
@@ -57,10 +56,8 @@ namespace LibSodium.Tests
 			RandomGenerator.FillDeterministic(b1s1, s1);
 			RandomGenerator.FillDeterministic(b2s1, s1);
 			RandomGenerator.FillDeterministic(b3s2, s2);
-
-			await Assert.That(b1s1).IsSequenceEqualTo(b2s1);
-			await Assert.That(b1s1).IsNotSequenceEqualTo(b3s2);
-
+			b1s1.SequenceEqual(b2s1).ShouldBeTrue();
+			b1s1.SequenceEqual(b3s2).ShouldBeFalse();
 		}
 
 		[Test]

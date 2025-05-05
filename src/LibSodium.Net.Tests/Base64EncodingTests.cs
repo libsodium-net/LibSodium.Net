@@ -58,20 +58,20 @@ namespace LibSodium.Tests
 		}
 
 		[Test]
-		public async Task Base64ToBin_Original_DecodesCorrectly()
+		public void  Base64ToBin_Original_DecodesCorrectly()
 		{
 			Span<byte> binaryBuffer = stackalloc byte[Base64Encoding.GetBase64DecodedMaxLen(base64Original.Length)];
 			var decodedBinary = Base64Encoding.Base64ToBin(base64Original, binaryBuffer, Base64Variant.Original).ToArray();
-			await Assert.That(decodedBinary).IsSequenceEqualTo(bin);
+			decodedBinary.SequenceEqual(bin).ShouldBeTrue();
 		}
 
 		[Test]
-		public async Task Base64ToBin_Original_WithIgnore_DecodesCorrectly()
+		public void Base64ToBin_Original_WithIgnore_DecodesCorrectly()
 		{
 			string base64String = ":" + base64Original;
 			Span<byte> binaryBuffer = stackalloc byte[Base64Encoding.GetBase64DecodedMaxLen(base64String.Length)];
 			var decodedBinary = Base64Encoding.Base64ToBin(base64String, binaryBuffer, Base64Variant.Original, ":").ToArray();
-			await Assert.That(decodedBinary).IsSequenceEqualTo(bin);
+			decodedBinary.SequenceEqual(bin).ShouldBeTrue();
 		}
 
 		[Test]
@@ -115,11 +115,12 @@ namespace LibSodium.Tests
 		}
 
 		[Test]
-		public async Task Base64ToBin_OriginalNoPadding()
+		public void Base64ToBin_OriginalNoPadding()
 		{
 			byte[] binaryBuffer = new byte[Base64Encoding.GetBase64DecodedMaxLen(base64OriginalNoPadding.Length)];
 			var decodedBinary = Base64Encoding.Base64ToBin(base64OriginalNoPadding, binaryBuffer, Base64Variant.OriginalNoPadding).ToArray();
-			await Assert.That(decodedBinary).IsSequenceEqualTo(bin);
+			decodedBinary.SequenceEqual(bin).ShouldBeTrue();
+
 		}
 
 
@@ -131,11 +132,12 @@ namespace LibSodium.Tests
         }
 
         [Test]
-        public async Task Base64ToBin_UrlSafe()
+        public void Base64ToBin_UrlSafe()
         {
             Span<byte> binaryBuffer = stackalloc byte[Base64Encoding.GetBase64DecodedMaxLen(base64UrlSafe.Length)];
             var decodedBinary = Base64Encoding.Base64ToBin(base64UrlSafe, binaryBuffer, Base64Variant.UrlSafe).ToArray();
-            await Assert.That(decodedBinary).IsSequenceEqualTo(bin);
+
+			decodedBinary.SequenceEqual(bin).ShouldBeTrue();
         }
 
         [Test]
@@ -146,11 +148,11 @@ namespace LibSodium.Tests
         }
 
         [Test]
-        public async Task Base64ToBin_UrlSafeNoPadding()
+        public void Base64ToBin_UrlSafeNoPadding()
         {
             Span<byte> binaryBuffer = stackalloc byte[Base64Encoding.GetBase64DecodedMaxLen(base64UrlSafeNoPadding.Length)];
             var decodedBinary = Base64Encoding.Base64ToBin(base64UrlSafeNoPadding, binaryBuffer, Base64Variant.UrlSafeNoPadding).ToArray();
-            await Assert.That(decodedBinary).IsSequenceEqualTo(bin);
+            decodedBinary.SequenceEqual(bin).ShouldBeTrue();
         }
 
 		[Test]

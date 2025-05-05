@@ -15,7 +15,7 @@ namespace LibSodium.Tests
 		}
 
 		[Test]
-		public async Task EncryptCombined_DecryptCombined_Success()
+		public void EncryptCombined_DecryptCombined_Success()
 		{
 			Span<byte> key = stackalloc byte[SecretBox.KeyLen];
 			Span<byte> nonce = stackalloc byte[SecretBox.NonceLen];
@@ -30,12 +30,12 @@ namespace LibSodium.Tests
 			Span<byte> decryptedBuffer = stackalloc byte[plaintext.Length];
 			var decrypted = SecretBox.DecryptCombined(decryptedBuffer, ciphertext, key, nonce).ToArray();
 
-			await Assert.That(ciphertextLen).IsEqualTo(plaintext.Length + SecretBox.MacLen);
-			await Assert.That(decrypted).IsSequenceEqualTo(plaintext);
+			ciphertextLen.ShouldBe(plaintext.Length + SecretBox.MacLen);
+			decrypted.SequenceEqual(plaintext).ShouldBeTrue();
 		}
 
 		[Test]
-		public async Task EncryptCombined_AutoNonce_DecryptCombined_AutoNonce_Success()
+		public void EncryptCombined_AutoNonce_DecryptCombined_AutoNonce_Success()
 		{
 			Span<byte> key = stackalloc byte[SecretBox.KeyLen];
 			RandomGenerator.Fill(key);
@@ -46,12 +46,11 @@ namespace LibSodium.Tests
 			var ciphertext = SecretBox.EncryptCombined(ciphertextBuffer, plaintext, key);
 			Span<byte> decryptedBuffer = stackalloc byte[plaintext.Length];
 			var decrypted = SecretBox.DecryptCombined(decryptedBuffer, ciphertext, key).ToArray();
-
-			await Assert.That(decrypted).IsSequenceEqualTo(plaintext);
+			decrypted.SequenceEqual(plaintext).ShouldBeTrue();
 		}
 
 		[Test]
-		public async Task EncryptDetached_DecryptDetached_Success()
+		public void EncryptDetached_DecryptDetached_Success()
 		{
 			Span<byte> key = stackalloc byte[SecretBox.KeyLen];
 			Span<byte> nonce = stackalloc byte[SecretBox.NonceLen];
@@ -66,11 +65,11 @@ namespace LibSodium.Tests
 			Span<byte> decryptedBuffer = stackalloc byte[plaintext.Length];
 			var decrypted = SecretBox.DecryptDetached(decryptedBuffer, ciphertext, key, macBuffer, nonce).ToArray();
 
-			await Assert.That(decrypted).IsSequenceEqualTo(plaintext);
+			decrypted.SequenceEqual(plaintext).ShouldBeTrue();
 		}
 
 		[Test]
-		public async Task EncryptDetached_AutoNonce_DecryptDetached_AutoNonce_Success()
+		public void EncryptDetached_AutoNonce_DecryptDetached_AutoNonce_Success()
 		{
 			Span<byte> key = stackalloc byte[SecretBox.KeyLen];
 			RandomGenerator.Fill(key);
@@ -83,7 +82,7 @@ namespace LibSodium.Tests
 			Span<byte> decryptedBuffer = stackalloc byte[plaintext.Length];
 			var decrypted = SecretBox.DecryptDetached(decryptedBuffer, ciphertext, key, macBuffer).ToArray();
 
-			await Assert.That(decrypted).IsSequenceEqualTo(plaintext);
+			decrypted.SequenceEqual(plaintext).ShouldBeTrue();
 		}
 
 		[Test]

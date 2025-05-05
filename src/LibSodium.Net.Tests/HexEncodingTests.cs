@@ -37,11 +37,11 @@ namespace LibSodium.Tests
 		}
 
 		[Test]
-		public async Task HexToBin_ConvertsCorrectly()
+		public void HexToBin_ConvertsCorrectly()
 		{
 			Span<byte> binBuffer = stackalloc byte[hex.Length / 2];
 			var binArray = HexEncoding.HexToBin(hex, binBuffer).ToArray();
-			await Assert.That(binArray).IsSequenceEqualTo(bin);
+			binArray.SequenceEqual(bin).ShouldBeTrue();
 		}
 
 		[Test]
@@ -53,12 +53,12 @@ namespace LibSodium.Tests
 		}
 
 		[Test]
-		public async Task HexToBin_WithIgnore_ConvertsCorrectly()
+		public void HexToBin_WithIgnore_ConvertsCorrectly()
 		{
 			string hex = "01:23:45:67:89:AB:CD:EF";
 			Span<byte> binBuffer = stackalloc byte[8];
 			var binArray = HexEncoding.HexToBin(hex, binBuffer, ":").ToArray();
-			await Assert.That(binArray).IsSequenceEqualTo(bin);
+			binArray.SequenceEqual(bin).ShouldBeTrue();
 		}
 
 		[Test]
@@ -77,11 +77,11 @@ namespace LibSodium.Tests
 		}
 
 		[Test]
-		public async Task HexToBin_SpanChar_ConvertsCorrectly()
+		public void HexToBin_SpanChar_ConvertsCorrectly()
 		{
 			Span<byte> binBuffer = stackalloc byte[hex.Length / 2];
 			var binArray = HexEncoding.HexToBin(hex.AsSpan(), binBuffer).ToArray();
-			await Assert.That(binArray).IsSequenceEqualTo(bin);
+			binArray.SequenceEqual(bin).ShouldBeTrue();
 		}
 
 		[Test]
