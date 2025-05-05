@@ -61,5 +61,5 @@ jobs:
       run: ls -l ./src/LibSodium.Net.Tests/bin/Release/net8.0/osx-arm64/publish
 
     - name: Execute LibSodium.Net.Tests AOT (macOS)
-      run: ./src/LibSodium.Net.Tests/bin/Release/net8.0-macos/osx-arm64/publish/LibSodium.Net.Tests.Mac.exe
+      run: ./src/LibSodium.Net.Tests/bin/Release/net8.0/osx-arm64/publish/LibSodium.Net.Tests.Mac
 
