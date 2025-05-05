@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="LibSodium.Net.Tests.Core.csproj" />
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+		<SelfContained>true</SelfContained>
+		<PublishAot>true</PublishAot>
+		<PublishTrimmed>true</PublishTrimmed>
+		<OutputType>Exe</OutputType>
+		<DefineConstants>LINUX;AOT</DefineConstants>
+	</PropertyGroup>
+</Project>

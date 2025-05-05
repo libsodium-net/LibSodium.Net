@@ -62,4 +62,34 @@ jobs:
 
     - name: Execute LibSodium.Net.Tests AOT (macOS)
       run: ./src/LibSodium.Net.Tests/bin/Release/net8.0/osx-arm64/publish/LibSodium.Net.Tests.Mac
+      
+  test-linux:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Set up .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Display .NET Info
+      run: dotnet --info
+
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Restore dependencies LibSodium.Net
+      run: dotnet restore ./src/LibSodium.Net/LibSodium.Net.csproj
+
+    - name: Build LibSodium.Net
+      run: dotnet build ./src/LibSodium.Net/LibSodium.Net.csproj --configuration Release --no-restore
+
+    - name: Publish LibSodium.Net.Tests AOT (Linux)
+      run: dotnet publish ./src/LibSodium.Net.Tests/LibSodium.Net.Tests.Linux.csproj -c Release
+
+    - name: List published files (Linux)
+      run: ls -l ./src/LibSodium.Net.Tests/bin/Release/net8.0/linux-x64/publish
+
+    - name: Execute LibSodium.Net.Tests AOT (Linux)
+      run: ./src/LibSodium.Net.Tests/bin/Release/net8.0/linux-x64/publish/LibSodium.Net.Tests.Linux
+
 
