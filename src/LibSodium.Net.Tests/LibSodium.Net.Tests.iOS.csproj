@@ -3,6 +3,7 @@
 	<PropertyGroup>
 		<TargetFramework>net8.0-ios</TargetFramework>
 		<SelfContained>true</SelfContained>
+		<RuntimeIdentifier>linux-x64</RuntimeIdentifier>
 		<UseInterpreter>true</UseInterpreter>
 		<PublishTrimmed>true</PublishTrimmed>
 		<PublishAot>false</PublishAot>
