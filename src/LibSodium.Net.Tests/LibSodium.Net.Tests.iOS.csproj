@@ -5,7 +5,7 @@
 		<RuntimeIdentifier>iossimulator-arm64</RuntimeIdentifier>
 		<SelfContained>true</SelfContained>
 		<UseInterpreter>true</UseInterpreter>
-		<PublishTrimmed>false</PublishTrimmed>
+		<PublishTrimmed>true</PublishTrimmed>
 		<PublishAot>false</PublishAot>
 		<MtouchLink>None</MtouchLink>
 		<DefineConstants>IOS</DefineConstants>
