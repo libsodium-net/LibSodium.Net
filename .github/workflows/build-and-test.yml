@@ -110,11 +110,20 @@ jobs:
     - name: Display .NET Info
       run: dotnet --info
 
+    - name: Display workloads
+      run: dotnet workload search
+
+    - name: Display workloads installed
+      run: dotnet workload list
+
+    - name: Install iOS workload
+      run: dotnet workload install ios
+
+    - name: Display workloads installed
+      run: dotnet workload list
+
     - name: Checkout code
       uses: actions/checkout@v4
-
-    - name: Install iOS workload (pinned)
-      run: dotnet workload install ios --version 8.0.402
 
     - name: Install XHarness
       run: dotnet tool install Microsoft.DotNet.XHarness.CLI --global --add-source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json --version "10.0.0-prerelease*"
