@@ -5,11 +5,10 @@
 		<RuntimeIdentifier>iossimulator-arm64</RuntimeIdentifier>
 		<SelfContained>true</SelfContained>
 		<PublishAot>true</PublishAot>
-		<PublishTrimmed>false</PublishTrimmed>
-		<TrimMode>copyused</TrimMode>
-		<TrimmerDefaultAction>copy</TrimmerDefaultAction>
+		<PublishTrimmed>true</PublishTrimmed>
 		<DefineConstants>IOS;AOT</DefineConstants>
 		<ApplicationId>net.libsodium.tests</ApplicationId>
 		<OutputType>Exe</OutputType>
+		<MtouchLink>None</MtouchLink>
 	</PropertyGroup>
 </Project>
