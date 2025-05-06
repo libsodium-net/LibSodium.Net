@@ -102,6 +102,9 @@ jobs:
   test-ios:
     runs-on: macos-latest
     steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
     - name: Set up .NET 8.0.408
       uses: actions/setup-dotnet@v4
       with:
@@ -109,6 +112,9 @@ jobs:
 
     - name: Display .NET Info
       run: dotnet --info
+
+    - name: Display .NET version
+      run: dotnet --version
 
     - name: update-mode manifests
       run: dotnet workload config --update-mode manifests
@@ -122,8 +128,7 @@ jobs:
     - name: Display workloads installed
       run: dotnet workload list
 
-    - name: Checkout code
-      uses: actions/checkout@v4
+
 
     - name: Install XHarness
       run: dotnet tool install Microsoft.DotNet.XHarness.CLI --global --add-source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json --version "10.0.0-prerelease*"
