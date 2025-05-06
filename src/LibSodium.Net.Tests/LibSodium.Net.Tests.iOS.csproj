@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<Import Project="LibSodium.Net.Tests.Core.csproj" />
 	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework> 
-		<RuntimeIdentifier>osx-arm64</RuntimeIdentifier>
+		<TargetFramework>net8.0-ios</TargetFramework> 
+		<RuntimeIdentifier>iossimulator-arm64</RuntimeIdentifier>
 		<SelfContained>true</SelfContained>
 		<PublishAot>true</PublishAot>
 		<PublishTrimmed>true</PublishTrimmed>
-		<DefineConstants>MACOS;AOT</DefineConstants>
+		<DefineConstants>IOS;AOT</DefineConstants>
 		<OutputType>Exe</OutputType>
 	</PropertyGroup>
 </Project>
