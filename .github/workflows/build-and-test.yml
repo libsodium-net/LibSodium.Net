@@ -110,6 +110,12 @@ jobs:
     - name: Display .NET Info
       run: dotnet --info
 
+    - name: update-mode manifests
+      run: dotnet workload config --update-mode manifests
+
+    - name: workload update
+      run: dotnet workload update
+      
     - name: Install iOS workload
       run: dotnet workload install ios --version 8.0.402
 
