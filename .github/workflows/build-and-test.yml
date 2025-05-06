@@ -102,10 +102,10 @@ jobs:
   test-ios:
     runs-on: macos-latest
     steps:
-    - name: Set up .NET 8.0.402
+    - name: Set up .NET 8.0.408
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.402
+        dotnet-version: 8.0.408
 
     - name: Display .NET Info
       run: dotnet --info
@@ -115,9 +115,9 @@ jobs:
 
     - name: workload update
       run: dotnet workload update
-      
+
     - name: Install iOS workload
-      run: dotnet workload install ios --version 8.0.402
+      run: dotnet workload install ios --version 8.0.408
 
     - name: Display workloads installed
       run: dotnet workload list
