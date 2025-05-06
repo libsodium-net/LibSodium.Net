@@ -4,9 +4,11 @@
 		<TargetFramework>net8.0-ios</TargetFramework>
 		<RuntimeIdentifier>iossimulator-arm64</RuntimeIdentifier>
 		<SelfContained>true</SelfContained>
-		<PublishAot>true</PublishAot>
+		<UseInterpreter>true</UseInterpreter>
+		<PublishTrimmed>false</PublishTrimmed>
+		<PublishAot>false</PublishAot>
 		<MtouchLink>None</MtouchLink>
-		<DefineConstants>IOS;AOT</DefineConstants>
+		<DefineConstants>IOS</DefineConstants>
 		<ApplicationId>net.libsodium.tests</ApplicationId>
 		<OutputType>Exe</OutputType>
 	</PropertyGroup>
