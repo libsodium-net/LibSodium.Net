@@ -131,8 +131,8 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore ./src/LibSodium.Net/LibSodium.Net.csproj
 
-    - name: Build LibSodium.Net.Tests.iOS (no AOT)
-      run: dotnet build ./src/LibSodium.Net.Tests/LibSodium.Net.Tests.iOS.csproj -c Release -f net8.0-ios -r iossimulator-arm64
+    - name: Build LibSodium.Net.Tests.iOS
+      run: dotnet build ./src/LibSodium.Net.Tests/LibSodium.Net.Tests.iOS.csproj -c Release -f net9.0-ios -r iossimulator-arm64
 
     - name: List .app bundle
       run: ls -R ./src/LibSodium.Net.Tests/bin/Release/net8.0-ios/iossimulator-arm64/
