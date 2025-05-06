@@ -1,10 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<Import Project="LibSodium.Net.Tests.Core.csproj" />
 	<PropertyGroup>
-		<TargetFramework>net8.0-ios</TargetFramework> 
+		<TargetFramework>net8.0-ios</TargetFramework>
 		<RuntimeIdentifier>iossimulator-arm64</RuntimeIdentifier>
 		<SelfContained>true</SelfContained>
 		<PublishAot>true</PublishAot>
+		<PublishTrimmed>false</PublishTrimmed>
+		<TrimMode>copyused</TrimMode>
+		<TrimmerDefaultAction>copy</TrimmerDefaultAction>
 		<DefineConstants>IOS;AOT</DefineConstants>
 		<ApplicationId>net.libsodium.tests</ApplicationId>
 		<OutputType>Exe</OutputType>

@@ -102,10 +102,10 @@ jobs:
   test-ios:
     runs-on: macos-latest
     steps:
-    - name: Set up .NET
+    - name: Set up .NET 8.0.402
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: 8.0.402
 
     - name: Display .NET Info
       run: dotnet --info
@@ -113,17 +113,20 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Install iOS workload
-      run: dotnet workload install ios
+    - name: Install iOS workload (pinned)
+      run: dotnet workload install ios --version 8.0.402
 
     - name: Install XHarness
       run: dotnet tool install Microsoft.DotNet.XHarness.CLI --global --add-source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json --version "10.0.0-prerelease*"
 
-    - name: Publish LibSodium.Net.Tests.iOS AOT
-      run: dotnet build ./src/LibSodium.Net.Tests/LibSodium.Net.Tests.iOS.csproj -c Release -f net8.0-ios -r iossimulator-arm64 -p:IosDeviceSpecific=true
+    - name: Restore dependencies
+      run: dotnet restore ./src/LibSodium.Net/LibSodium.Net.csproj
 
-    - name: List published files (iOS)
-      run: ls -l ./src/LibSodium.Net.Tests/bin/Release/net8.0-ios/iossimulator-arm64/publish
+    - name: Build LibSodium.Net.Tests.iOS (no AOT)
+      run: dotnet build ./src/LibSodium.Net.Tests/LibSodium.Net.Tests.iOS.csproj -c Release -f net8.0-ios -r iossimulator-arm64
+
+    - name: List .app bundle
+      run: ls -R ./src/LibSodium.Net.Tests/bin/Release/net8.0-ios/iossimulator-arm64/
 
     - name: Execute LibSodium.Net.Tests.iOS using XHarness
       run: |
@@ -132,6 +135,7 @@ jobs:
           --target ios-simulator-64 \
           --output-directory ./xharness-output \
           --verbosity detailed
+    
     
 
 
