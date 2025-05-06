@@ -2,5 +2,15 @@
 	<Import Project="LibSodium.Net.Tests.Core.csproj" />
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
+		<DefineConstants>VISUALSTUDIO</DefineConstants>
 	</PropertyGroup>
+	
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="17.14.2" />
+	</ItemGroup>
+	
+	<ItemGroup>
+		<ProjectReference Include="..\LibSodium.Net.ReadPastAllocatedMemory\LibSodium.Net.ReadPastAllocatedMemory.csproj" />
+		<ProjectReference Include="..\LibSodium.Net.WriteReadOnlyProtectedMemory\LibSodium.Net.WriteReadOnlyProtectedMemory.csproj" />
+	</ItemGroup>
 </Project>

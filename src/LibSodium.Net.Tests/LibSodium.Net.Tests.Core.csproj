@@ -5,7 +5,7 @@
 		<Nullable>enable</Nullable>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-		<Title>LibSodium.Net</Title>
+		<Title>LibSodium.Net.Tests</Title>
 		<Version>0.5.0-alpha</Version>
 		<Authors>jesuslpm</Authors>
 		<AssemblyVersion>1.0.0</AssemblyVersion>
@@ -13,17 +13,9 @@
 		<GenerateTestingPlatformEntryPoint>true</GenerateTestingPlatformEntryPoint>
 	</PropertyGroup>
 
-	<ItemGroup Condition="'$(PublishAot)' != 'true'">
-		<PackageReference Include="Microsoft.Testing.Extensions.CodeCoverage" Version="17.14.2" />
-	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="TUnit" Version="0.19.116" />
 	</ItemGroup>
-
-	<!--<ItemGroup Condition="'$(PublishAot)' != 'true'">
-		<ProjectReference Include="..\LibSodium.Net.ReadPastAllocatedMemory\LibSodium.Net.ReadPastAllocatedMemory.csproj" />
-		<ProjectReference Include="..\LibSodium.Net.WriteReadOnlyProtectedMemory\LibSodium.Net.WriteReadOnlyProtectedMemory.csproj" />
-	</ItemGroup>-->
 
 	<ItemGroup>
 	  <ProjectReference Include="..\LibSodium.Net\LibSodium.Net.csproj" />

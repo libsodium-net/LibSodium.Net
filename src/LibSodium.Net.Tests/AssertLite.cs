@@ -6,7 +6,6 @@ using TUnit.Assertions.Exceptions;
 
 namespace LibSodium.Tests;
 
-
 public static class AssertLite
 {
 
@@ -132,30 +131,6 @@ public static class AssertLite
         }
     }
 
-	public static void Equal<T>(T expected, T actual)
-    {
-        if (!EqualityComparer<T>.Default.Equals(expected, actual))
-            throw new AssertionException($"AssertLite.Equal failed.\nExpected: {expected}\nActual: {actual}");
-    }
-
-    public static void NotEqual<T>(T notExpected, T actual)
-    {
-        if (EqualityComparer<T>.Default.Equals(notExpected, actual))
-            throw new AssertionException($"AssertLite.NotEqual failed.\nValue should not be: {actual}");
-    }
-
-    public static void True(bool condition, string? message = null)
-    {
-        if (!condition)
-            throw new AssertionException($"AssertLite.True failed. {message ?? string.Empty}");
-    }
-
-    public static void False(bool condition, string? message = null)
-    {
-        if (condition)
-            throw new AssertionException($"AssertLite.False failed. {message ?? string.Empty}");
-    }
-
     public static void Throws<TException>(Action action) where TException : Exception
     {
         try
@@ -190,16 +165,4 @@ public static class AssertLite
         throw new AssertionException($"AssertLite.ThrowsAsync failed. Expected: {typeof(TException).Name}, but no exception was thrown");
     }
 
-
-	public static void NotNull(object? value)
-    {
-        if (value is null)
-            throw new AssertionException("AssertLite.NotNull failed. Value was null.");
-    }
-
-    public static void Null(object? value)
-    {
-        if (value is not null)
-            throw new AssertionException($"AssertLite.Null failed. Value was not null: {value}");
-    }
 }

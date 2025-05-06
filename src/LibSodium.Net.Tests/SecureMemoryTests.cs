@@ -387,85 +387,85 @@ namespace LibSodium.Tests
 			}
 		}
 
-#if !AOT
-		//[Test]
-		//public void WritingReadOnlyProtectedMemory_ShouldThrowAccessViolationException()
-		//{
-		//	// AccessViolationException cannot be caught, this is why an external process is needed
+#if VISUALSTUDIO
+		[Test]
+		public void WritingReadOnlyProtectedMemory_ShouldThrowAccessViolationException()
+		{
+			// AccessViolationException cannot be caught, this is why an external process is needed
 
-		//	var exePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "LibSodium.Net.WriteReadOnlyProtectedMemory.exe");
-		//	// Na.WriteReadOnlyProtectedMemory.exe Main method is the following:
-		//	/*
-		//		static int Main(string[] args)
-		//		{
-		//			var buffer = NaSecureMemory.Allocate(1024);
-		//			NaSecureMemory.ProtectReadOnly(buffer);
-		//			// The buffer is now read-only protected, writing to it should throw AccessViolationException
-		//			buffer[0] = 0;
-		//			return 0;
-		//		}
-		//	*/
-		//	var processInfo = new ProcessStartInfo(exePath)
-		//	{
-		//		CreateNoWindow = true,
-		//		UseShellExecute = false,
-		//		RedirectStandardError = true
-		//	};
-		//	using (var process = Process.Start(processInfo))
-		//	{
-		//		AssertLite.NotNull(process);
-		//		process!.WaitForExit();
-		//		var standardErrorContent = process.StandardError.ReadToEnd();
-		//		standardErrorContent.ShouldContain("System.AccessViolationException");
-		//		process.ExitCode.ShouldNotBe(0);
-		//	}
-		//}
+			var exePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "LibSodium.Net.WriteReadOnlyProtectedMemory.exe");
+			// Na.WriteReadOnlyProtectedMemory.exe Main method is the following:
+			/*
+				static int Main(string[] args)
+				{
+					var buffer = NaSecureMemory.Allocate(1024);
+					NaSecureMemory.ProtectReadOnly(buffer);
+					// The buffer is now read-only protected, writing to it should throw AccessViolationException
+					buffer[0] = 0;
+					return 0;
+				}
+			*/
+			var processInfo = new ProcessStartInfo(exePath)
+			{
+				CreateNoWindow = true,
+				UseShellExecute = false,
+				RedirectStandardError = true
+			};
+			using (var process = Process.Start(processInfo))
+			{
+				process.ShouldNotBeNull();
+				process!.WaitForExit();
+				var standardErrorContent = process.StandardError.ReadToEnd();
+				standardErrorContent.ShouldContain("System.AccessViolationException");
+				process.ExitCode.ShouldNotBe(0);
+			}
+		}
 
-		//[Test]
-		//public void ReadingPastAllocatedMemory_ShouldThrowAccessViolationException()
-		//{
-		//	// AccessViolationException cannot be caught, this is why an external process is needed
+		[Test]
+		public void ReadingPastAllocatedMemory_ShouldThrowAccessViolationException()
+		{
+			// AccessViolationException cannot be caught, this is why an external process is needed
 
-		//	var exePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "LibSodium.Net.ReadPastAllocatedMemory.exe");
-		//	// Na.ReadPastAllocatedMemory.exe Main method is the following:
-		//	/*
-		//		static int Main(string[] args)
-		//		{
-		//			var buffer = NaSecureMemory.Allocate(1023);
-		//			try
-		//			{
-		//				unsafe
-		//				{
-		//					fixed (byte* ptr = buffer)
-		//					{
-		//						// reading past allocated memory should throw AccessViolationException
-		//						var pastByte = ptr[1023];
-		//					}
-		//				}
-		//				return 0;
-		//			}
-		//			finally
-		//			{
-		//				NaSecureMemory.Free(buffer);
-		//			}
-		//		}
-		//	*/
-		//	var processInfo = new ProcessStartInfo(exePath)
-		//	{
-		//		CreateNoWindow = true,
-		//		UseShellExecute = false,
-		//		RedirectStandardError = true
-		//	};
+			var exePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "LibSodium.Net.ReadPastAllocatedMemory.exe");
+			// Na.ReadPastAllocatedMemory.exe Main method is the following:
+			/*
+				static int Main(string[] args)
+				{
+					var buffer = NaSecureMemory.Allocate(1023);
+					try
+					{
+						unsafe
+						{
+							fixed (byte* ptr = buffer)
+							{
+								// reading past allocated memory should throw AccessViolationException
+								var pastByte = ptr[1023];
+							}
+						}
+						return 0;
+					}
+					finally
+					{
+						NaSecureMemory.Free(buffer);
+					}
+				}
+			*/
+			var processInfo = new ProcessStartInfo(exePath)
+			{
+				CreateNoWindow = true,
+				UseShellExecute = false,
+				RedirectStandardError = true
+			};
 
-		//	using (var process = Process.Start(processInfo))
-		//	{
-		//		process.ShouldNotBeNull();
-		//		process!.WaitForExit();
-		//		var standardErrorContent = process.StandardError.ReadToEnd();
-		//		standardErrorContent.ShouldContain("System.AccessViolationException");
-		//		process.ExitCode.ShouldNotBe(0);
-		//	}
-		//}
+			using (var process = Process.Start(processInfo))
+			{
+				process.ShouldNotBeNull();
+				process!.WaitForExit();
+				var standardErrorContent = process.StandardError.ReadToEnd();
+				standardErrorContent.ShouldContain("System.AccessViolationException");
+				process.ExitCode.ShouldNotBe(0);
+			}
+		}
 #endif
 
 	}
