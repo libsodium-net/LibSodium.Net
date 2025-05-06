@@ -120,7 +120,7 @@ jobs:
       run: dotnet tool install Microsoft.DotNet.XHarness.CLI --global --add-source https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet-eng/nuget/v3/index.json --version "10.0.0-prerelease*"
 
     - name: Publish LibSodium.Net.Tests.iOS AOT
-      run: dotnet publish ./src/LibSodium.Net.Tests/LibSodium.Net.Tests.iOS.csproj -c Release -f net8.0-ios -r iossimulator-arm64
+      run: dotnet publish ./src/LibSodium.Net.Tests/LibSodium.Net.Tests.iOS.csproj -c Release -f net8.0-ios -r iossimulator-arm64 -p:IosDeviceSpecific=true
 
     - name: List published files (iOS)
       run: ls -l ./src/LibSodium.Net.Tests/bin/Release/net8.0-ios/iossimulator-arm64/publish
