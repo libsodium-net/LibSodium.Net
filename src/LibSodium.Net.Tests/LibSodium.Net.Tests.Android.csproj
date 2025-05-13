@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<Import Project="LibSodium.Net.Tests.Core.csproj" />
+	<PropertyGroup>
+		<TargetFramework>net8.0-android</TargetFramework>
+		<RuntimeIdentifier>android-x64</RuntimeIdentifier>
+		<DefineConstants>ANDROID</DefineConstants>
+		<NoWarn>$(NoWarn);TUnit0031</NoWarn>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Testing.Extensions.TrxReport" Version="1.6.3" />
+	</ItemGroup>
+</Project>

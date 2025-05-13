@@ -1,9 +1,13 @@
 # 🔐 Modern cryptography for .NET 8+
 
-.NET Bindings for [libsodium](https://doc.libsodium.org) with a Span-based API.  
-Includes authenticated encryption (AEAD: XChaCha20-Poly1305, ChaCha20-Poly1305-IETF, ChaCha20-Poly1305, AES256-GCM, AEGIS-256, AEGIS-128L), public-key authenticated encryption (CryptoBox), streaming authenticated encryption (SecretStream), secure memory handling (SecureMemory), and many more.
+Idiomatic .NET bindings for [libsodium](https://doc.libsodium.org) with a Span-based, zero-allocation API.
+Includes AEAD encryption (XChaCha20-Poly1305, AES256-GCM, AEGIS), public-key cryptography (`CryptoBox`, `Sealed Boxes`, `CryptoSign`), authenticated streaming (`SecretStream`), secure memory, and more.
+
+Built for Windows, Linux, macOS, iOS, Android, tvOS, and Mac Catalyst.
 
 Fast, memory-safe, allocation-free. AOT-ready with `LibraryImport`.
+
+Tested in GitHub Actions using AOT builds on Windows, Linux and macOS
 
 ## 📚 Documentation: https://libsodium.net/
 

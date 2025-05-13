@@ -21,7 +21,7 @@ namespace LibSodium
 			lock (initLock) // Lock to ensure thread safety.
 			{
 				if (_isInitialized) return; // Check again after acquiring the lock.
-				InitializeBindings(); // Initialize the bindings.
+				Initialize(); // Initialize the bindings.
 			}
 		}
 
@@ -58,7 +58,7 @@ namespace LibSodium
 		/// Initializes the bindings and checks for version compatibility.
 		/// </summary>
 		[MethodImpl(MethodImplOptions.NoInlining)]
-		private static void InitializeBindings()
+		private static void Initialize()
 		{
 			try
 			{

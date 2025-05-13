@@ -1,15 +1,12 @@
 # LibSodium.Net
 
-[![Build and Test](https://github.com/libSodium-net/LibSodium.Net/actions/workflows/build-and-test.yml/badge.svg)](https://github.com//libSodium-net/LibSodium.Net/actions/workflows/build-and-test.yml) [![NuGet](https://img.shields.io/nuget/v/LibSodium.Net.svg)](https://www.nuget.org/packages/LibSodium.Net/) ![PanPlatform](https://img.shields.io/badge/PanPlatform-compatible-brightgreen)
-
-
+[![Build and Test](https://github.com/libSodium-net/LibSodium.Net/actions/workflows/build-and-test.yml/badge.svg)](https://github.com//libSodium-net/LibSodium.Net/actions/workflows/build-and-test.yml) [![NuGet](https://img.shields.io/nuget/v/LibSodium.Net.svg)](https://www.nuget.org/packages/LibSodium.Net/)
 
 **LibSodium.Net** is a modern, idiomatic .NET binding for the [libsodium](https://doc.libsodium.org/) cryptographic library. It gives developers full access to libsodium’s capabilities through a minimal, transparent, and ergonomic C# API.
 
 ✨ **Secure by design. Fast by default. Unopinionated on purpose.**
 
-🔁 **PanPlatform™ compatible** – LibSodium.Net runs on Windows, Linux, macOS, iOS, Android, tvOS, Mac Catalyst and more.
-
+🌐 **Cross-platform** – LibSodium.Net is built for Windows, Linux, macOS, iOS, Android, tvOS, and Mac Catalyst.
 
 ## 🌟 Features
 
@@ -37,7 +34,9 @@ Built for developers who want control, clarity, and interop with other libsodium
 
 Tests are written using [TUnit](https://tunit.dev), a modern test framework that generates source code instead of relying on reflection.
 
-This makes the entire suite compatible with Native AOT, single-file apps, and all **PanPlatform™** targets — including iOS, Android, macCatalyst and more.
+All tests are compatible with Native AOT, single-file apps, and fully cross-platform.
+
+📦 **Tests are executed in GitHub Actions using AOT builds on Windows, Linux, and macOS.**
 
 No adapters. No magic. Just fast, portable, real .NET code.
 
@@ -78,7 +77,3 @@ Issues and PRs are welcome. Please see the [contribution guide](CONTRIBUTING.md)
 ## 📜 License
 
 Apache-2.0. See [LICENSE](LICENSE).
-
-
-
-

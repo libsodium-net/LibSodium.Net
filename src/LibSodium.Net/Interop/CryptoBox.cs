@@ -12,6 +12,7 @@ namespace LibSodium.Interop
 		internal const int CRYPTO_BOX_NONCEBYTES = 24;
 		internal const int CRYPTO_BOX_MACBYTES = 16;
 		internal const int CRYPTO_BOX_SEEDBYTES = 32;
+		internal const int CRYPTO_BOX_SEALBYTES = CRYPTO_BOX_PUBLICKEYBYTES + CRYPTO_BOX_MACBYTES;
 
 
 		[LibraryImport(LibSodiumNativeLibraryName, EntryPoint = nameof(crypto_box_keypair))]
@@ -120,6 +121,25 @@ namespace LibSodium.Interop
 			ulong ciphertext_len,
 			ReadOnlySpan<byte> nonce,
 			ReadOnlySpan<byte> shared_key);
+
+		// crypto_box_seal
+		[LibraryImport(LibSodiumNativeLibraryName, EntryPoint = nameof(crypto_box_seal))]
+		[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+		internal static partial int crypto_box_seal(
+			Span<byte> ciphertext,
+			ReadOnlySpan<byte> plaintext,
+			ulong plaintext_len,
+			ReadOnlySpan<byte> public_key);
+
+		// crypto_box_seal_open
+		[LibraryImport(LibSodiumNativeLibraryName, EntryPoint = nameof(crypto_box_seal_open))]
+		[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+		internal static partial int crypto_box_seal_open(
+			Span<byte> plaintext,
+			ReadOnlySpan<byte> ciphertext,
+			ulong ciphertext_len,
+			ReadOnlySpan<byte> public_key,
+			ReadOnlySpan<byte> private_key);
 
 	}
 }

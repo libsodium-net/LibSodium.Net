@@ -306,5 +306,73 @@ namespace LibSodium.Tests
 			AssertLite.Throws<ArgumentException>(() =>
                 CryptoBox.CalculateSharedKey(sharedKey, validPk, shortSk));
         }
-    }
+
+		[Test]
+		public void EncryptAndDecrypt_WithPublicKeyAndPrivateKey_ShouldSucceed()
+		{
+			Span<byte> recipientPublicKey = stackalloc byte[CryptoBox.PublicKeyLen];
+			Span<byte> recipientPrivateKey = stackalloc byte[CryptoBox.PrivateKeyLen];
+			CryptoBox.GenerateKeypair(recipientPublicKey, recipientPrivateKey);
+
+			byte[] message = RandomBytes(MessageLen);
+			Span<byte> ciphertext = stackalloc byte[message.Length + CryptoBox.SealOverheadLen];
+			Span<byte> decrypted = stackalloc byte[message.Length];
+
+			var enc = CryptoBox.EncryptWithPublicKey(ciphertext, message, recipientPublicKey);
+			var dec = CryptoBox.DecryptWithPrivateKey(decrypted, enc, recipientPrivateKey);
+
+            dec.ShouldBe(message);
+		}
+
+		[Test]
+		public void EncryptWithPublicKey_TooShortBuffer_ShouldThrow()
+		{
+			AssertLite.Throws<ArgumentException>(() =>
+			{
+				Span<byte> pk = stackalloc byte[CryptoBox.PublicKeyLen];
+				Span<byte> sk = stackalloc byte[CryptoBox.PrivateKeyLen];
+				CryptoBox.GenerateKeypair(pk, sk);
+
+				Span<byte> message = stackalloc byte[64];
+				Span<byte> ciphertext = stackalloc byte[message.Length + CryptoBox.SealOverheadLen - 1];
+
+				CryptoBox.EncryptWithPublicKey(ciphertext, message, pk);
+			});
+		}
+
+		[Test]
+		public void DecryptWithPrivateKey_InvalidPrivateKey_ShouldThrow()
+		{
+			AssertLite.Throws<ArgumentException>(() =>
+			{
+				Span<byte> sk = stackalloc byte[CryptoBox.PrivateKeyLen - 1];
+				Span<byte> ciphertext = stackalloc byte[64 + CryptoBox.SealOverheadLen];
+				Span<byte> plaintext = stackalloc byte[64];
+
+				CryptoBox.DecryptWithPrivateKey(plaintext, ciphertext, sk);
+			});
+		}
+
+		[Test]
+		public void DecryptWithPrivateKey_CorruptedCiphertext_ShouldThrow()
+		{
+			Span<byte> recipientPublicKey = stackalloc byte[CryptoBox.PublicKeyLen];
+			var recipientPrivateKey = new byte[CryptoBox.PrivateKeyLen];
+			CryptoBox.GenerateKeypair(recipientPublicKey, recipientPrivateKey);
+
+			Span<byte> message = stackalloc byte[64];
+			var ciphertext = new byte[message.Length + CryptoBox.SealOverheadLen];
+			var decrypted = new byte[message.Length];
+
+			var enc = CryptoBox.EncryptWithPublicKey(ciphertext, message, recipientPublicKey);
+			ciphertext[10] ^= 0xFF; // corruptar
+
+			AssertLite.Throws<LibSodiumException>(() =>
+			{
+				CryptoBox.DecryptWithPrivateKey(decrypted, ciphertext, recipientPrivateKey);
+			});
+		}
+
+
+	}
 }

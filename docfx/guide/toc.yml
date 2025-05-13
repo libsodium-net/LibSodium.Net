@@ -18,5 +18,5 @@
   href: CryptoAuth.md
 - name: AEAD
   href: AEAD.md
-- name: Public-Key Authenticated Encryption
-  href: CryptoBox.md
+- name: Public Key Cryptography
+  href: PublicKeyCrypto.md

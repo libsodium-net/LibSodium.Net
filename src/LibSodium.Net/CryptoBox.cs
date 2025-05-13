@@ -34,6 +34,11 @@
 		public static int SeedLen => LowLevel.CryptoBox.SeedLen;
 
 		/// <summary>
+		/// Length of the ciphertext overhead (48) when using EncryptWithPublicKey and DecryptWithPrivateKey.
+		/// </summary>
+		public static int SealOverheadLen => PublicKeyLen + MacLen;
+
+		/// <summary>
 		/// Generates a new Curve25519 key pair for use with crypto_box.
 		/// </summary>
 		/// <param name="publicKey">The buffer where the generated public key (32 bytes) will be written.</param>
@@ -205,7 +210,7 @@
 			return ciphertext.Slice(0, plaintext.Length + NonceLen);
 		}
 
-		internal static Span<byte> DecryptDetached(Span<byte> plaintext, ReadOnlySpan<byte> ciphertext,  ReadOnlySpan<byte> publicKey, ReadOnlySpan<byte> privateKey, ReadOnlySpan<byte> mac, ReadOnlySpan<byte> nonce)
+		internal static Span<byte> DecryptDetached(Span<byte> plaintext, ReadOnlySpan<byte> ciphertext, ReadOnlySpan<byte> publicKey, ReadOnlySpan<byte> privateKey, ReadOnlySpan<byte> mac, ReadOnlySpan<byte> nonce)
 		{
 			if (plaintext.Length < ciphertext.Length)
 				throw new ArgumentException($"Plaintext must be at least {ciphertext.Length} bytes long.", nameof(plaintext));
@@ -315,7 +320,7 @@
 			}
 		}
 
-		public static Span<byte> EncryptCombinedWithSharedKey(Span<byte> ciphertext, ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> sharedKey, ReadOnlySpan<byte> nonce)
+		internal static Span<byte> EncryptCombinedWithSharedKey(Span<byte> ciphertext, ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> sharedKey, ReadOnlySpan<byte> nonce)
 		{
 			if (sharedKey.Length != SharedKeyLen)
 				throw new ArgumentException($"Shared key must be {SharedKeyLen} bytes.", nameof(sharedKey));
@@ -330,7 +335,7 @@
 			return ciphertext.Slice(0, plaintext.Length + MacLen);
 		}
 
-		public static Span<byte> EncryptCombinedWithSharedKey(Span<byte> ciphertext, ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> sharedKey)
+		internal static Span<byte> EncryptCombinedWithSharedKey(Span<byte> ciphertext, ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> sharedKey)
 		{
 			if (sharedKey.Length != SharedKeyLen)
 				throw new ArgumentException($"Shared key must be {SharedKeyLen} bytes.", nameof(sharedKey));
@@ -344,7 +349,7 @@
 			return ciphertext.Slice(0, plaintext.Length + MacLen + NonceLen);
 		}
 
-		public static Span<byte> DecryptCombinedWithSharedKey(Span<byte> plaintext, ReadOnlySpan<byte> ciphertext, ReadOnlySpan<byte> sharedKey, ReadOnlySpan<byte> nonce)
+		internal static Span<byte> DecryptCombinedWithSharedKey(Span<byte> plaintext, ReadOnlySpan<byte> ciphertext, ReadOnlySpan<byte> sharedKey, ReadOnlySpan<byte> nonce)
 		{
 			if (sharedKey.Length != SharedKeyLen)
 				throw new ArgumentException($"Shared key must be {SharedKeyLen} bytes.", nameof(sharedKey));
@@ -359,7 +364,7 @@
 			return plaintext.Slice(0, ciphertext.Length - MacLen);
 		}
 
-		public static Span<byte> DecryptCombinedWithSharedKey(Span<byte> plaintext, ReadOnlySpan<byte> ciphertext, ReadOnlySpan<byte> sharedKey)
+		internal static Span<byte> DecryptCombinedWithSharedKey(Span<byte> plaintext, ReadOnlySpan<byte> ciphertext, ReadOnlySpan<byte> sharedKey)
 		{
 			if (sharedKey.Length != SharedKeyLen)
 				throw new ArgumentException($"Shared key must be {SharedKeyLen} bytes.", nameof(sharedKey));
@@ -371,7 +376,7 @@
 			return DecryptCombinedWithSharedKey(plaintext, content, sharedKey, nonce);
 		}
 
-		public static Span<byte> EncryptDetachedWithSharedKey(Span<byte> ciphertext, ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> sharedKey, Span<byte> mac, ReadOnlySpan<byte> nonce)
+		internal static Span<byte> EncryptDetachedWithSharedKey(Span<byte> ciphertext, ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> sharedKey, Span<byte> mac, ReadOnlySpan<byte> nonce)
 		{
 			if (sharedKey.Length != SharedKeyLen)
 				throw new ArgumentException($"Shared key must be {SharedKeyLen} bytes.", nameof(sharedKey));
@@ -388,7 +393,7 @@
 			return ciphertext.Slice(0, plaintext.Length);
 		}
 
-		public static Span<byte> EncryptDetachedWithSharedKey(Span<byte> ciphertext, ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> sharedKey, Span<byte> mac)
+		internal static Span<byte> EncryptDetachedWithSharedKey(Span<byte> ciphertext, ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> sharedKey, Span<byte> mac)
 		{
 			if (sharedKey.Length != SharedKeyLen)
 				throw new ArgumentException($"Shared key must be {SharedKeyLen} bytes.", nameof(sharedKey));
@@ -402,7 +407,7 @@
 			return ciphertext.Slice(0, plaintext.Length + NonceLen);
 		}
 
-		public static Span<byte> DecryptDetachedWithSharedKey(Span<byte> plaintext, ReadOnlySpan<byte> ciphertext, ReadOnlySpan<byte> sharedKey,  ReadOnlySpan<byte> mac, ReadOnlySpan<byte> nonce)
+		internal static Span<byte> DecryptDetachedWithSharedKey(Span<byte> plaintext, ReadOnlySpan<byte> ciphertext, ReadOnlySpan<byte> sharedKey, ReadOnlySpan<byte> mac, ReadOnlySpan<byte> nonce)
 		{
 			if (sharedKey.Length != SharedKeyLen)
 				throw new ArgumentException($"Shared key must be {SharedKeyLen} bytes.", nameof(sharedKey));
@@ -419,7 +424,7 @@
 			return plaintext.Slice(0, ciphertext.Length);
 		}
 
-		public static Span<byte> DecryptDetachedWithSharedKey(Span<byte> plaintext, ReadOnlySpan<byte> ciphertext, ReadOnlySpan<byte> sharedKey, ReadOnlySpan<byte> mac)
+		internal static Span<byte> DecryptDetachedWithSharedKey(Span<byte> plaintext, ReadOnlySpan<byte> ciphertext, ReadOnlySpan<byte> sharedKey, ReadOnlySpan<byte> mac)
 		{
 			if (ciphertext.Length < NonceLen)
 				throw new ArgumentException("Ciphertext too short.", nameof(ciphertext));
@@ -505,8 +510,84 @@
 				if (nonce == default)
 					return DecryptDetachedWithSharedKey(plaintext, ciphertext, sharedKey, mac);
 				else
-					return DecryptDetachedWithSharedKey(plaintext, ciphertext, sharedKey, mac , nonce);
+					return DecryptDetachedWithSharedKey(plaintext, ciphertext, sharedKey, mac, nonce);
 			}
+		}
+
+		/// <summary>
+		/// Encrypts a message anonymously using the recipient's public key.
+		/// This method uses Libsodium's <c>crypto_box_seal</c> function internally,
+		/// and does not require a sender key. The resulting ciphertext includes an ephemeral
+		/// public key and a MAC, adding a constant overhead of <see cref="SealOverheadLen"/> bytes.
+		/// </summary>
+		/// <param name="ciphertext">
+		/// The buffer where the sealed ciphertext will be written. 
+		/// Must be at least <c>plaintext.Length + SealOverheadLen</c> bytes long.
+		/// </param>
+		/// <param name="plaintext">The message to encrypt.</param>
+		/// <param name="recipientPublicKey">The recipient's public key (32 bytes).</param>
+		/// <returns>A slice of the ciphertext buffer containing the full sealed ciphertext.</returns>
+		/// <exception cref="ArgumentException">
+		/// Thrown when the recipient's public key is not 32 bytes long, or when the ciphertext buffer is too small.
+		/// </exception>
+		/// <exception cref="LibSodiumException">
+		/// Thrown when the underlying Libsodium encryption operation fails.
+		/// </exception>
+		public static Span<byte> EncryptWithPublicKey(Span<byte> ciphertext, ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> recipientPublicKey)
+		{
+			if (ciphertext.Length < plaintext.Length + SealOverheadLen)
+				throw new ArgumentException($"Ciphertext must be at least {plaintext.Length + SealOverheadLen} bytes long.", nameof(ciphertext));
+			if (recipientPublicKey.Length != PublicKeyLen)
+				throw new ArgumentException($"Recipient public key must be {PublicKeyLen} bytes long.", nameof(recipientPublicKey));
+
+			if (LowLevel.CryptoBox.EncryptWithPublicKey(ciphertext, plaintext, recipientPublicKey) != 0)
+			{
+				throw new LibSodiumException("Failed to encrypt with public key.");
+			}
+			return ciphertext.Slice(0, plaintext.Length + SealOverheadLen);
+		}
+
+		/// <summary>
+		/// Decrypts a sealed message using the recipient's private key.
+		/// This method uses libsodium's <c>crypto_box_seal_open</c> internally and automatically derives the
+		/// recipient's public key from the given private key. The ciphertext must have been produced
+		/// using <see cref="EncryptWithPublicKey"/>.
+		/// </summary>
+		/// <param name="plaintext">
+		/// The buffer where the decrypted message will be written.
+		/// Must be at least <c>ciphertext.Length - SealOverheadLen</c> bytes long.
+		/// </param>
+		/// <param name="ciphertext">
+		/// The sealed ciphertext, including a 32-byte ephemeral public key and a 16-byte MAC.
+		/// Must be at least <see cref="SealOverheadLen"/> bytes long.
+		/// </param>
+		/// <param name="recipientPrivateKey">The recipient's private key (32 bytes).</param>
+		/// <returns>A slice of the plaintext buffer containing the decrypted message.</returns>
+		/// <exception cref="ArgumentException">
+		/// Thrown when buffer sizes are invalid or the private key is not 32 bytes long.
+		/// </exception>
+		/// <exception cref="LibSodiumException">
+		/// Thrown when the ciphertext cannot be decrypted or the MAC verification fails.
+		/// </exception>
+
+		public static Span<byte> DecryptWithPrivateKey(Span<byte> plaintext, ReadOnlySpan<byte> ciphertext, ReadOnlySpan<byte> recipientPrivateKey)
+		{
+			if (ciphertext.Length < SealOverheadLen)
+				throw new ArgumentException($"Ciphertext must be at least {SealOverheadLen} bytes long.", nameof(ciphertext));
+			if (plaintext.Length < ciphertext.Length - SealOverheadLen) 
+				throw new ArgumentException($"Plaintext must be at least {ciphertext.Length - SealOverheadLen} bytes long.", nameof(plaintext));
+			if (recipientPrivateKey.Length != PrivateKeyLen)
+				throw new ArgumentException($"Recipient private key must be {PrivateKeyLen} bytes long.", nameof(recipientPrivateKey));
+
+			Span<byte> recipientPublicKey = stackalloc byte[PublicKeyLen];
+
+			CalculatePublicKey(recipientPublicKey, recipientPrivateKey);
+
+			if (LowLevel.CryptoBox.DecryptWithPrivateKey(plaintext, ciphertext, recipientPublicKey, recipientPrivateKey) != 0)
+			{
+				throw new LibSodiumException("Failed to decrypt with private key.");
+			}
+			return plaintext.Slice(0, ciphertext.Length - SealOverheadLen);
 		}
 	}
 }

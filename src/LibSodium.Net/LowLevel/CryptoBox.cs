@@ -46,5 +46,11 @@ namespace LibSodium.LowLevel
 
 		public static int DecryptDetachedWithSharedKey(Span<byte> plaintext, ReadOnlySpan<byte> ciphertext, ReadOnlySpan<byte> mac, ReadOnlySpan<byte> nonce, ReadOnlySpan<byte> sharedKey)
 			=> Native.crypto_box_open_detached_afternm(plaintext, ciphertext, mac, (ulong)ciphertext.Length, nonce, sharedKey);
+
+		public static int EncryptWithPublicKey(Span<byte> ciphertext, ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> publicKey)
+			=> Native.crypto_box_seal(ciphertext, plaintext, (ulong)plaintext.Length, publicKey);
+
+		public static int DecryptWithPrivateKey(Span<byte> plaintext, ReadOnlySpan<byte> ciphertext, ReadOnlySpan<byte> publicKey, ReadOnlySpan<byte> privateKey)
+			=> Native.crypto_box_seal_open(plaintext, ciphertext, (ulong)ciphertext.Length, publicKey, privateKey);
 	}
 }
