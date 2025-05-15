@@ -1,4 +1,5 @@
-﻿using LibSodium.Net.Tests;
+﻿using LibSodium.Interop;
+using LibSodium.Net.Tests;
 using Microsoft.VisualBasic.FileIO;
 
 namespace LibSodium.Tests
@@ -13,6 +14,14 @@ namespace LibSodium.Tests
 			LibraryInitializer.EnsureInitialized();
 			LibraryInitializer.IsInitialized.ShouldBeTrue();
 			Interop.Native.sodium_init().ShouldBe(1);
+		}
+
+		[Test]
+		public void LibraryVersionTest()
+		{
+			LibraryVersion.GetMajor().ShouldBe(Native.LIBSODIUM_VERSION_MAJOR);
+			LibraryVersion.GetMinor().ShouldBe(Native.LIBSODIUM_VERSION_MINOR);
+			LibraryVersion.GetString().ShouldBe("1.0.20");
 		}
 	}
 }

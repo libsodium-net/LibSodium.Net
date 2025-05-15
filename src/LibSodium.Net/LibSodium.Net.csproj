@@ -8,7 +8,7 @@
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
-		<Version>0.6.0-alpha</Version>
+		<Version>0.7.0-alpha</Version>
 		<Authors>jesuslpm</Authors>
 		<Description>LibSodium.Bindings.Net provides comprehensive .NET bindings for the libsodium native library</Description>
 		<Copyright>Copyright 2025</Copyright>
@@ -21,6 +21,7 @@
 			AES256-GCM AEGIS-256 AEGIS-128L
 			AEAD authenticated-encryption public-key-cryptography
 			CryptoBox CryptoSign SecretStream SecureMemory
+			hash hashing CryptoGenericHash CryptoPasswordHash CryptoShortHash BLAKE2b SipHash Argon2 Argon2i13 Argon2id13
 		</PackageTags>
 		<AssemblyVersion>1.0.0</AssemblyVersion>
 		<FileVersion>1.0.0</FileVersion>

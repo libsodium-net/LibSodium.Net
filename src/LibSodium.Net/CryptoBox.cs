@@ -51,6 +51,7 @@
 				throw new ArgumentException($"Public key must be {PublicKeyLen} bytes long.", nameof(publicKey));
 			if (privateKey.Length != PrivateKeyLen)
 				throw new ArgumentException($"Private key must be {PrivateKeyLen} bytes long.", nameof(privateKey));
+			LibraryInitializer.EnsureInitialized();
 			if (LowLevel.CryptoBox.GenerateKeypair(publicKey, privateKey) != 0)
 			{
 				throw new LibSodiumException("Failed to generate keypair.");
@@ -73,6 +74,7 @@
 				throw new ArgumentException($"Private key must be {PrivateKeyLen} bytes long.", nameof(privateKey));
 			if (seed.Length != SeedLen)
 				throw new ArgumentException($"Seed must be {SeedLen} bytes long.", nameof(seed));
+			LibraryInitializer.EnsureInitialized();
 			if (LowLevel.CryptoBox.GenerateKeypairDeterministically(publicKey, privateKey, seed) != 0)
 			{
 				throw new LibSodiumException("Failed to generate keypair.");
@@ -92,6 +94,7 @@
 				throw new ArgumentException($"Public key must be {PublicKeyLen} bytes long.", nameof(publicKey));
 			if (privateKey.Length != PrivateKeyLen)
 				throw new ArgumentException($"Private key must be {PrivateKeyLen} bytes long.", nameof(privateKey));
+			LibraryInitializer.EnsureInitialized();
 			if (LowLevel.CryptoBox.CalculatePublicKey(publicKey, privateKey) != 0)
 			{
 				throw new LibSodiumException("Failed to calculate public key.");
@@ -114,6 +117,7 @@
 				throw new ArgumentException($"Public key must be {PublicKeyLen} bytes long.", nameof(publicKey));
 			if (privateKey.Length != PrivateKeyLen)
 				throw new ArgumentException($"Private key must be {PrivateKeyLen} bytes long.", nameof(privateKey));
+			LibraryInitializer.EnsureInitialized();
 			if (LowLevel.CryptoBox.CalculateSharedKey(sharedKey, publicKey, privateKey) != 0)
 			{
 				throw new LibSodiumException("Failed to calculate shared key.");
@@ -131,6 +135,7 @@
 				throw new ArgumentException($"Public key must be {PublicKeyLen} bytes long.", nameof(publicKey));
 			if (privateKey.Length != PrivateKeyLen)
 				throw new ArgumentException($"Private key must be {PrivateKeyLen} bytes long.", nameof(privateKey));
+			LibraryInitializer.EnsureInitialized();
 			if (LowLevel.CryptoBox.EncryptCombined(ciphertext, plaintext, nonce, publicKey, privateKey) != 0)
 			{
 				throw new LibSodiumException("Failed to encrypt.");
@@ -162,6 +167,7 @@
 				throw new ArgumentException($"Public key must be {PublicKeyLen} bytes long.", nameof(publicKey));
 			if (privateKey.Length != PrivateKeyLen)
 				throw new ArgumentException($"Private key must be {PrivateKeyLen} bytes long.", nameof(privateKey));
+			LibraryInitializer.EnsureInitialized();
 			if (LowLevel.CryptoBox.DecryptCombined(plaintext, ciphertext, nonce, publicKey, privateKey) != 0)
 			{
 				throw new LibSodiumException("Failed to decrypt.");
@@ -192,6 +198,7 @@
 				throw new ArgumentException($"Public key must be {PublicKeyLen} bytes long.", nameof(publicKey));
 			if (privateKey.Length != PrivateKeyLen)
 				throw new ArgumentException($"Private key must be {PrivateKeyLen} bytes long.", nameof(privateKey));
+			LibraryInitializer.EnsureInitialized();
 			if (LowLevel.CryptoBox.EncryptDetached(ciphertext, mac, plaintext, nonce, publicKey, privateKey) != 0)
 			{
 				throw new LibSodiumException("Failed to encrypt.");
@@ -222,6 +229,7 @@
 				throw new ArgumentException($"Public key must be {PublicKeyLen} bytes long.", nameof(publicKey));
 			if (privateKey.Length != PrivateKeyLen)
 				throw new ArgumentException($"Private key must be {PrivateKeyLen} bytes long.", nameof(privateKey));
+			LibraryInitializer.EnsureInitialized();
 			if (LowLevel.CryptoBox.DecryptDetached(plaintext, ciphertext, mac, nonce, publicKey, privateKey) != 0)
 			{
 				throw new LibSodiumException("Failed to decrypt.");
@@ -328,7 +336,7 @@
 				throw new ArgumentException($"Nonce must be {NonceLen} bytes.", nameof(nonce));
 			if (ciphertext.Length < plaintext.Length + MacLen)
 				throw new ArgumentException("Ciphertext buffer too small.", nameof(ciphertext));
-
+			LibraryInitializer.EnsureInitialized();
 			if (LowLevel.CryptoBox.EncryptCombinedWithSharedKey(ciphertext, plaintext, nonce, sharedKey) != 0)
 				throw new LibSodiumException("Encryption failed.");
 
@@ -358,6 +366,7 @@
 			if (ciphertext.Length < MacLen)
 				throw new ArgumentException("Ciphertext too short.", nameof(ciphertext));
 
+			LibraryInitializer.EnsureInitialized();
 			if (LowLevel.CryptoBox.DecryptCombinedWithSharedKey(plaintext, ciphertext, nonce, sharedKey) != 0)
 				throw new LibSodiumException("Decryption failed.");
 
@@ -387,6 +396,7 @@
 			if (ciphertext.Length < plaintext.Length)
 				throw new ArgumentException("Ciphertext buffer too small.", nameof(ciphertext));
 
+			LibraryInitializer.EnsureInitialized();
 			if (LowLevel.CryptoBox.EncryptDetachedWithSharedKey(ciphertext, mac, plaintext, nonce, sharedKey) != 0)
 				throw new LibSodiumException("Encryption failed.");
 
@@ -540,6 +550,7 @@
 			if (recipientPublicKey.Length != PublicKeyLen)
 				throw new ArgumentException($"Recipient public key must be {PublicKeyLen} bytes long.", nameof(recipientPublicKey));
 
+			LibraryInitializer.EnsureInitialized();
 			if (LowLevel.CryptoBox.EncryptWithPublicKey(ciphertext, plaintext, recipientPublicKey) != 0)
 			{
 				throw new LibSodiumException("Failed to encrypt with public key.");

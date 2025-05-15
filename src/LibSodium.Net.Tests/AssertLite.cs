@@ -100,7 +100,16 @@ public static class AssertLite
 		}
 	}
 
-    public static void ShouldBeLessThan(this int actual, int expected, string? message = null)
+	public static void ShouldNotBe(this string? actual, string expected, string? message = null)
+	{
+		if (actual == expected)
+		{
+			throw new AssertionException($"{actual} should not be {expected}. {message}");
+		}
+	}
+
+
+	public static void ShouldBeLessThan(this int actual, int expected, string? message = null)
     {
         if (actual >= expected)
         {
@@ -115,9 +124,10 @@ public static class AssertLite
 		}
 	}
 
-	public static void ShouldBe<T>(this T actual, T expected, string? message = null) where T : IEquatable<T>
+	public static void ShouldBe<T>(this T? actual, T expected, string? message = null) where T : IEquatable<T>
     {
-        if (!actual.Equals(expected))
+		
+        if (actual == null || actual.Equals(expected) == false)
 		{
 			throw new AssertionException(message ?? $"Should be {expected}, but got {actual}");
 		}
@@ -148,7 +158,17 @@ public static class AssertLite
 		throw new AssertionException($"AssertLite.Throws failed. Expected: {typeof(TException).Name}, but no exception was thrown");
     }
 
-    public static async Task ThrowsAsync<TException>(Func<Task> action) where TException : Exception
+	public static void ShouldStartWith(this string? actual, string expected, string? message = null)
+	{
+		if (actual == null || !actual.StartsWith(expected))
+		{
+			throw new AssertionException($"{actual} Should start with '{expected}', but it doesn't. {message}");
+		}
+	}
+
+
+
+	public static async Task ThrowsAsync<TException>(Func<Task> action) where TException : Exception
     {
         try
         {

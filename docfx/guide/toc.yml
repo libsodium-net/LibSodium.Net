@@ -20,3 +20,5 @@
   href: AEAD.md
 - name: Public Key Cryptography
   href: PublicKeyCrypto.md
+- name: Hashing
+  href: Hashing.md
