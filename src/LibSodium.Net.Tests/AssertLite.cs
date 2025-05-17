@@ -49,6 +49,41 @@ public static class AssertLite
 		}
 	}
 
+	public static void ShouldBeZero(this Span<byte> actual, string? message = null)
+	{
+		if (SecureMemory.IsZero(actual) == false)
+		{
+			throw new AssertionException($"Should be zero, but got {HexEncoding.BinToHex(actual)}. {message}");
+		}
+	}
+
+	public static void ShouldNotBeZero(this Span<byte> actual, string? message = null)
+	{
+		if (SecureMemory.IsZero(actual))
+		{
+			throw new AssertionException($"Should not be zero, but it is. {message}");
+		}
+	}
+
+	public static void ShouldNotBeZero(this byte[] actual, string? message = null)
+	{
+		if (SecureMemory.IsZero(actual))
+		{
+			throw new AssertionException($"Should not be zero, but it is. {message}");
+		}
+	}
+
+
+
+
+	public static void ShouldBeZero(this byte[] actual, string? message = null)
+	{
+		if (SecureMemory.IsZero(actual) == false)
+		{
+			throw new AssertionException($"Should be zero, but got {HexEncoding.BinToHex(actual)}. {message}");
+		}
+	}
+
 	public static void ShouldNotBe(this Span<byte> actual, Span<byte> expected, string? message = null)
 	{
 		if (actual.Length == expected.Length && actual.SequenceEqual(expected))

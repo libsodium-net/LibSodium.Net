@@ -22,3 +22,5 @@
   href: PublicKeyCrypto.md
 - name: Hashing
   href: Hashing.md
+- name: Key Derivation
+  href: KeyDerivation.md
