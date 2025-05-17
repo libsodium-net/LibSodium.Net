@@ -162,13 +162,12 @@ AssertLite.Throws<ArgumentException>(() => { LibSodium.X(buffer); });
 * Auth + Signing: `CryptoAuth`, `CryptoBox`, `CryptoSign`
 * Utilities: `RandomGenerator`, `HexEncoding`, `Base64Encoding`, `SecureMemory`, `SecureBigUnsignedInteger`, `SecurePadding`, `LibraryInitializer`, `LibraryVersion`, `LibSodiumException`, `UnmanagedMemorySpanHolder<T>`
 * Enums: `CryptoSecretStreamTag`, `PasswordHashAlgorithm`, `Base64Variant`
+* Key Derivation: `CryptoKeyDerivation`, `HKDF`
 
 ---
 
 ## 🔮 Pending Modules (Planned)
 
-* 🪂 [Key Derivation (KDF)](https://doc.libsodium.org/key_derivation)
-* 🪂 [HKDF](https://doc.libsodium.org/key_derivation/hkdf)
 * 🪂 [Key Exchange](https://doc.libsodium.org/key_exchange)
 * 🪂 [SHA-2](https://doc.libsodium.org/advanced/sha-2_hash_function)
 * 🪂 [HMAC-SHA-2](https://doc.libsodium.org/advanced/hmac-sha2)
