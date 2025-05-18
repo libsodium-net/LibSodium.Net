@@ -164,12 +164,12 @@ AssertLite.Throws<ArgumentException>(() => { LibSodium.X(buffer); });
 * Enums: `CryptoSecretStreamTag`, `PasswordHashAlgorithm`, `Base64Variant`
 * Key Derivation: `CryptoKeyDerivation`, `HKDF`
 * Key Exchange: `CryptoKeyExchange`
+* SHA-2: `CryptoSha256`, `CryptoSha512`
 
 ---
 
 ## 🔮 Pending Modules (Planned)
 
-* 🪂 [SHA-2](https://doc.libsodium.org/advanced/sha-2_hash_function)
 * 🪂 [HMAC-SHA-2](https://doc.libsodium.org/advanced/hmac-sha2)
 * 🪂 [Scrypt](https://doc.libsodium.org/advanced/scrypt)
 * 🪂 [Point\*Scalar Multiplication](https://doc.libsodium.org/advanced/scalar_multiplication)
