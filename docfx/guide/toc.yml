@@ -24,3 +24,5 @@
   href: Hashing.md
 - name: Key Derivation
   href: KeyDerivation.md
+- name: Key Exchange
+  href: KeyExchange.md

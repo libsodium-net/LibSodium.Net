@@ -8,7 +8,7 @@
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
-		<Version>0.8.0-alpha</Version>
+		<Version>0.9.0-alpha</Version>
 		<Authors>jesuslpm</Authors>
 		<Description>LibSodium.Bindings.Net provides comprehensive .NET bindings for the libsodium native library</Description>
 		<Copyright>Copyright 2025</Copyright>
@@ -23,6 +23,8 @@
 			CryptoBox CryptoSign SecretStream SecureMemory
 			hash hashing CryptoGenericHash CryptoPasswordHash CryptoShortHash BLAKE2b SipHash Argon2 Argon2i13 Argon2id13
 			HKDF HKDF-SHA256 HKDF-SHA512 crypto_kdf Key-Derivation
+			SHA256 SHA512
+			Curve25519 Key-Exchange
 		</PackageTags>
 		<AssemblyVersion>1.0.0</AssemblyVersion>
 		<FileVersion>1.0.0</FileVersion>
