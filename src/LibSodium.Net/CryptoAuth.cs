@@ -7,6 +7,7 @@
 	/// This class wraps the <c>crypto_auth</c> functions from <a href="https://doc.libsodium.org/secret-key_cryptography/secret-key_authentication">libsodium's secret-key authentication API</a>,
 	/// which uses the HMAC-SHA-512-256 algorithm to generate and verify message authentication codes (MACs).
 	/// </remarks>
+	[Obsolete("Use CryptoHmacSha512_256 instead. CryptoAuth is deprecated and will be removed in future versions.")]
 	public static class CryptoAuth
 	{
 		/// <summary>

@@ -1,8 +1,6 @@
-﻿using TUnit;
-using System;
+﻿#pragma warning disable CS0618 // Type or member is obsolete
 
 namespace LibSodium.Tests;
-
 public class CryptoAuthTests
 {
 	private static byte[] GenerateRandomBytes(int length)
@@ -15,7 +13,9 @@ public class CryptoAuthTests
 	[Test]
 	public void GenerateKey_FillsKeyWithRandomBytes()
 	{
+
 		Span<byte> key = stackalloc byte[CryptoAuth.KeyLen];
+
 		CryptoAuth.GenerateKey(key);
 		SecureMemory.IsZero(key).ShouldBeFalse();
 	}
@@ -107,3 +107,5 @@ public class CryptoAuthTests
 		});
 	}
 }
+
+#pragma warning restore CS0618 // Type or member is obsolete

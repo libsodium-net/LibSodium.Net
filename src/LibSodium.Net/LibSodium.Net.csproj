@@ -8,7 +8,7 @@
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
-		<Version>0.9.0-alpha</Version>
+		<Version>0.10.0-alpha</Version>
 		<Authors>jesuslpm</Authors>
 		<Description>LibSodium.Bindings.Net provides comprehensive .NET bindings for the libsodium native library</Description>
 		<Copyright>Copyright 2025</Copyright>
@@ -25,6 +25,7 @@
 			HKDF HKDF-SHA256 HKDF-SHA512 crypto_kdf Key-Derivation
 			SHA256 SHA512
 			Curve25519 Key-Exchange
+			Poly1305 HMAC-SHA-256 HMAC-SHA-512 HMAC-SHA-512/256
 		</PackageTags>
 		<AssemblyVersion>1.0.0</AssemblyVersion>
 		<FileVersion>1.0.0</FileVersion>

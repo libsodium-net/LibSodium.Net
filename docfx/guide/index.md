@@ -2,10 +2,12 @@
 
 [**LibSodium.Net**](https://github.com/LibSodium-Net/LibSodium.Net) provides .NET developers with easy-to-use bindings for [libsodium](https://doc.libsodium.org/), a powerful, modern cryptography library widely recognized for its simplicity and security. This makes it straightforward to add robust cryptographic functionality to your .NET applications.
 
+_All code examples are written in **C#** and use LibSodium.Net’s allocation-free API._
+
 ## ✨ Why LibSodium.Net?
 
-- **Cross-platform**: Seamless support across Windows, Linux, and macOS.
-- **Modern Cryptography**: Includes authenticated encryption, public-key cryptography, hashing, key derivation, and digital signatures.
+- **Cross-platform testing**: The suite runs against native-AOT builds on Windows, Linux, and macOS.
+- **Modern Cryptography**: Includes authenticated encryption, public-key cryptography, hashing, MAC, key derivation, key exchange and many more.
 - **Simple and Secure API**: Designed to reduce complexity, helping you implement cryptography correctly and securely.
 - **Secure Memory Handling**: Sensitive data management to minimize risks like memory leaks or data exposure.
 - **Span<T> over Arrays**: Optimized for performance and memory efficiency by using `Span<T>` instead of heap-allocated arrays.

@@ -11,11 +11,14 @@ Welcome to **LibSodium.Net**, the secure and developer-friendly .NET bindings fo
 
 Whether you're building web services, desktop apps, IoT devices, or cross-platform tools, **LibSodium.Net** helps you add robust, efficient, and secure cryptographic functionality with confidence.
 
+_All code examples in the guide are written in **C#** and use LibSodium.Net’s allocation-free API._
+
 ---
 
 ## ✨ Simple, Powerful, and Secure
 
 - Built on the trusted [libsodium](https://libsodium.org) C library.
+- Complete coverage of the libsodium API —every primitive and helper— fully documented in .NET style.
 - Designed for modern .NET: efficient memory handling via `Span<T>`, support for AOT via `LibraryImport`.
 - Safe-by-default APIs that help you do cryptography right.
 - Includes secure memory utilities, symmetric and asymmetric encryption, hashing, key derivation, and more.

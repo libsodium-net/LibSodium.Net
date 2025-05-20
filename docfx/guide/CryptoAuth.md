@@ -2,6 +2,9 @@
 
 The `CryptoAuth` API in **LibSodium.Net** provides secure message authentication using HMAC-SHA-512-256. This is useful for ensuring that a message was not altered and comes from a trusted sender who knows the secret key.
 
+⚠️ **Warning:** `CryptoAuth` is deprecated use [`CryptoHmacSha512_256`](./MAC.md#-hmacsha512256) instead
+
+
 > 🧂 Based on libsodium’s [Secret Key Authentication `crypto_auth`](https://doc.libsodium.org/secret-key_cryptography/secret-key_authentication) API  
 > ℹ️ *See also*: [API Reference for `CryptoAuth`](../api/LibSodium.CryptoAuth.yml)
 

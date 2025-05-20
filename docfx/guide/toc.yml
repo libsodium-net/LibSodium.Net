@@ -14,8 +14,6 @@
   href: Encoding.md
 - name: Big Integers
   href: SecureBigUnsignedInteger.md
-- name: Authentication
-  href: CryptoAuth.md
 - name: AEAD
   href: AEAD.md
 - name: Public Key Cryptography
@@ -26,3 +24,5 @@
   href: KeyDerivation.md
 - name: Key Exchange
   href: KeyExchange.md
+- name: MAC
+  href: MAC.md
