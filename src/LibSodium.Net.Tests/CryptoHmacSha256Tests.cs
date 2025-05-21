@@ -87,10 +87,10 @@ public class CryptoHmacSha256Tests
 		byte[] actualMac = new byte[CryptoHmacSha256.MacLen];
 		await CryptoHmacSha256.ComputeMacAsync(key, stream, actualMac);
 
-		Span<byte> expectedMac = stackalloc byte[CryptoHmacSha256.MacLen];
+		var expectedMac = new byte[CryptoHmacSha256.MacLen];
 		HMACSHA256.HashData(key, message, expectedMac);
 
-		actualMac.AsSpan().ShouldBe(expectedMac);
+		actualMac.ShouldBe(expectedMac);
 	}
 
 	[Test]
