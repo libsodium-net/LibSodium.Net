@@ -6,11 +6,11 @@ namespace LibSodium.Interop
 	internal static partial class Native
 	{
 		// key: 32
-		internal const int CRYPTO_AEAD_CHACHA20POLY1305_IETF_KEYBYTES = 32;
+		internal const int CRYPTO_AEAD_ChaCha20POLY1305_IETF_KEYBYTES = 32;
 		// nonce: 12
-		internal const int CRYPTO_AEAD_CHACHA20POLY1305_IETF_NPUBBYTES = 12;
+		internal const int CRYPTO_AEAD_ChaCha20POLY1305_IETF_NPUBBYTES = 12;
 		// mac: 16
-		internal const int CRYPTO_AEAD_CHACHA20POLY1305_IETF_ABYTES = 16;
+		internal const int CRYPTO_AEAD_ChaCha20POLY1305_IETF_ABYTES = 16;
 
 		[LibraryImport(LibSodiumNativeLibraryName, EntryPoint = nameof(crypto_aead_chacha20poly1305_ietf_encrypt))]
 		[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]

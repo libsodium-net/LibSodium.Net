@@ -161,7 +161,7 @@ This allows deriving a PRK from streamed IKM's.
 
 ```csharp
 using var stream = File.OpenRead("large-secret.bin");
-Span<byte> prk = stackalloc byte[HKDF.Sha512PrkLen];
+var prk = new byte[HKDF.Sha512PrkLen];
 await HKDF.ExtractAsync(HashAlgorithmName.SHA512, stream, salt, prk);
 ```
 

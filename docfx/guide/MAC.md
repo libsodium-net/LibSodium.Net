@@ -117,10 +117,11 @@ using System.Diagnostics;
 // We use byte[] because it implicitly converts to both Memory<byte> and Span<byte>.
 byte[] key = new byte[CryptoHmacSha256.KeyLen];
 byte[] mac = new byte[CryptoHmacSha256.MacLen];
+
 CryptoHmacSha256.GenerateKey(key);
 
-ReadOnlySpan<byte> message = "hello"u8; // UTF‑8 string literal (.NET 8+)
-
+// UTF‑8 string literal (.NET 8+)
+ReadOnlySpan<byte> message = "hello"u8; 
 
 // Calculate MAC
 CryptoHmacSha256.ComputeMac(key, message, mac);
@@ -130,7 +131,7 @@ bool ok = CryptoHmacSha256.VerifyMac(key, message, mac);
 Debug.Assert(ok);
 
 // Stream example (sync)
-using var stream = File.OpenRead("large.bin");
+using var stream = File.OpenRead("file.bin");
 CryptoHmacSha256.ComputeMac(key, stream, mac);
 stream.Position = 0; // rewind
 bool okStream = CryptoHmacSha256.VerifyMac(key, stream, mac);
@@ -175,10 +176,8 @@ Debug.Assert(okStreamAsync);
 ## 📝 Notes
 
 * All APIs are **deterministic**: same key + message ⇒ same MAC.
-
 * Verification is **constant‑time** to avoid timing attacks.
-
-* The secret key length is fixed (32). Truncating or extending reduces security.
+* The secret key length is fixed (32).
 
 ---
 

@@ -8,7 +8,7 @@
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
-		<Version>0.10.0-alpha</Version>
+		<Version>0.11.0-alpha</Version>
 		<Authors>jesuslpm</Authors>
 		<Description>LibSodium.Bindings.Net provides comprehensive .NET bindings for the libsodium native library</Description>
 		<Copyright>Copyright 2025</Copyright>
@@ -17,15 +17,17 @@
 		<PackageReadmeFile>README.NuGet.md</PackageReadmeFile>
 		<PackageTags>
 			libsodium sodium cryptography
+			SecretBox
 			XChaCha20-Poly1305 ChaCha20-Poly1305 ChaCha20-Poly1305-IETF
 			AES256-GCM AEGIS-256 AEGIS-128L
 			AEAD authenticated-encryption public-key-cryptography
 			CryptoBox CryptoSign SecretStream SecureMemory
-			hash hashing CryptoGenericHash CryptoPasswordHash CryptoShortHash BLAKE2b SipHash Argon2 Argon2i13 Argon2id13
+			hash hashing BLAKE2b SipHash Argon2 Argon2i13 Argon2id13
 			HKDF HKDF-SHA256 HKDF-SHA512 crypto_kdf Key-Derivation
 			SHA256 SHA512
 			Curve25519 Key-Exchange
 			Poly1305 HMAC-SHA-256 HMAC-SHA-512 HMAC-SHA-512/256
+			ChaCha20 ChaCha20-IETF XChaCha20 Salsa20 XSalsa20 
 		</PackageTags>
 		<AssemblyVersion>1.0.0</AssemblyVersion>
 		<FileVersion>1.0.0</FileVersion>
@@ -64,6 +66,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Update="StreamCiphers.tt">
+	    <LastGenOutput>StreamCiphers.cs</LastGenOutput>
+	    <Generator>TextTemplatingFileGenerator</Generator>
+	  </None>
 	  <None Update="Aead.tt">
 	    <Generator>TextTemplatingFileGenerator</Generator>
 	    <LastGenOutput>Aead.cs</LastGenOutput>
@@ -88,6 +94,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <Compile Update="StreamCiphers.cs">
+	    <DependentUpon>StreamCiphers.tt</DependentUpon>
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	  </Compile>
 	  <Compile Update="Aead.cs">
 	    <DesignTime>True</DesignTime>
 	    <AutoGen>True</AutoGen>

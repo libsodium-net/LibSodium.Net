@@ -30,7 +30,7 @@ Console.WriteLine($"It works: {isWorking}");
 ```
 
 ```csharp
-// SecretStream —  Xchacha20-Poly1305 based authenticated encryption for streams
+// SecretStream —  XChaCha20-Poly1305 based authenticated encryption for streams
 Span<byte> key = stackalloc byte[32];
 RandomGenerator.Fill(key);
 

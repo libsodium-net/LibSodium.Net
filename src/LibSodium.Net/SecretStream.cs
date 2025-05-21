@@ -14,7 +14,7 @@ namespace LibSodium;
 /// </summary>
 /// <remarks>
 /// <para>
-/// This class is built on LibSodium’s <c>crypto_secretstream_xchacha20poly1305</c> API,
+/// This class is built on LibSodium’s <c>crypto_secretstream_xChaCha20poly1305</c> API,
 /// using XChaCha20 for encryption and Poly1305 for message authentication. The large
 /// 192-bit nonce (24 bytes) virtually eliminates the risk of nonce reuse when generated randomly.
 /// </para>
@@ -118,7 +118,7 @@ public static class SecretStream
 
 			while (!endOfStream)
 			{
-				bufferFill = await FillBufferAsync(input, plainBuffer, 0, PlainChunkSize, cancellationToken).ConfigureAwait(false);
+				bufferFill = await input.FillAsync(plainBuffer, 0, PlainChunkSize, cancellationToken).ConfigureAwait(false);
 				endOfStream = bufferFill < PlainChunkSize;
 
 				var tag = endOfStream ? CryptoSecretStreamTag.Final : CryptoSecretStreamTag.Message;
@@ -139,71 +139,6 @@ public static class SecretStream
 			SecureMemory.MemZero(plainBuffer);
 			TryReturnBuffers(cipherBuffer, plainBuffer);
 		}
-	}
-
-	/// <summary>
-	/// Asynchronously reads data from a stream until the specified number of bytes
-	/// have been read or the end of the stream is reached.
-	/// </summary>
-	/// <param name="stream">The stream to read from.</param>
-	/// <param name="buffer">The buffer to fill with data read from the stream.</param>
-	/// <param name="offset">The zero-based byte offset in <paramref name="buffer"/> at which to begin
-	/// storing the data read from the stream.</param>
-	/// <param name="count">The maximum number of bytes to read from the stream.</param>
-	/// <param name="ct">A token that can be used to cancel the asynchronous operation.
-	/// Defaults to <see cref="CancellationToken.None"/>.</param>
-	/// <returns>A <see cref="Task{TResult}"/> that represents the asynchronous read operation.
-	/// The result is the total number of bytes read into the buffer. This can be less than
-	/// <paramref name="count"/> if the end of the stream is reached before <paramref name="count"/>
-	/// bytes are read.</returns>
-	/// <exception cref="ArgumentNullException">Thrown if <paramref name="stream"/> or <paramref name="buffer"/> is null.</exception>
-	/// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="offset"/> or <paramref name="count"/>
-	/// is negative, or if <paramref name="offset"/> plus <paramref name="count"/> is greater than
-	/// the length of <paramref name="buffer"/>.</exception>
-	/// <exception cref="OperationCanceledException">Thrown if the operation is canceled via the
-	/// <paramref name="ct"/>.</exception>
-
-	private static async Task<int> FillBufferAsync(Stream stream, byte[] buffer, int offset, int count, CancellationToken ct)
-	{
-		int totalRead = 0;
-		while (totalRead < count)
-		{
-			int read = await stream.ReadAsync(buffer, offset + totalRead, count - totalRead, ct).ConfigureAwait(false);
-			if (read == 0)
-				break; // EOF
-			totalRead += read;
-		}
-		return totalRead;
-	}
-
-	/// <summary>
-	/// Synchronously reads data from a stream until the specified number of bytes
-	/// have been read or the end of the stream is reached.
-	/// </summary>
-	/// <param name="stream">The stream to read from.</param>
-	/// <param name="buffer">The buffer to fill with data read from the stream.</param>
-	/// <param name="offset">The zero-based byte offset in <paramref name="buffer"/> at which to begin
-	/// storing the data read from the stream.</param>
-	/// <param name="count">The maximum number of bytes to read from the stream.</param>
-	/// <returns>The total number of bytes read into the buffer. This can be less than
-	/// <paramref name="count"/> if the end of the stream is reached before <paramref name="count"/>
-	/// bytes are read.</returns>
-	/// <exception cref="ArgumentNullException">Thrown if <paramref name="stream"/> or <paramref name="buffer"/> is null.</exception>
-	/// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="offset"/> or <paramref name="count"/>
-	/// is negative, or if <paramref name="offset"/> plus <paramref name="count"/> is greater than
-	/// the length of <paramref name="buffer"/>.</exception>
-
-	private static int FillBuffer(Stream stream, byte[] buffer, int offset, int count)
-	{
-		int totalRead = 0;
-		while (totalRead < count)
-		{
-			int read = stream.Read(buffer, offset + totalRead, count - totalRead);
-			if (read == 0)
-				break; // EOF
-			totalRead += read;
-		}
-		return totalRead;
 	}
 
 	/// <summary>
@@ -351,7 +286,7 @@ public static class SecretStream
 
 			while (true)
 			{
-				int chunkLength = await FillBufferAsync(input, cipherBuffer, 0, CipherChunkSize, cancellationToken).ConfigureAwait(false);
+				int chunkLength = await input.FillAsync(cipherBuffer, 0, CipherChunkSize, cancellationToken).ConfigureAwait(false);
 				if (chunkLength == 0)
 				{
 					if (!tagFinalReached)
@@ -484,7 +419,7 @@ public static class SecretStream
 
 			while (!endOfStream)
 			{
-				bytesRead = FillBuffer(input, plainBuffer, 0, PlainChunkSize);
+				bytesRead = input.Fill(plainBuffer, 0, PlainChunkSize);
 				endOfStream = bytesRead < PlainChunkSize;
 
 				var tag = endOfStream ? CryptoSecretStreamTag.Final : CryptoSecretStreamTag.Message;
@@ -597,7 +532,7 @@ public static class SecretStream
 
 			while (true)
 			{
-				int chunkLength = FillBuffer(input, cipherBuffer, 0, CipherChunkSize);
+				int chunkLength = input.Fill(cipherBuffer, 0, CipherChunkSize);
 				if (chunkLength == 0)
 				{
 					if (!tagFinalReached)

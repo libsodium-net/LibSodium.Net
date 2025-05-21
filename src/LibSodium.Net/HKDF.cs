@@ -37,31 +37,7 @@ namespace LibSodium
 		internal static readonly int Sha256StateLen = (int)Native.crypto_kdf_hkdf_sha256_statebytes();
 		internal static readonly int Sha512StateLen = (int)Native.crypto_kdf_hkdf_sha512_statebytes();
 
-		private static int FillBuffer(Stream stream, byte[] buffer, int offset, int count)
-		{
-			int totalRead = 0;
-			while (totalRead < count)
-			{
-				int read = stream.Read(buffer, offset + totalRead, count - totalRead);
-				if (read == 0)
-					break; // EOF
-				totalRead += read;
-			}
-			return totalRead;
-		}
 
-		private static async Task<int> FillBufferAsync(Stream stream, byte[] buffer, int offset, int count, CancellationToken ct)
-		{
-			int totalRead = 0;
-			while (totalRead < count)
-			{
-				int read = await stream.ReadAsync(buffer, offset + totalRead, count - totalRead, ct).ConfigureAwait(false);
-				if (read == 0)
-					break; // EOF
-				totalRead += read;
-			}
-			return totalRead;
-		}
 
 		/// <summary>
 		/// Performs the extract step of HKDF (RFC 5869), using the specified hash algorithm.
@@ -195,7 +171,7 @@ namespace LibSodium
 
 			byte[] buffer = new byte[4096];
 			int read;
-			while ((read = FillBuffer(ikm, buffer, 0, buffer.Length)) > 0)
+			while ((read = ikm.Fill(buffer, 0, buffer.Length)) > 0)
 			{
 				Span<byte> chunk = buffer.AsSpan(0, read);
 				result = hashAlgorithmName.Name switch
@@ -258,7 +234,7 @@ namespace LibSodium
 
 			byte[] buffer = new byte[4096];
 			int read;
-			while ((read = await FillBufferAsync(ikm, buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false)) > 0)
+			while ((read = await ikm.FillAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false)) > 0)
 			{
 				result = hashAlgorithmName.Name switch
 				{

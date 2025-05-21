@@ -165,15 +165,14 @@ AssertLite.Throws<ArgumentException>(() => { LibSodium.X(buffer); });
 * Key Derivation: `CryptoKeyDerivation`, `HKDF`
 * Key Exchange: `CryptoKeyExchange`
 * SHA-2: `CryptoSha256`, `CryptoSha512`
+* MAC: `CryptoHmacSha256`,`CryptoHmacSha512`, `CryptoHmacSha512_256`, `CryptoOneTimeAuth`
+* Stream Ciphers.
 
 ---
 
 ## 🔮 Pending Modules (Planned)
 
-* 🪂 [HMAC-SHA-2](https://doc.libsodium.org/advanced/hmac-sha2)
 * 🪂 [Scrypt](https://doc.libsodium.org/advanced/scrypt)
 * 🪂 [Point\*Scalar Multiplication](https://doc.libsodium.org/advanced/scalar_multiplication)
-* 🪂 [Poly1305 (One-time authentication)](https://doc.libsodium.org/advanced/poly1305)
-* 🪂 [Stream Ciphers](https://doc.libsodium.org/advanced/stream_ciphers)
 * 🪂 [Ed25519 ↔ Curve25519](https://doc.libsodium.org/advanced/ed25519-curve25519)
 * 🪂 [Finite Field Arithmetic](https://doc.libsodium.org/advanced/point-arithmetic)

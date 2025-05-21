@@ -4,9 +4,9 @@ namespace LibSodium.LowLevel
 {
 	internal readonly struct ChaCha20Poly1305Ietf : IAead
 	{
-		public static int KeyLen => Native.CRYPTO_AEAD_CHACHA20POLY1305_IETF_KEYBYTES;
-		public static int NonceLen => Native.CRYPTO_AEAD_CHACHA20POLY1305_IETF_NPUBBYTES;
-		public static int MacLen => Native.CRYPTO_AEAD_CHACHA20POLY1305_IETF_ABYTES;
+		public static int KeyLen => Native.CRYPTO_AEAD_ChaCha20POLY1305_IETF_KEYBYTES;
+		public static int NonceLen => Native.CRYPTO_AEAD_ChaCha20POLY1305_IETF_NPUBBYTES;
+		public static int MacLen => Native.CRYPTO_AEAD_ChaCha20POLY1305_IETF_ABYTES;
 
 		public static int EncryptDetached(Span<byte> ciphertext, Span<byte> mac, ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> aad, ReadOnlySpan<byte> nonce, ReadOnlySpan<byte> key)
 			=> Native.crypto_aead_chacha20poly1305_ietf_encrypt_detached(ciphertext, mac, out _, plaintext, (ulong)plaintext.Length, aad, (ulong)aad.Length, nuint.Zero, nonce, key);

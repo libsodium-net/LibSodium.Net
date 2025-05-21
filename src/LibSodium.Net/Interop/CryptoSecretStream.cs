@@ -89,10 +89,10 @@ namespace LibSodium.Interop
 			ulong adLen
 		);
 
-		// Constants from libsodium's secretstream_xchacha20poly1305.h
-		internal const int CRYPTO_SECRET_STREAM_KEYBYTES = 32;   // crypto_secretstream_xchacha20poly1305_KEYBYTES
-		internal const int CRYPTO_SECRET_STREAM_HEADERBYTES = 24;   // crypto_secretstream_xchacha20poly1305_HEADERBYTES
-		internal const int CRYPTO_SECRET_STREAM_ABYTES = 17;   // crypto_secretstream_xchacha20poly1305_ABYTES
+		// Constants from libsodium's secretstream_xChaCha20poly1305.h
+		internal const int CRYPTO_SECRET_STREAM_KEYBYTES = 32;   // crypto_secretstream_xChaCha20poly1305_KEYBYTES
+		internal const int CRYPTO_SECRET_STREAM_HEADERBYTES = 24;   // crypto_secretstream_xChaCha20poly1305_HEADERBYTES
+		internal const int CRYPTO_SECRET_STREAM_ABYTES = 17;   // crypto_secretstream_xChaCha20poly1305_ABYTES
 
 		// Tag values
 		internal const byte CRYPTO_SECRET_STREAM_TAG_MESSAGE = 0;
