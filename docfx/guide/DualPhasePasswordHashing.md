@@ -3,7 +3,7 @@
 This guide describes a dual-phase password hashing scheme that shifts most of the computational cost to the client. It is useful when the server must handle many concurrent logins and wishes to avoid resource exhaustion.
 
 > 🧂 Based on libsodium's [Password Hashing](https://doc.libsodium.org/password_hashing)
-> 👀 See also: [CryptoPasswordHash API Reference](../api/LibSodium.CryptoPasswordHash.yml)
+> 👀 See also: [CryptoPasswordHash API Reference](../api/LibSodium.CryptoPasswordHashArgon.yml)
 
 ---
 
@@ -186,4 +186,4 @@ For most applications, prefer the traditional approach unless you:
 
 * 🧂 [libsodium password hashing](https://doc.libsodium.org/password_hashing)
 * 🧂 [libsodium.js](https://github.com/jedisct1/libsodium.js)
-* ℹ️ [API Reference: CryptoPasswordHash](../api/LibSodium.CryptoPasswordHash.yml)
+* ℹ️ [API Reference: CryptoPasswordHash](../api/LibSodium.CryptoPasswordHashArgon.yml)

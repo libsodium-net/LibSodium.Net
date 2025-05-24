@@ -16,10 +16,12 @@ LibSodium.Net provides multiple hashing APIs for different use cases:
 > 🧂 Based on [Password Hashing](https://doc.libsodium.org/password_hashing)<br/>
 > 🧂 Based on [SHA-2](https://doc.libsodium.org/advanced/sha-2_hash_function)<br/>
 > ℹ️ [API Reference: CryptoGenericHash](../api/LibSodium.CryptoGenericHash.yml)<br/>
-> ℹ️ [API Reference: CryptoShortHash](../api/LibSodium.CryptoShortHash.yml)<br/>
-> ℹ️ [API Reference: CryptoPasswordHash](../api/LibSodium.CryptoPasswordHash.yml)<br/>
 > ℹ️ [API Reference: CryptoSha256](../api/LibSodium.CryptoSha256.yml)<br/>
 > ℹ️ [API Reference: CryptoSha512](../api/LibSodium.CryptoSha512.yml)
+> ℹ️ [API Reference: CryptoShortHash](../api/LibSodium.CryptoShortHash.yml)<br/>
+> ℹ️ [API Reference: CryptoPasswordHashArgon](../api/LibSodium.CryptoPasswordHashArgon.yml)<br/>
+> ℹ️ [API Reference: CryptoPasswordHashScrypt](../api/LibSodium.CryptoPasswordHashScrypt.yml)<br/>
+
 
 
 ---
@@ -314,12 +316,12 @@ CryptoPasswordHashScrypt.DeriveKey(key, "password", salt,
 
 ## 👀 See Also
 
-* ℹ️ [API Reference: CryptoGenericHashArgon](../api/LibSodium.CryptoGenericHashArgon.yml)
-* ℹ️ [API Reference: CryptoGenericHashArgon](../api/LibSodium.CryptoGenericHashScrypt.yml)
+* ℹ️ [API Reference: CryptoGenericHash](../api/LibSodium.CryptoGenericHash.yml)
 * ℹ️ [API Reference: CryptoSha256](../api/LibSodium.CryptoSha256.yml)
 * ℹ️ [API Reference: CryptoSha512](../api/LibSodium.CryptoSha512.yml)
 * ℹ️ [API Reference: CryptoShortHash](../api/LibSodium.CryptoShortHash.yml)
-* ℹ️ [API Reference: CryptoPasswordHash](../api/LibSodium.CryptoPasswordHash.yml)
+* ℹ️ [API Reference: CryptoPasswordHashArgon](../api/LibSodium.CryptoPasswordHashArgon.yml)
+* ℹ️ [API Reference: CryptoPasswordHashScrypt](../api/LibSodium.CryptoPasswordHashScrypt.yml)
 * 🧂 [libsodium Hashing](https://doc.libsodium.org/hashing)
 * 🧂 [libsodium Password Hashing](https://doc.libsodium.org/password_hashing)
 * 🧂 [libsodium SHA-2](https://doc.libsodium.org/advanced/sha-2_hash_function)<br/>

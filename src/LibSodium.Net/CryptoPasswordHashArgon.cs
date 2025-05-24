@@ -24,7 +24,7 @@ namespace LibSodium
     /// Provides password hashing and key derivation using Argon2.
     /// </summary>
     /// <remarks>
-    /// 🧂 Based on libsodium's crypto_pwhash API: https://doc.libsodium.org/password_hashing
+    /// Based on libsodium's crypto_pwhash API: https://doc.libsodium.org/password_hashing
     /// </remarks>
     public static class CryptoPasswordHashArgon
     {
