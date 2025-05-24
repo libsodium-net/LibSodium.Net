@@ -2,13 +2,14 @@
 
 LibSodium.Net provides multiple hashing APIs for different use cases:
 
-| API                  | Algorithm    | Use Case                                                                              |
-| -------------------- | ------------ | ------------------------------------------------------------------------------------- |
-| `GenericHash`        | BLAKE2b      | Cryptographic hash with optional key. Use for MAC, PRF, fingerprints.                 |
-| `ShortHash`          | SipHash‑2‑4  | Keyed hash designed to prevent collisions in hash tables. Fast for short inputs.      |
-| `CryptoSha256`       | SHA‑256      | Fast fixed‑length (32‑byte) hash for integrity checks, digital signatures, checksums. |
-| `CryptoSha512`       | SHA‑512      | Fast fixed‑length (64‑byte) hash for high‑strength integrity and digital signatures.  |
-| `CryptoPasswordHash` | Argon2id/i13 | Password hashing and key derivation (slow & memory‑hard)                              |
+| API                        | Algorithm    | Use Case                                                                              |
+| -------------------------- | ------------ | ------------------------------------------------------------------------------------- |
+| `GenericHash`              | BLAKE2b      | Cryptographic hash with optional key. Use for MAC, PRF, fingerprints.                 |
+| `ShortHash`                | SipHash‑2‑4  | Keyed hash designed to prevent collisions in hash tables. Fast for short inputs.      |
+| `CryptoSha256`             | SHA‑256      | Fast fixed‑length (32‑byte) hash for integrity checks, digital signatures, checksums. |
+| `CryptoSha512`             | SHA‑512      | Fast fixed‑length (64‑byte) hash for high‑strength integrity and digital signatures.  |
+| `CryptoPasswordHashArgon`  | Argon2id/i13 | Password hashing and key derivation (slow & memory‑hard)                              |
+| `CryptoPasswordHashScrypt` | Scrypt       | Password hashing and key derivation (slow & memory‑hard, legacy)                      |
 
 > [!NOTE] 
 > 🧂 Based on [libsodium’s Hashing](https://doc.libsodium.org/hashing)<br/>
@@ -176,7 +177,7 @@ CryptoShortHash.ComputeHash(hash, message, key);
 
 ---
 
-## ✨ PasswordHash
+## ✨ PasswordHashArgon
 
 Secure password hashing and key derivation using Argon2 (Argon2id / Argon2i13). This algorithm is specifically designed to defend against brute‑force attacks by requiring significant computational work and memory. It is ideal for storing passwords, deriving keys from passphrases, or implementing authentication mechanisms.
 
@@ -196,11 +197,15 @@ The cost parameters (iterations and memory) can be tuned to balance security and
 | `MinKeyLen`             | 16             | Minimum key length for derivation       |
 | `EncodedLen`            | 128            | Length of the encoded hash string       |
 | `Prefix`                | "\$argon2id\$" | Prefix for Argon2id encoded hash        |
+| `MinMemoryLen`          | 8 KB           | Minimum acceptable memory for hashing   |
+| `MinInterations`        | 1              | Minimum acceptable iterations           |
 | `InteractiveIterations` | 2              | Iteration count for interactive targets |
 | `InteractiveMemoryLen`  | 64 MB          | Memory usage for interactive targets    |
+| `ModerateIterations`    | 3              | For app secrets or backup keys          |
+| `ModerateMemoryLen`     | 256Mb          | For app secrets or backup keys          |
 | `SensitiveIterations`   | 4              | Iteration count for sensitive targets   |
 | `SensitiveMemoryLen`    | 1 GB           | Memory usage for sensitive targets      |
-| `MinMemoryLen`          | 8 KB           | Minimum acceptable memory for hashing   |
+
 
 ### 📋 Hash a password (encoded, random salt)
 
@@ -234,6 +239,47 @@ CryptoPasswordHash.DeriveKey(
 
 ---
 
+## ✨ PasswordHashScrypt
+
+Password hashing and key derivation using `scrypt`, a memory-hard function introduced before Argon2. Though not side-channel resistant, it is still widely used and interoperable.
+
+LibSodium.Net improves over libsodium by offering consistent tuning options (`Min`, `Interactive`, `Moderate`, `Sensitive`) and full validation coverage.
+
+### 📏 Constants
+
+| Name                    | Value           | Description                         |
+| ----------------------- | --------------- | ----------------------------------- |
+| `SaltLen`               | 32              | Length of the salt in bytes         |
+| `MinKeyLen`             | 16              | Minimum key length for derivation   |
+| `EncodedLen`            | 102             | Length of the encoded hash string   |
+| `Prefix`                | "\$7\$"         | Prefix for scrypt encoded hash      |
+| `MinIterations`         | 1024 (2^10)     | Minimum recommended iterations      |
+| `MinMemoryLen`          | 32 KiB (2^15)   | Minimum recommended memory          |
+| `InteractiveIterations` | 524288 (2^19)   | For login/password use              |
+| `InteractiveMemoryLen`  | 16 MiB (2^24)   | For login/password use              |
+| `ModerateIterations`    | 4194304 (2^22)  | For app secrets or backup keys      |
+| `ModerateMemoryLen`     | 128 MiB (2^27)  | For app secrets or backup keys      |
+| `SensitiveIterations`   | 33554432 (2^25) | For long-term or high-value secrets |
+| `SensitiveMemoryLen`    | 1 GiB (2^30)    | For long-term or high-value secrets |
+
+### 📋 Examples
+
+```csharp
+string hash = CryptoPasswordHashScrypt.HashPassword("my password");
+bool valid = CryptoPasswordHashScrypt.VerifyPassword(hash, "my password");
+```
+
+```csharp
+Span<byte> key = stackalloc byte[32];
+Span<byte> salt = stackalloc byte[CryptoPasswordHashScrypt.SaltLen];
+RandomGenerator.Fill(salt);
+CryptoPasswordHashScrypt.DeriveKey(key, "password", salt,
+    iterations: CryptoPasswordHashScrypt.ModerateIterations,
+    requiredMemoryLen: CryptoPasswordHashScrypt.ModerateMemoryLen);
+```
+
+---
+
 ## ⚠️ Error Handling
 
 * `ArgumentException` — when input or key lengths are invalid
@@ -247,26 +293,29 @@ CryptoPasswordHash.DeriveKey(
 * `GenericHash` is based on BLAKE2b and supports variable‑length output and optional keys.
 * `CryptoSha256` and `CryptoSha512` provide interoperable SHA‑2 digests and are the best choice when you need a *fixed‑length* checksum or compatibility with external systems.
 * `ShortHash` is based on SipHash‑2‑4 — *not* a general‑purpose cryptographic hash, but a keyed primitive for protecting hash tables.
-* `CryptoPasswordHash` uses Argon2id/Argon2i13 with computational and memory hardness.
+* `CryptoPasswordHashArgon` uses Argon2id/Argon2i13 with computational and memory hardness.
 * All hash functions are deterministic: same input and key produce same output — **except** `CryptoPasswordHash.HashPassword`, which includes a random salt and produces a different hash each time.
+* `Scrypt` is **not side-channel resistant**. Use `Argon2i13` or `Argon2id13` for high-security or shared-host scenarios.
 * Use `ShortHash` only when you can keep the key secret.
 
 ---
 
 ## 🧭 Choosing the Right Hash API
 
-| Scenario                                                 | Recommended API       |
-| -------------------------------------------------------- | --------------------- |
-| Variable‑length cryptographic checksum                   | `GenericHash`         |
-| Fixed‑length 32‑byte digest (e.g., TLS cert fingerprint) | `CryptoSha256`        |
-| Fixed‑length 64‑byte digest, higher speed on x64         | `CryptoSha512`        |
-| MAC or PRF                                               | `GenericHash` (keyed) |
-| Hashing short keys in tables                             | `ShortHash`           |
-| Password storage / passphrase‑derived keys               | `CryptoPasswordHash`  |
+| Scenario                                                 | Recommended API            |
+| -------------------------------------------------------- | -------------------------- |
+| Variable‑length cryptographic checksum                   | `GenericHash`              |
+| Fixed‑length 32‑byte digest (e.g., TLS cert fingerprint) | `CryptoSha256`             |
+| Fixed‑length 64‑byte digest, higher speed on x64         | `CryptoSha512`             |
+| MAC or PRF                                               | `GenericHash` (keyed)      |
+| Hashing short keys in tables                             | `ShortHash`                |
+| Password storage / passphrase‑derived keys               | `CryptoPasswordHashArgon`  |
+| Legacy Password storage / passphrase‑derived keys        | `CryptoPasswordHashScrypt` |
 
 ## 👀 See Also
 
-* ℹ️ [API Reference: CryptoGenericHash](../api/LibSodium.CryptoGenericHash.yml)
+* ℹ️ [API Reference: CryptoGenericHashArgon](../api/LibSodium.CryptoGenericHashArgon.yml)
+* ℹ️ [API Reference: CryptoGenericHashArgon](../api/LibSodium.CryptoGenericHashScrypt.yml)
 * ℹ️ [API Reference: CryptoSha256](../api/LibSodium.CryptoSha256.yml)
 * ℹ️ [API Reference: CryptoSha512](../api/LibSodium.CryptoSha512.yml)
 * ℹ️ [API Reference: CryptoShortHash](../api/LibSodium.CryptoShortHash.yml)

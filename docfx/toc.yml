@@ -1,7 +1,6 @@
-- name: Features
-  href: features.md
-- name: API Reference
-  href: api/LibSodium.yml
 - name: Guide
   href: guide/index.md
-  homepage: guide/index.md
+- name: API Reference
+  href: api/LibSodium.yml
+- name: GitHub Repository
+  href: https://github.com/LibSodium-Net/LibSodium.Net

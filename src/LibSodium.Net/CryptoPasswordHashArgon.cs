@@ -7,7 +7,7 @@ namespace LibSodium
     /// <summary>
     /// Supported password hashing algorithms.
     /// </summary>
-    public enum PasswordHashAlgorithm
+    public enum PasswordHashArgonAlgorithm
     {
         /// <summary>
         /// Argon2i version 1.3 — optimized for side-channel resistance.
@@ -26,7 +26,7 @@ namespace LibSodium
     /// <remarks>
     /// 🧂 Based on libsodium's crypto_pwhash API: https://doc.libsodium.org/password_hashing
     /// </remarks>
-    public static class CryptoPasswordHash
+    public static class CryptoPasswordHashArgon
     {
 		/// <summary>
 		/// Minimum allowed length in bytes for the derived key (16).
@@ -112,7 +112,7 @@ namespace LibSodium
             ReadOnlySpan<byte> salt,
             int iterations = InteractiveIterations,
             int requiredMemoryLen = InteractiveMemoryLen,
-            PasswordHashAlgorithm algorithm = PasswordHashAlgorithm.Argon2id13)
+            PasswordHashArgonAlgorithm algorithm = PasswordHashArgonAlgorithm.Argon2id13)
         {
 			if (key.Length < MinKeyLen)
 				throw new ArgumentOutOfRangeException($"Key length must be at least {MinKeyLen} bytes.", nameof(key));
@@ -129,7 +129,7 @@ namespace LibSodium
 			if (requiredMemoryLen < MinMemoryLen)
 				throw new ArgumentOutOfRangeException(nameof(requiredMemoryLen), $"Memory length must be at least {MinMemoryLen} bytes.");
 
-			if (algorithm == PasswordHashAlgorithm.Argon2i13 && iterations < 3)
+			if (algorithm == PasswordHashArgonAlgorithm.Argon2i13 && iterations < 3)
 				throw new ArgumentOutOfRangeException(nameof(iterations), "Argon2i13 requires iterations >= 3 for side-channel resistance.");
 
 			LibraryInitializer.EnsureInitialized();
@@ -161,7 +161,7 @@ namespace LibSodium
 			ReadOnlySpan<byte> salt,
 			int iterations = InteractiveIterations,
 			int requiredMemoryLen = InteractiveMemoryLen,
-			PasswordHashAlgorithm algorithm = PasswordHashAlgorithm.Argon2id13)
+			PasswordHashArgonAlgorithm algorithm = PasswordHashArgonAlgorithm.Argon2id13)
 		{
 			ArgumentNullException.ThrowIfNull(password);
 

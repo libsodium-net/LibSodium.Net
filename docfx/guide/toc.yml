@@ -38,6 +38,8 @@
       href: MAC.md
     - name: Hashing
       href: Hashing.md
+    - name: Dual-Phase Password Hashing
+      href: DualPhasePasswordHashing.md
 
 - name: Public Key Cryptography
   href: PublicKeyCrypto.md
