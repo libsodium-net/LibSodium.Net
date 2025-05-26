@@ -88,6 +88,24 @@ var ciphertext = SecretBox.Encrypt(message, nonce, clientSendKey);
 var plaintext  = SecretBox.Decrypt(ciphertext, nonce, serverReceiveKey);
 ```
 
+## 📋 Using Ed25519 Keys with CryptoKeyExchange
+
+If you already have an Ed25519 key pair (typically used for digital signatures), you can convert it to Curve25519 format and use it directly with `CryptoKeyExchange`.
+
+```csharp
+Span<byte> edPk = stackalloc byte[CryptoSign.PublicKeyLen];
+Span<byte> edSk = stackalloc byte[CryptoSign.PrivateKeyLen];
+CryptoSign.GenerateKeyPair(edPk, edSk);
+
+Span<byte> curvePk = stackalloc byte[CryptoKeyExchange.PublicKeyLen];
+Span<byte> curveSk = stackalloc byte[CryptoKeyExchange.SecretKeyLen];
+CryptoSign.PublicKeyToCurve(curvePk, edPk);
+CryptoSign.PrivateKeyToCurve(curveSk, edSk);
+```
+
+The resulting `curvePk` and `curveSk` are fully compatible with all key exchange methods in `CryptoKeyExchange`.
+
+
 ## ⚠️ Error Handling
 
 * **Size checks** – All spans **must** match the declared constants. Otherwise `ArgumentException` or `ArgumentOutOfRangeException` is thrown.

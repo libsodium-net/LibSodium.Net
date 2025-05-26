@@ -93,4 +93,17 @@ public static class CryptoHmacSha512
 	/// <exception cref="ArgumentException">Thrown if <paramref name="key"/> or <paramref name="mac"/> has an invalid length.</exception>
 	public static Task<bool> VerifyMacAsync(ReadOnlyMemory<byte> key, Stream messageStream, ReadOnlyMemory<byte> mac, CancellationToken cancellationToken = default)
 		=> CryptoMac<HmacSha512>.VerifyMacAsync(key, messageStream, mac, cancellationToken);
+
+	/// <summary>
+	/// Creates an incremental hash object using the HMAC-SHA512 algorithm.
+	/// </summary>
+	/// <remarks>The returned <see cref="ICryptoIncrementalHash"/> can be used to compute the HMAC-SHA512 hash
+	/// incrementally by processing data in chunks.</remarks>
+	/// <param name="key">The cryptographic key (64 bytes) to use for the HMAC-SHA512 computation.</param>
+	/// <returns>An <see cref="ICryptoIncrementalHash"/> instance that allows incremental computation of the HMAC-SHA512 hash.</returns>
+	public static ICryptoIncrementalHash CreateIncrementalMac(ReadOnlySpan<byte> key)
+	{
+		return new CryptoMacIncremental<HmacSha512>(key);
+	}
+
 }

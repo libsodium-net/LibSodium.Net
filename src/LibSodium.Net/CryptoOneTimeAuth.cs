@@ -99,4 +99,17 @@ public static class CryptoOneTimeAuth
 	/// <returns><c>true</c> if the MAC is valid; otherwise, <c>false</c>.</returns>
 	public static Task<bool> VerifyMacAsync(ReadOnlyMemory<byte> key, Stream messageStream, ReadOnlyMemory<byte> mac, CancellationToken cancellationToken = default)
 		=> CryptoMac<LowLevel.CryptoOneTimeAuth>.VerifyMacAsync(key, messageStream, mac, cancellationToken);
+
+
+	/// <summary>
+	/// Creates an incremental hash object using the Poly1305 algorithm.
+	/// </summary>
+	/// <remarks>The returned <see cref="ICryptoIncrementalHash"/> can be used to compute the Poly1305 hash
+	/// incrementally by processing data in chunks.</remarks>
+	/// <param name="key">The cryptographic key (32 bytes) to use for the Poly1305 computation.</param>
+	/// <returns>An <see cref="ICryptoIncrementalHash"/> instance that allows incremental computation of the Poly1305 hash.</returns>
+	public static ICryptoIncrementalHash CreateIncrementalMac(ReadOnlySpan<byte> key)
+	{
+		return new CryptoMacIncremental<LowLevel.CryptoOneTimeAuth>(key);
+	}
 }

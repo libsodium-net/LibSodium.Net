@@ -58,32 +58,9 @@ internal static class CryptoMac<T> where T : struct, IMac
 	public static void ComputeMac(ReadOnlySpan<byte> key, Stream source, Span<byte> hash)
 	{
 		ArgumentNullException.ThrowIfNull(source);
-		LibraryInitializer.EnsureInitialized();
-		if (key.Length != T.KeyLen)
-			throw new ArgumentException($"Key must be exactly {T.KeyLen} bytes.", nameof(key));
-		if (hash.Length != T.MacLen)
-			throw new ArgumentException($"Hash buffer must be exactly {T.MacLen} bytes.", nameof(hash));
-
-		Span<byte> state = stackalloc byte[T.StateLen];
-		if (T.Init(state, key) != 0)
-			throw new LibSodiumException("MAC init failed.");
-
-		byte[] buffer = System.Buffers.ArrayPool<byte>.Shared.Rent(DefaultBufferLen);
-		int bytesRead;
-		try
+		using (var incrementalHash = CreateIncrementalHash(key))
 		{
-			while ((bytesRead = source.Read(buffer, 0, DefaultBufferLen)) > 0)
-			{
-				if (T.Update(state, buffer.AsSpan(0, bytesRead)) != 0)
-					throw new LibSodiumException("MAC update failed.");
-			}
-
-			if (T.Final(state, hash) != 0)
-				throw new LibSodiumException("MAC finalization failed.");
-		}
-		finally
-		{
-			System.Buffers.ArrayPool<byte>.Shared.Return(buffer);
+			incrementalHash.Compute(source, hash);
 		}
 	}
 
@@ -104,31 +81,9 @@ internal static class CryptoMac<T> where T : struct, IMac
 	public static async Task ComputeMacAsync(ReadOnlyMemory<byte> key, Stream source, Memory<byte> hash, CancellationToken cancellationToken = default)
 	{
 		ArgumentNullException.ThrowIfNull(source);
-		LibraryInitializer.EnsureInitialized();
-		if (key.Length != T.KeyLen)
-			throw new ArgumentException($"Key must be exactly {T.KeyLen} bytes.", nameof(key));
-		if (hash.Length != T.MacLen)
-			throw new ArgumentException($"Hash buffer must be exactly {T.MacLen} bytes.", nameof(hash));
-
-		byte[] state = new byte[T.StateLen];
-		if (T.Init(state, key.Span) != 0)
-			throw new LibSodiumException("MAC init failed.");
-
-		byte[] buffer = System.Buffers.ArrayPool<byte>.Shared.Rent(DefaultBufferLen);
-		int bytesRead;
-		try
+		using (var incrementalHash = CreateIncrementalHash(key.Span))
 		{
-			while ((bytesRead = await source.ReadAsync(buffer, 0, DefaultBufferLen, cancellationToken).ConfigureAwait(false)) > 0)
-			{
-				if (T.Update(state, buffer.AsSpan(0, bytesRead)) != 0)
-					throw new LibSodiumException("MAC update failed.");
-			}
-			if (T.Final(state, hash.Span) != 0)
-				throw new LibSodiumException("MAC finalization failed.");
-		}
-		finally
-		{
-			System.Buffers.ArrayPool<byte>.Shared.Return(buffer);
+			await incrementalHash.ComputeAsync(source, hash, cancellationToken).ConfigureAwait(false);
 		}
 	}
 
@@ -142,5 +97,18 @@ internal static class CryptoMac<T> where T : struct, IMac
 		byte[] computed = new byte[T.MacLen];
 		await ComputeMacAsync(key, source, computed, cancellationToken).ConfigureAwait(false);
 		return computed.AsSpan().SequenceEqual(hash.Span);
+	}
+
+
+	/// <summary>
+	/// Creates an incremental hash instance using the specified key.
+	/// </summary>
+	/// <param name="key">A read-only span containing the key to initialize the hash. The key must be exactly <see cref="IMac.KeyLen"/> bytes in
+	/// length.</param>
+	/// <returns>An <see cref="ICryptoIncrementalHash"/> instance that can be used to compute the hash incrementally.</returns>
+	/// <exception cref="ArgumentException">Thrown if <paramref name="key"/> is not exactly <see cref="IMac.KeyLen"/> bytes in length.</exception>
+	public static ICryptoIncrementalHash CreateIncrementalHash(ReadOnlySpan<byte> key)
+	{
+		return new CryptoMacIncremental<T>(key);
 	}
 }

@@ -1,9 +1,5 @@
 ﻿using LibSodium.Tests;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace LibSodium.Net.Tests
 {
@@ -150,7 +146,7 @@ namespace LibSodium.Net.Tests
 			CryptoGenericHash.ComputeHash(hash, message, ReadOnlySpan<byte>.Empty);
 
 			var expected = Convert.FromHexString("786A02F742015903C6C6FD852552D272912F4740E15847618A86E217F71F5419D25E1031AFEE585313896444934EB04B903A685B1448B755D56F701AFE9BE2CE");
-			hash.ToArray().ShouldBe(expected);
+			hash.ShouldBe(expected);
 		}
 
 		[Test]
@@ -161,7 +157,7 @@ namespace LibSodium.Net.Tests
 			CryptoGenericHash.ComputeHash(hash, message, ReadOnlySpan<byte>.Empty);
 
 			var expected = Convert.FromHexString("BA80A53F981C4D0D6A2797B69F12F6E94C212F14685AC4B74B12BB6FDBFFA2D17D87C5392AAB792DC252D5DE4533CC9518D38AA8DBF1925AB92386EDD4009923");
-			hash.ToArray().ShouldBe(expected);
+			hash.ShouldBe(expected);
 		}
 
 		[Test]
@@ -172,7 +168,7 @@ namespace LibSodium.Net.Tests
 			CryptoGenericHash.ComputeHash(hash, message, ReadOnlySpan<byte>.Empty);
 
 			var expected = Convert.FromHexString("E4CFA39A3D37BE31C59609E807970799CAA68A19BFAA15135F165085E01D41A65BA1E1B146AEB6BD0092B49EAC214C103CCFA3A365954BBBE52F74A2B3620C94");
-			hash.ToArray().ShouldBe(expected);
+			hash.ShouldBe(expected);
 		}
 	}
 }

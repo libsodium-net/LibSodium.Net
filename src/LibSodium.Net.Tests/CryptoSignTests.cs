@@ -140,4 +140,97 @@ public class CryptoSignTests
 		Random.Shared.NextBytes(buf);
 		return buf;
 	}
+
+	[Test]
+	public void PublicKeyToCurve_and_PrivateKeyToCurve_should_produce_valid_keys_for_CryptoBox()
+	{
+		Span<byte> edPk = stackalloc byte[CryptoSign.PublicKeyLen];
+		Span<byte> edSk = stackalloc byte[CryptoSign.PrivateKeyLen];
+		CryptoSign.GenerateKeyPair(edPk, edSk);
+
+		Span<byte> curvePk = stackalloc byte[CryptoBox.PublicKeyLen];
+		Span<byte> curveSk = stackalloc byte[CryptoBox.PrivateKeyLen];
+		CryptoSign.PublicKeyToCurve(curvePk, edPk);
+		CryptoSign.PrivateKeyToCurve(curveSk, edSk);
+
+		Span<byte> plaintext = stackalloc byte[32];
+		RandomGenerator.Fill(plaintext);
+
+		Span<byte> ciphertext = stackalloc byte[plaintext.Length + CryptoBox.SealOverheadLen];
+		Span<byte> decrypted = stackalloc byte[plaintext.Length];
+
+		CryptoBox.EncryptWithPublicKey(ciphertext, plaintext, curvePk);
+		CryptoBox.DecryptWithPrivateKey(decrypted, ciphertext, curveSk);
+
+		decrypted.ShouldBe(plaintext);
+	}
+
+	[Test]
+	public void PublicKeyToCurve_should_throw_when_input_or_output_lengths_invalid()
+	{
+		AssertLite.Throws<ArgumentException>(() =>
+		{
+			Span<byte> curve = stackalloc byte[CryptoBox.PublicKeyLen - 1];
+			Span<byte> ed = stackalloc byte[CryptoSign.PublicKeyLen];
+			CryptoSign.PublicKeyToCurve(curve, ed);
+		});
+
+		AssertLite.Throws<ArgumentException>(() =>
+		{
+			Span<byte> curve = stackalloc byte[CryptoBox.PublicKeyLen];
+			Span<byte> ed = stackalloc byte[CryptoSign.PublicKeyLen - 1];
+			CryptoSign.PublicKeyToCurve(curve, ed);
+		});
+	}
+
+	[Test]
+	public void PrivateKeyToCurve_should_throw_when_input_or_output_lengths_invalid()
+	{
+		AssertLite.Throws<ArgumentException>(() =>
+		{
+			Span<byte> curve = stackalloc byte[CryptoBox.PrivateKeyLen - 1];
+			Span<byte> ed = stackalloc byte[CryptoSign.PrivateKeyLen];
+			CryptoSign.PrivateKeyToCurve(curve, ed);
+		});
+
+		AssertLite.Throws<ArgumentException>(() =>
+		{
+			Span<byte> curve = stackalloc byte[CryptoBox.PrivateKeyLen];
+			Span<byte> ed = stackalloc byte[CryptoSign.PrivateKeyLen - 1];
+			CryptoSign.PrivateKeyToCurve(curve, ed);
+		});
+	}
+
+	[Test]
+	public void Converted_keys_should_work_with_CryptoKeyExchange()
+	{
+		Span<byte> clientEdPk = stackalloc byte[CryptoSign.PublicKeyLen];
+		Span<byte> clientEdSk = stackalloc byte[CryptoSign.PrivateKeyLen];
+		CryptoSign.GenerateKeyPair(clientEdPk, clientEdSk);
+
+		Span<byte> serverEdPk = stackalloc byte[CryptoSign.PublicKeyLen];
+		Span<byte> serverEdSk = stackalloc byte[CryptoSign.PrivateKeyLen];
+		CryptoSign.GenerateKeyPair(serverEdPk, serverEdSk);
+
+		Span<byte> clientPk = stackalloc byte[CryptoKeyExchange.PublicKeyLen];
+		Span<byte> clientSk = stackalloc byte[CryptoKeyExchange.SecretKeyLen];
+		CryptoSign.PublicKeyToCurve(clientPk, clientEdPk);
+		CryptoSign.PrivateKeyToCurve(clientSk, clientEdSk);
+
+		Span<byte> serverPk = stackalloc byte[CryptoKeyExchange.PublicKeyLen];
+		Span<byte> serverSk = stackalloc byte[CryptoKeyExchange.SecretKeyLen];
+		CryptoSign.PublicKeyToCurve(serverPk, serverEdPk);
+		CryptoSign.PrivateKeyToCurve(serverSk, serverEdSk);
+
+		Span<byte> clientRx = stackalloc byte[CryptoKeyExchange.SessionKeyLen];
+		Span<byte> clientTx = stackalloc byte[CryptoKeyExchange.SessionKeyLen];
+		Span<byte> serverRx = stackalloc byte[CryptoKeyExchange.SessionKeyLen];
+		Span<byte> serverTx = stackalloc byte[CryptoKeyExchange.SessionKeyLen];
+
+		CryptoKeyExchange.DeriveClientSessionKeys(clientRx, clientTx, clientPk, clientSk, serverPk);
+		CryptoKeyExchange.DeriveServerSessionKeys(serverRx, serverTx, serverPk, serverSk, clientPk);
+
+		clientTx.ShouldBe(serverRx);
+		clientRx.ShouldBe(serverTx);
+	}
 }

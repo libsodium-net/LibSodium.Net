@@ -16,5 +16,7 @@
 		/// </para>
 		/// </summary>
 		internal const int MaxStackAlloc = 640;
+
+		internal const int DefaultBufferLen = 8192;
 	}
 }

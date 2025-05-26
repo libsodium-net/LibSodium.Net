@@ -11,7 +11,7 @@ LibSodium.Net provides multiple hashing APIs for different use cases:
 | `CryptoPasswordHashArgon`  | Argon2id/i13 | Password hashing and key derivation (slow & memory‑hard)                              |
 | `CryptoPasswordHashScrypt` | Scrypt       | Password hashing and key derivation (slow & memory‑hard, legacy)                      |
 
-> [!NOTE] 
+
 > 🧂 Based on [libsodium’s Hashing](https://doc.libsodium.org/hashing)<br/>
 > 🧂 Based on [Password Hashing](https://doc.libsodium.org/password_hashing)<br/>
 > 🧂 Based on [SHA-2](https://doc.libsodium.org/advanced/sha-2_hash_function)<br/>
@@ -34,6 +34,7 @@ LibSodium.Net provides multiple hashing APIs for different use cases:
 * Password hashing and key derivation using Argon2 (CryptoPasswordHash)
 * All methods are allocation‑free, `Span`‑based, and deterministic (except password hash, which is randomized)
 * Stream and async support for large input hashing (GenericHash, CryptoSha256, CryptoSha512)
+* Incremental (multi-part) hashing  (GenericHash, CryptoSha256, CryptoSha512)
 
 ---
 
@@ -48,7 +49,7 @@ BLAKE2b is a cryptographic hash function designed as a faster and safer alternat
 * Unique deterministic identifiers
 * Pseudorandom functions (PRF) when keyed
 
-By default, it produces 32‑byte output, but can be configured to return between 16 and 64 bytes. It supports *keyed hashing* for MAC‑like behavior, or *unkeyed hashing* for general‑purpose hashing.
+By default, it produces 32‑byte output, but can be configured to return between 16 and 64 bytes. It supports *keyed hashing* for MAC‑like or PRF behavior, using a key of 32 bytes by default (configurable between 16 and 64 bytes), or *unkeyed hashing* for general‑purpose use.
 
 ### 📏 Constants
 
@@ -146,6 +147,52 @@ CryptoSha512.ComputeHash(hash, stream);
 ```csharp
 await CryptoSha512.ComputeHashAsync(hash, stream);
 ```
+
+---
+## ✨ Incremental Hashing
+
+In some scenarios, data to be hashed is not available as a single contiguous buffer — for example, when you want to compute `hash(a || b || c)` from multiple inputs. LibSodium.Net offers **incremental hashing** for this purpose.
+
+The following classes support incremental hashing:
+
+* `CryptoGenericHash` (BLAKE2b, optionally keyed)
+* `CryptoSha256` (SHA-256)
+* `CryptoSha512` (SHA-512)
+
+These types expose an incremental API via the `ICryptoIncrementalHash` interface.
+
+### 📋 Compute hash from multiple parts
+
+```csharp
+Span<byte> hash = stackalloc byte[CryptoSha256.HashLen];
+using var hasher = CryptoSha256.CreateIncrementalHash();
+
+hasher.Update(Encoding.UTF8.GetBytes("header"));
+hasher.Update(Encoding.UTF8.GetBytes("payload"));
+hasher.Update(Encoding.UTF8.GetBytes("footer"));
+hasher.Final(hash);
+```
+
+This pattern ensures correctness and efficiency when you want to hash logically grouped inputs without allocating or copying them into a single buffer.
+
+### 📋 With a keyed BLAKE2b hash
+
+```csharp
+Span<byte> key = stackalloc byte[CryptoGenericHash.KeyLen];
+RandomGenerator.Fill(key);
+
+Span<byte> hash = stackalloc byte[32];
+var part1 = Encoding.UTF8.GetBytes("hello");
+var part2 = Encoding.UTF8.GetBytes("world");
+
+using var hasher = CryptoGenericHash.CreateIncrementalHash(key, hash.Length);
+
+hasher.Update(part1);
+hasher.Update(part2);
+hasher.Final(hash);
+```
+
+> ℹ️ The `Final()` method may only be called once per hash instance. You must create a new instance for each new computation.
 
 ---
 

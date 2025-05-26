@@ -59,5 +59,16 @@ namespace LibSodium.Interop
 			ReadOnlySpan<byte> message,
 			ulong message_len,
 			ReadOnlySpan<byte> pk);
+
+		[LibraryImport(LibSodiumNativeLibraryName, EntryPoint = nameof(crypto_sign_ed25519_pk_to_curve25519))]
+		internal static partial int crypto_sign_ed25519_pk_to_curve25519(
+			Span<byte> curve25519PublicKey,
+			ReadOnlySpan<byte> ed25519PublicKey);
+
+		[LibraryImport(LibSodiumNativeLibraryName, EntryPoint = nameof(crypto_sign_ed25519_sk_to_curve25519))]
+		internal static partial int crypto_sign_ed25519_sk_to_curve25519(
+			Span<byte> curve25519SecretKey,
+			ReadOnlySpan<byte> ed25519SecretKey);
+
 	}
 }

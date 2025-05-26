@@ -113,6 +113,23 @@ namespace LibSodium
 		}
 
 		/// <summary>
+		/// Overwrites the memory of the specified buffer with zeros.
+		/// </summary>
+		/// <remarks>This method ensures that the memory of the provided buffer is securely overwritten with zeros. It
+		/// is typically used to clear sensitive data, such as cryptographic keys, from memory. The method requires the
+		/// library to be initialized before use.</remarks>
+		/// <typeparam name="T">The type of the buffer. Must be an unmanaged type.</typeparam>
+		/// <param name="buffer">A reference to the buffer whose memory will be cleared.</param>
+		public static void MemZero<T>(ref T buffer) where T : unmanaged
+		{
+			LibraryInitializer.EnsureInitialized();
+			unsafe
+			{
+				Native.sodium_memzero((nint)Unsafe.AsPointer(ref buffer), (nuint)Unsafe.SizeOf<T>());
+			}
+		}
+
+		/// <summary>
 		/// Locks an unmanaged memory buffer, preventing it from being swapped to disk.
 		/// </summary>
 		/// <param name="buffer">The span representing the unmanaged memory to lock.</param>

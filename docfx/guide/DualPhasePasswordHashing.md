@@ -3,7 +3,7 @@
 This guide describes a dual-phase password hashing scheme that shifts most of the computational cost to the client. It is useful when the server must handle many concurrent logins and wishes to avoid resource exhaustion.
 
 > 🧂 Based on libsodium's [Password Hashing](https://doc.libsodium.org/password_hashing)
-> 👀 See also: [CryptoPasswordHash API Reference](../api/LibSodium.CryptoPasswordHashArgon.yml)
+> 👀 See also: [CryptoPasswordHashArgon API Reference](../api/LibSodium.CryptoPasswordHashArgon.yml)
 
 ---
 
@@ -41,22 +41,22 @@ Although this step consumes server resources, registration is a relatively infre
 // SERVER-SIDE REGISTRATION (C#)
 (string password, string email) = ReceiveRegistrationRequest();
 // (Optional) Evaluate password strength here before proceeding
-byte[] seed = new byte[CryptoPasswordHash.SaltLen];
+byte[] seed = new byte[CryptoPasswordHashArgon.SaltLen];
 CryptoGenericHash.ComputeHash(seed, Encoding.UTF8.GetBytes(email));
 
 byte[] preHash = new byte[32];
 
-CryptoPasswordHash.DeriveKey(
+CryptoPasswordHashArgon.DeriveKey(
     preHash,
     password,
     seed,
-    iterations: CryptoPasswordHash.InteractiveIterations,
-    requiredMemoryLen: CryptoPasswordHash.InteractiveMemoryLen);
+    iterations: CryptoPasswordHashArgon.InteractiveIterations,
+    requiredMemoryLen: CryptoPasswordHashArgon.InteractiveMemoryLen);
 
-string finalHash = CryptoPasswordHash.HashPassword(
+string finalHash = CryptoPasswordHashArgon.HashPassword(
     preHash,
-    iterations: CryptoPasswordHash.MinIterations,
-    requiredMemoryLen: CryptoPasswordHash.MinMemoryLen);
+    iterations: CryptoPasswordHashArgon.MinIterations,
+    requiredMemoryLen: CryptoPasswordHashArgon.MinMemoryLen);
 
 
 StoreUser(email, finalHash);
@@ -71,17 +71,17 @@ During login, the client derives the `preHash` from the password and a determini
 ```csharp
 // CLIENT-SIDE (C#)
 string password = "correct horse battery staple";
-byte[] seed = new byte[CryptoPasswordHash.SaltLen];
+byte[] seed = new byte[CryptoPasswordHashArgon.SaltLen];
 CryptoGenericHash.ComputeHash(seed, Encoding.UTF8.GetBytes(email));
 
 byte[] preHash = new byte[32];
 
-CryptoPasswordHash.DeriveKey(
+CryptoPasswordHashArgon.DeriveKey(
     preHash,
     password,
     seed,
-    iterations: CryptoPasswordHash.InteractiveIterations,
-    requiredMemoryLen: CryptoPasswordHash.InteractiveMemoryLen);
+    iterations: CryptoPasswordHashArgon.InteractiveIterations,
+    requiredMemoryLen: CryptoPasswordHashArgon.InteractiveMemoryLen);
 
 SendToServer(email, preHash);
 ```
@@ -91,7 +91,7 @@ SendToServer(email, preHash);
 (string email, byte[] preHash) = ReceiveLoginAttempt();
 string storedHash = GetStoredFinalHash(email);
 
-bool isValid = CryptoPasswordHash.VerifyPassword(storedHash, preHash);
+bool isValid = CryptoPasswordHashArgon.VerifyPassword(storedHash, preHash);
 ```
 
 📝 The client-side `DeriveKey(...)` call must use high-cost parameters (e.g., `InteractiveIterations`), while the server-side `HashPassword(...)` uses minimal parameters (`MinIterations`, `MinMemoryLen`) for fast verification only.&#x20;
@@ -186,4 +186,4 @@ For most applications, prefer the traditional approach unless you:
 
 * 🧂 [libsodium password hashing](https://doc.libsodium.org/password_hashing)
 * 🧂 [libsodium.js](https://github.com/jedisct1/libsodium.js)
-* ℹ️ [API Reference: CryptoPasswordHash](../api/LibSodium.CryptoPasswordHashArgon.yml)
+* ℹ️ [API Reference: CryptoPasswordHashArgon](../api/LibSodium.CryptoPasswordHashArgon.yml)

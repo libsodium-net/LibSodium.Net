@@ -50,5 +50,30 @@ namespace LibSodium.Interop
 			Span<byte> hash,
 			nuint hash_len);
 
+		[StructLayout(LayoutKind.Explicit, Size = 384)]
+		internal struct crypto_generichash_blake2b_state;
+
+		[LibraryImport(LibSodiumNativeLibraryName, EntryPoint = nameof(crypto_generichash_init))]
+		[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+		internal static partial int crypto_generichash_init(
+			ref crypto_generichash_blake2b_state state,
+			ReadOnlySpan<byte> key,
+			nuint key_len,
+			nuint hash_len);
+
+		[LibraryImport(LibSodiumNativeLibraryName, EntryPoint = nameof(crypto_generichash_update))]
+		[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+		internal static partial int crypto_generichash_update(
+			ref crypto_generichash_blake2b_state state,
+			ReadOnlySpan<byte> input,
+			ulong input_len);
+
+		[LibraryImport(LibSodiumNativeLibraryName, EntryPoint = nameof(crypto_generichash_final))]
+		[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+		internal static partial int crypto_generichash_final(
+			ref crypto_generichash_blake2b_state state,
+			Span<byte> hash,
+			nuint hash_len);
+
 	}
 }

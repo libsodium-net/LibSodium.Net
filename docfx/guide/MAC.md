@@ -21,10 +21,11 @@ LibSodium.Net exposes three HMAC‑SHA‑2 variants and Poly1305 that cover the 
 ## 🌟 Features
 
 * **Keyed authentication** with proven constructions (HMAC‑SHA‑2 & Poly1305).
-* Allocation‑free `Span<T>` API + streaming + async overloads (HMACs).
+* Allocation‑free `Span<T>` API + streaming + async overloads.
 * Unified method names: `ComputeMac`, `VerifyMac`, `GenerateKey`.
 * Safe size checks that throw early (`ArgumentException`).
 * Deterministic output – same key + message ⇒ same tag.
+* Incremental (Multi-Part) MAC construction.
 
 ---
 
@@ -147,6 +148,53 @@ Debug.Assert(okStreamAsync);
 ```
 
 > ℹ️ **Same API across algorithms** – swap the class name to change the MAC primitive.
+
+---
+## ✨ Incremental MAC
+
+All MAC algorithms in LibSodium.Net support **incremental MAC construction**, allowing you to compute a tag over a sequence of message parts (e.g., `MAC(key, a || b || c)`) without allocating or copying them into a single buffer.
+
+This is useful when authenticating structured messages, layered protocols, or data assembled in multiple stages.
+
+The following APIs expose incremental MAC support via the `ICryptoIncrementalHash` interface:
+
+* `CryptoHmacSha256`
+* `CryptoHmacSha512`
+* `CryptoHmacSha512_256`
+* `CryptoOneTimeAuth`
+
+Each class provides a `CreateIncrementalMac(ReadOnlySpan<byte> key)` method.
+
+### 📋 Compute MAC over multiple parts
+
+```csharp
+Span<byte> mac = stackalloc byte[CryptoHmacSha512.MacLen];
+Span<byte> key = stackalloc byte[CryptoHmacSha512.KeyLen];
+RandomGenerator.Fill(key);
+
+var part1 = Encoding.UTF8.GetBytes("hello ");
+var part2 = Encoding.UTF8.GetBytes("world");
+
+using var macCalc = CryptoHmacSha512.CreateIncrementalMac(key);
+macCalc.Update(part1);
+macCalc.Update(part2);
+macCalc.Final(mac);
+```
+
+### 📋 Poly1305 incremental MAC
+
+```csharp
+Span<byte> mac = stackalloc byte[CryptoOneTimeAuth.MacLen];
+Span<byte> key = stackalloc byte[CryptoOneTimeAuth.KeyLen];
+RandomGenerator.Fill(key);
+
+using var macCalc = CryptoOneTimeAuth.CreateIncrementalMac(key);
+macCalc.Update(data1);
+macCalc.Update(data2);
+macCalc.Final(mac);
+```
+
+> ⚠️ The `Final()` method may only be called once. Create a new incremental MAC instance for each new message.
 
 ---
 

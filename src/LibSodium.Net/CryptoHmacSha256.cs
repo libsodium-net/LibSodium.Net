@@ -96,4 +96,18 @@ public static class CryptoHmacSha256
 	/// <returns><c>true</c> if the MAC is valid; otherwise, <c>false</c>.</returns>
 	public static Task<bool> VerifyMacAsync(ReadOnlyMemory<byte> key, Stream messageStream, ReadOnlyMemory<byte> mac, CancellationToken cancellationToken = default)
 		=> CryptoMac<HmacSha256>.VerifyMacAsync(key, messageStream, mac, cancellationToken);
+
+
+	/// <summary>
+	/// Creates an incremental hash object using the HMAC-SHA256 algorithm.
+	/// </summary>
+	/// <remarks>The returned <see cref="ICryptoIncrementalHash"/> can be used to compute the HMAC-SHA256 hash
+	/// incrementally by processing data in chunks. This is useful for scenarios where the data to be hashed is too large
+	/// to fit in memory or is received in a streaming fashion.</remarks>
+	/// <param name="key">The cryptographic key (32 bytes) to use for the HMAC-SHA256 computation.</param>
+	/// <returns>An <see cref="ICryptoIncrementalHash"/> instance that allows incremental computation of the HMAC-SHA256 hash.</returns>
+	public static ICryptoIncrementalHash CreateIncrementalMac(ReadOnlySpan<byte> key)
+	{
+		return new CryptoMacIncremental<HmacSha256>(key);
+	}
 }

@@ -1,4 +1,6 @@
 ﻿using LibSodium.Interop;
+using System.Buffers;
+using System.Security.Cryptography;
 
 namespace LibSodium
 {
@@ -16,6 +18,9 @@ namespace LibSodium
 	/// </remarks>
 	public static class CryptoGenericHash
 	{
+		private const int DefaultBufferSize = 8192; // Default buffer size for stream operations
+
+
 		/// <summary>
 		/// Default hash length in bytes (32).
 		/// </summary>
@@ -57,14 +62,19 @@ namespace LibSodium
 		public static void ComputeHash(Span<byte> hash, ReadOnlySpan<byte> message, ReadOnlySpan<byte> key = default)
 		{
 			if (hash.Length < MinHashLen || hash.Length > MaxHashLen)
+			{
 				throw new ArgumentException($"Hash length must be between {MinHashLen} and {MaxHashLen} bytes.", nameof(hash));
-			if (key.Length > MaxKeyLen)
-				throw new ArgumentException($"Key length must be between 0 and {MaxKeyLen} bytes.", nameof(key));
+			}
+			if (key.Length != 0 && (key.Length < MinKeyLen || key.Length > MaxKeyLen))
+			{
+				throw new ArgumentOutOfRangeException($"Key length must be between {MinKeyLen} and {MaxKeyLen} bytes.", nameof(key));
+			}
 			LibraryInitializer.EnsureInitialized();
 			int result = Native.crypto_generichash(hash, (nuint)hash.Length, message, (ulong)message.Length, key, (nuint)key.Length);
 			if (result != 0)
 				throw new LibSodiumException("Hashing failed.");
 		}
+
 
 		/// <summary>
 		/// Computes a generic hash from the contents of a stream.
@@ -79,27 +89,12 @@ namespace LibSodium
 
 		public static void ComputeHash(Span<byte> hash, Stream input, ReadOnlySpan<byte> key = default)
 		{
-			if (hash.Length < MinHashLen || hash.Length > MaxHashLen)
-				throw new ArgumentException($"Hash length must be between {MinHashLen} and {MaxHashLen} bytes.", nameof(hash));
-			if (key.Length > MaxKeyLen)
-				throw new ArgumentException($"Key length must be between 0 and {MaxKeyLen} bytes.", nameof(key));
-			Span<byte> state = stackalloc byte[StateLen];
-			LibraryInitializer.EnsureInitialized();
-			int result = Native.crypto_generichash_init(state, key, (nuint)key.Length, (nuint)hash.Length);
-			if (result != 0)
-				throw new LibSodiumException("Hashing failed.");
-			byte[] buffer = new byte[8192];
-			int bytesRead;
-			while ((bytesRead = input.Read(buffer, 0, buffer.Length)) > 0)
-			{
-				result = Native.crypto_generichash_update(state, buffer, (ulong)bytesRead);
-				if (result != 0)
-					throw new LibSodiumException("Hashing failed.");
-			}
-			result = Native.crypto_generichash_final(state, hash, (nuint)hash.Length);
-			if (result != 0)
-				throw new LibSodiumException("Hashing failed.");
+			ArgumentNullException.ThrowIfNull(input, nameof(input));
 
+			using (var incrementalHash = CreateIncrementalHash(key, hash.Length))
+			{
+				incrementalHash.Compute(input, hash);
+			}
 		}
 
 		/// <summary>
@@ -117,29 +112,17 @@ namespace LibSodium
 
 		public static async Task ComputeHashAsync(Memory<byte> hash, Stream input, ReadOnlyMemory<byte> key = default, CancellationToken cancellationToken = default)
 		{
-			if (hash.Length < MinHashLen || hash.Length > MaxHashLen)
-				throw new ArgumentException($"Hash length must be between {MinHashLen} and {MaxHashLen} bytes.", nameof(hash));
-			if (key.Length > MaxKeyLen)
-				throw new ArgumentException($"Key length must be between 0 and {MaxKeyLen} bytes.", nameof(key));
+			ArgumentNullException.ThrowIfNull(input, nameof(input));
 
-			byte[] stateBuffer = new byte[StateLen];
-			LibraryInitializer.EnsureInitialized();
-			int result = Native.crypto_generichash_init(stateBuffer, key.Span, (nuint)key.Length, (nuint)hash.Length);
-			if (result != 0)
-				throw new LibSodiumException("Hashing failed.");
-
-			byte[] buffer = new byte[8192];
-			int bytesRead;
-			while ((bytesRead = await input.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false)) > 0)
+			using (var incrementalHash = CreateIncrementalHash(key.Span, hash.Length))
 			{
-				result = Native.crypto_generichash_update(stateBuffer, buffer, (ulong) bytesRead);
-				if (result != 0)
-					throw new LibSodiumException("Hashing failed.");
+				await incrementalHash.ComputeAsync(input, hash, cancellationToken).ConfigureAwait(false);
 			}
+		}
 
-			result = Native.crypto_generichash_final(stateBuffer, hash.Span, (nuint)hash.Length);
-			if (result != 0)
-				throw new LibSodiumException("Hashing failed.");
+		public static ICryptoIncrementalHash CreateIncrementalHash(ReadOnlySpan<byte> key = default, int hashLen = HashLen)
+		{
+			return new CryptoGenericHashIncremental(key, hashLen);
 		}
 
 	}

@@ -8,7 +8,7 @@
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
-		<Version>0.12.0-alpha</Version>
+		<Version>0.13.0-alpha</Version>
 		<Authors>jesuslpm</Authors>
 		<Description>LibSodium.Bindings.Net provides comprehensive .NET bindings for the libsodium native library</Description>
 		<Copyright>Copyright 2025</Copyright>
@@ -20,10 +20,9 @@
 			XChaCha20-Poly1305 XChaCha20Poly1305 ChaCha20-Poly1305 ChaCha20Poly1305 ChaCha20-Poly1305-IETF ChaCha20Poly1305IETF
 			SecretBox AES256-GCM AES256GCM AEGIS-256 AEGIS256 AEGIS-128L AEGIS128L
 			AEAD authenticated-encryption public-key-cryptography
-			CryptoBox CryptoSign SecretStream SecureMemory
-			hash hashing BLAKE2b SipHash SHA256 SHA512 Argon Argon2 Argon2i Argon2i13 Argon2id13 Argon2id Scrypt
+			Ed25519 Edwards25519 Curve25519 CryptoBox CryptoSign SecretStream File-Encryption SecureMemory Key-Exchange
+			hash hashing BLAKE2b SipHash SHA256 SHA512 Argon Argon2 Argon2i Argon2id Argon2i13 Argon2id13  Scrypt
 			HKDF HKDF-SHA256 HKDFSHA256 HKDF-SHA512 HKDFSHA512 crypto_kdf Key-Derivation
-			Curve25519 Key-Exchange
 			Poly1305 HMAC-SHA-256 HMACSHA256 HMAC-SHA-512 HMACSHA512 HMAC-SHA-512/256
 			ChaCha20 ChaCha20-IETF ChaCha20IETF XChaCha20 Salsa20 XSalsa20
 		</PackageTags>

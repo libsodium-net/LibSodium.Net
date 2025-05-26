@@ -167,12 +167,12 @@ AssertLite.Throws<ArgumentException>(() => { LibSodium.X(buffer); });
 * SHA-2: `CryptoSha256`, `CryptoSha512`
 * MAC: `CryptoHmacSha256`,`CryptoHmacSha512`, `CryptoHmacSha512_256`, `CryptoOneTimeAuth`
 * Stream Ciphers.
+* Scrypt
+* [Ed25519 -> Curve25519](https://doc.libsodium.org/advanced/ed25519-curve25519)
+* [Point\*Scalar Multiplication](https://doc.libsodium.org/advanced/scalar_multiplication)
 
 ---
 
 ## 🔮 Pending Modules (Planned)
 
-* 🪂 [Scrypt](https://doc.libsodium.org/advanced/scrypt)
-* 🪂 [Point\*Scalar Multiplication](https://doc.libsodium.org/advanced/scalar_multiplication)
-* 🪂 [Ed25519 ↔ Curve25519](https://doc.libsodium.org/advanced/ed25519-curve25519)
 * 🪂 [Finite Field Arithmetic](https://doc.libsodium.org/advanced/point-arithmetic)

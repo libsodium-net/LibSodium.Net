@@ -138,5 +138,48 @@ namespace LibSodium
 			throw new LibSodiumException("Failed to verify signature.");
 		}
 
+		/// <summary>
+		/// Converts an Ed25519 public key (32 bytes) to a Curve25519 public key (32 bytes).
+		/// </summary>
+		/// <param name="curvePublicKey">The buffer where the resulting Curve25519 public key will be written. Must be 32 bytes.</param>
+		/// <param name="edPublicKey">The source Ed25519 public key. Must be 32 bytes.</param>
+		/// <exception cref="ArgumentException">Thrown if buffer sizes are incorrect.</exception>
+		/// <exception cref="LibSodiumException">Thrown if the conversion fails.</exception>
+		/// <remarks>
+		/// The resulting Curve25519 public key can be used with <see cref="CryptoBox"/> and <see cref="CryptoKeyExchange"/> APIs.
+		/// </remarks>
+		public static void PublicKeyToCurve(Span<byte> curvePublicKey, ReadOnlySpan<byte> edPublicKey)
+		{
+			if (curvePublicKey.Length != CryptoBox.PublicKeyLen)
+				throw new ArgumentException($"Curve25519 public key must be {CryptoBox.PublicKeyLen} bytes.", nameof(curvePublicKey));
+			if (edPublicKey.Length != PublicKeyLen)
+				throw new ArgumentException($"Ed25519 public key must be {PublicKeyLen} bytes.", nameof(edPublicKey));
+
+			LibraryInitializer.EnsureInitialized();
+			if (Native.crypto_sign_ed25519_pk_to_curve25519(curvePublicKey, edPublicKey) != 0)
+				throw new LibSodiumException("Conversion from Ed25519 public key to Curve25519 failed.");
+		}
+
+		/// <summary>
+		/// Converts an Ed25519 private key (64 bytes) to a Curve25519 private key (32 bytes).
+		/// </summary>
+		/// <param name="curvePrivateKey">The buffer where the resulting Curve25519 private key will be written. Must be 32 bytes.</param>
+		/// <param name="edPrivateKey">The source Ed25519 private key. Must be 64 bytes.</param>
+		/// <exception cref="ArgumentException">Thrown if buffer sizes are incorrect.</exception>
+		/// <exception cref="LibSodiumException">Thrown if the conversion fails.</exception>
+		/// <remarks>
+		/// The resulting Curve25519 private key can be used with <see cref="CryptoBox"/> and <see cref="CryptoKeyExchange"/> APIs.
+		/// </remarks>
+		public static void PrivateKeyToCurve(Span<byte> curvePrivateKey, ReadOnlySpan<byte> edPrivateKey)
+		{
+			if (curvePrivateKey.Length != CryptoBox.PrivateKeyLen)
+				throw new ArgumentException($"Curve25519 private key must be {CryptoBox.PrivateKeyLen} bytes.", nameof(curvePrivateKey));
+			if (edPrivateKey.Length != PrivateKeyLen)
+				throw new ArgumentException($"Ed25519 private key must be {PrivateKeyLen} bytes.", nameof(edPrivateKey));
+
+			LibraryInitializer.EnsureInitialized();
+			if (Native.crypto_sign_ed25519_sk_to_curve25519(curvePrivateKey, edPrivateKey) != 0)
+				throw new LibSodiumException("Conversion from Ed25519 private key to Curve25519 failed.");
+		}
 	}
 }
