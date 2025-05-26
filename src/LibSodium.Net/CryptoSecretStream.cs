@@ -102,38 +102,6 @@ namespace LibSodium
 		}
 
 		/// <summary>
-		/// Encrypts and authenticates a block of data using the secret stream.
-		/// </summary>
-		/// <param name="state">The current state of the secret stream. Must be <see cref="StateLen"/> bytes long.</param>
-		/// <param name="ciphertext">The span to write the encrypted and authenticated data to. Must have a length of at least <paramref name="cleartext"/>.<see cref="Span{T}.Length"/> + <see cref="OverheadLen"/>.</param>
-		/// <param name="cleartext">The data to encrypt.</param>
-		/// <param name="tag">The tag to associate with this message.</param>
-		/// <returns>A <see cref="Span{T}"/> representing the encrypted and authenticated data written to <paramref name="ciphertext"/>.</returns>
-		/// <exception cref="ArgumentException">If the length of the state or ciphertext spans are incorrect.</exception>
-		/// <exception cref="LibSodiumException">If the encryption of the block fails.</exception>
-		public static Span<byte> EncryptChunk(
-			Span<byte> state,
-			Span<byte> ciphertext,
-			ReadOnlySpan<byte> cleartext,
-			CryptoSecretStreamTag tag)
-		{
-			if (state.Length != StateLen)
-			{
-				throw new ArgumentException($"State length must be {StateLen} bytes.", nameof(state));
-			}
-			if (ciphertext.Length < cleartext.Length + OverheadLen)
-			{
-				throw new ArgumentException($"Ciphertext length must be at least {cleartext.Length + OverheadLen} bytes.", nameof(ciphertext));
-			}
-			LibraryInitializer.EnsureInitialized();
-			if (Native.crypto_secretstream_xchacha20poly1305_push(state, ciphertext, out var cipherLen, cleartext, (ulong)cleartext.Length, ReadOnlySpan<byte>.Empty, 0, (byte)tag) != 0)
-			{
-				throw new LibSodiumException("Failed to encrypt block.");
-			}
-			return ciphertext.Slice(0, (int)cipherLen);
-		}
-
-		/// <summary>
 		/// Encrypts and authenticates a block of data using the secret stream with additional authenticated data (AAD).
 		/// </summary>
 		/// <param name="state">The current state of the secret stream. Must be <see cref="StateLen"/> bytes long.</param>
@@ -149,7 +117,7 @@ namespace LibSodium
 			Span<byte> ciphertext,
 			ReadOnlySpan<byte> cleartext,
 			CryptoSecretStreamTag tag,
-			ReadOnlySpan<byte> additionalData)
+			ReadOnlySpan<byte> additionalData = default)
 		{
 			if (state.Length != StateLen)
 			{
@@ -198,40 +166,6 @@ namespace LibSodium
 
 
 		/// <summary>
-		/// Decrypts and verifies the authenticity of a block of data using the secret stream.
-		/// </summary>
-		/// <param name="state">The current state of the secret stream. Must be <see cref="StateLen"/> bytes long.</param>
-		/// <param name="cleartext">The span to write the decrypted data to. Must have a length of at least <paramref name="ciphertext"/>.<see cref="Span{T}.Length"/> - <see cref="OverheadLen"/>.</param>
-		/// <param name="tag">When this method returns, contains the tag associated with the decrypted message.</param>
-		/// <param name="ciphertext">The encrypted and authenticated data to decrypt.</param>
-		/// <returns>A <see cref="Span{T}"/> representing the decrypted data written to <paramref name="cleartext"/>.</returns>
-		/// <exception cref="ArgumentException">If the length of the state or cleartext spans are incorrect.</exception>
-		/// <exception cref="LibSodiumException">If the decryption or authentication of the chunk fails, likely due to tampered ciphertext.</exception>
-		public static Span<byte> DecryptChunk(
-			Span<byte> state,
-			Span<byte> cleartext,
-			out CryptoSecretStreamTag tag,
-			ReadOnlySpan<byte> ciphertext)
-		{
-			if (state.Length != StateLen)
-			{
-				throw new ArgumentException($"State length must be {StateLen} bytes.", nameof(state));
-			}
-			if (cleartext.Length < ciphertext.Length - OverheadLen)
-			{
-				throw new ArgumentException($"Cleartext length must be at least {ciphertext.Length - OverheadLen} bytes.", nameof(cleartext));
-			}
-			LibraryInitializer.EnsureInitialized();
-			byte tagByte;
-			if (Native.crypto_secretstream_xchacha20poly1305_pull(state, cleartext, out var cleartextLen, out tagByte, ciphertext, (ulong)ciphertext.Length, ReadOnlySpan<byte>.Empty, 0UL) != 0)
-			{
-				throw new LibSodiumException("Failed to decrypt and authenticate chunk. The ciphertext may have been tampered with or the stream is out of sync.");
-			}
-			tag = (CryptoSecretStreamTag)tagByte;
-			return cleartext.Slice(0, (int)cleartextLen);
-		}
-
-		/// <summary>
 		/// Decrypts and verifies the authenticity of a block of data using the secret stream with additional authenticated data (AAD).
 		/// </summary>
 		/// <param name="state">The current state of the secret stream. Must be <see cref="StateLen"/> bytes long.</param>
@@ -247,7 +181,7 @@ namespace LibSodium
 			Span<byte> cleartext,
 			out CryptoSecretStreamTag tag,
 			ReadOnlySpan<byte> ciphertext,
-			ReadOnlySpan<byte> additionalData
+			ReadOnlySpan<byte> additionalData = default
 			)
 		{
 			if (state.Length != StateLen)

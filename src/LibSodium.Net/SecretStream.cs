@@ -62,6 +62,98 @@ public static class SecretStream
 	/// The secret key for encryption. Must be securely generated and kept confidential.
 	/// Typically 32 bytes in length for XChaCha20-Poly1305.
 	/// </param>
+	/// <param name="aad">Additional autenticated data</param>
+	/// <param name="cancellationToken">Optional token to cancel the asynchronous operation.</param>
+	/// <returns>A task representing the asynchronous encryption process.</returns>
+	/// <exception cref="ArgumentNullException">Thrown if any argument is null.</exception>
+	/// <exception cref="OperationCanceledException">Thrown if the operation is canceled.</exception>
+	/// <remarks>
+	/// <para>
+	/// The input stream is read in <see cref="PlainChunkSize"/> blocks. Each block is encrypted
+	/// and written to the output stream with an authentication tag to ensure integrity.
+	/// </para>
+	/// <para>
+	/// A cryptographic header (including a randomly generated nonce) is prepended to the output.
+	/// This header is required for successful decryption.
+	/// </para>
+	/// <para>
+	/// The encryption state is maintained internally and finalized when the last chunk is written
+	/// with the <see cref="CryptoSecretStreamTag.Final"/> tag.
+	/// </para>
+	/// <para>
+	/// <b>Note:</b> The caller is responsible for managing the lifetime of the input/output streams.
+	/// They are not closed or disposed automatically.
+	/// </para>
+	/// </remarks>
+	public static async Task EncryptAsync(
+		Stream input,
+		Stream output,
+		ReadOnlyMemory<byte> key,
+		ReadOnlyMemory<byte> aad,
+		CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(input, nameof(input));
+		ArgumentNullException.ThrowIfNull(output, nameof(output));
+		ArgumentNullException.ThrowIfNull(key, nameof(key));
+		byte[]? cipherBuffer = null;
+		byte[]? plainBuffer = null;
+		try
+		{
+			cipherBuffer = ArrayPool<byte>.Shared.Rent(CipherChunkSize);
+			plainBuffer = ArrayPool<byte>.Shared.Rent(PlainChunkSize);
+		}
+		catch
+		{
+			TryReturnBuffers(cipherBuffer, plainBuffer);
+			throw;
+		}
+		byte[] stateBuffer = new byte[CryptoSecretStream.StateLen];
+		byte[] headerBuffer = new byte[CryptoSecretStream.HeaderLen];
+
+		try
+		{
+			CryptoSecretStream.InitializeEncryption(stateBuffer, headerBuffer, key.Span);
+			await output.WriteAsync(headerBuffer, cancellationToken).ConfigureAwait(false);
+
+			int bufferFill = 0;
+			bool endOfStream = false;
+			bool firstChunk = true;
+			while (!endOfStream)
+			{
+				bufferFill = await input.FillAsync(plainBuffer, 0, PlainChunkSize, cancellationToken).ConfigureAwait(false);
+				endOfStream = bufferFill < PlainChunkSize;
+
+				var tag = endOfStream ? CryptoSecretStreamTag.Final : CryptoSecretStreamTag.Message;
+				var ad = firstChunk ? aad : ReadOnlyMemory<byte>.Empty;
+				firstChunk = false;
+				var written = CryptoSecretStream.EncryptChunk(
+					stateBuffer,
+					cipherBuffer,
+					plainBuffer.AsSpan(0, bufferFill),
+					tag, ad.Span
+				).Length;
+
+				await output.WriteAsync(cipherBuffer.AsMemory(0, written), cancellationToken).ConfigureAwait(false);
+			}
+		}
+		finally
+		{
+			SecureMemory.MemZero(stateBuffer);
+			SecureMemory.MemZero(plainBuffer);
+			TryReturnBuffers(cipherBuffer, plainBuffer);
+		}
+	}
+
+	/// <summary>
+	/// Asynchronously encrypts data from the <paramref name="input"/> stream and writes the ciphertext
+	/// to the <paramref name="output"/> stream using the XChaCha20-Poly1305 algorithm.
+	/// </summary>
+	/// <param name="input">The readable stream containing plaintext to encrypt.</param>
+	/// <param name="output">The writable stream where ciphertext will be written.</param>
+	/// <param name="key">
+	/// The secret key for encryption. Must be securely generated and kept confidential.
+	/// Typically 32 bytes in length for XChaCha20-Poly1305.
+	/// </param>
 	/// <param name="cancellationToken">Optional token to cancel the asynchronous operation.</param>
 	/// <returns>A task representing the asynchronous encryption process.</returns>
 	/// <exception cref="ArgumentNullException">Thrown if any argument is null.</exception>
@@ -90,55 +182,7 @@ public static class SecretStream
 		ReadOnlyMemory<byte> key,
 		CancellationToken cancellationToken = default)
 	{
-		ArgumentNullException.ThrowIfNull(input, nameof(input));
-		ArgumentNullException.ThrowIfNull(output, nameof(output));
-		ArgumentNullException.ThrowIfNull(key, nameof(key));
-		byte[]? cipherBuffer = null;
-		byte[]? plainBuffer = null;
-		try
-		{
-			cipherBuffer = ArrayPool<byte>.Shared.Rent(CipherChunkSize);
-			plainBuffer = ArrayPool<byte>.Shared.Rent(PlainChunkSize);
-		}
-		catch
-		{
-			TryReturnBuffers(cipherBuffer, plainBuffer);
-			throw;
-		}
-		byte[] stateBuffer = new byte[CryptoSecretStream.StateLen];
-		byte[] headerBuffer = new byte[CryptoSecretStream.HeaderLen];
-
-		try
-		{
-			CryptoSecretStream.InitializeEncryption(stateBuffer, headerBuffer, key.Span);
-			await output.WriteAsync(headerBuffer, cancellationToken).ConfigureAwait(false);
-
-			int bufferFill = 0;
-			bool endOfStream = false;
-
-			while (!endOfStream)
-			{
-				bufferFill = await input.FillAsync(plainBuffer, 0, PlainChunkSize, cancellationToken).ConfigureAwait(false);
-				endOfStream = bufferFill < PlainChunkSize;
-
-				var tag = endOfStream ? CryptoSecretStreamTag.Final : CryptoSecretStreamTag.Message;
-
-				var written = CryptoSecretStream.EncryptChunk(
-					stateBuffer,
-					cipherBuffer,
-					plainBuffer.AsSpan(0, bufferFill),
-					tag
-				).Length;
-
-				await output.WriteAsync(cipherBuffer.AsMemory(0, written), cancellationToken).ConfigureAwait(false);
-			}
-		}
-		finally
-		{
-			SecureMemory.MemZero(stateBuffer);
-			SecureMemory.MemZero(plainBuffer);
-			TryReturnBuffers(cipherBuffer, plainBuffer);
-		}
+		await EncryptAsync(input, output, key, ReadOnlyMemory<byte>.Empty, cancellationToken).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -225,6 +269,118 @@ public static class SecretStream
 	/// <param name="key">
 	/// The secret key used for decryption. It must match the key used during encryption.
 	/// </param>
+	/// <param name="aad">Additional authenticated data</param>
+	/// <param name="cancellationToken">Optional token to cancel the asynchronous operation.</param>
+	/// <returns>A task representing the asynchronous decryption process.</returns>
+	/// <exception cref="ArgumentNullException">Thrown if any argument is null.</exception>
+	/// <exception cref="EndOfStreamException">
+	/// Thrown if the stream ends unexpectedly or the final tag is never reached.
+	/// </exception>
+	/// <exception cref="LibSodiumException">
+	/// Thrown if the integrity check fails on any chunk (i.e., authentication tag mismatch).
+	/// </exception>
+	/// <exception cref="OperationCanceledException">Thrown if the operation is canceled.</exception>
+	/// <remarks>
+	/// <para>
+	/// The decryption process begins by reading the stream header, which includes a nonce required
+	/// to initialize the decryption state. Each encrypted chunk is then read, authenticated,
+	/// and decrypted in order.
+	/// </para>
+	/// <para>
+	/// If any chunk fails authentication, a <see cref="LibSodiumException"/> is thrown and no plaintext
+	/// is written for that chunk. If the stream ends before encountering a chunk tagged as
+	/// <see cref="CryptoSecretStreamTag.Final"/>, an <see cref="EndOfStreamException"/> is thrown.
+	/// </para>
+	/// <para>
+	/// This method uses pooled buffers and zeroes out internal state after use to reduce memory leakage risks.
+	/// Input and output streams are not closed automatically.
+	/// </para>
+	/// </remarks>
+	public static async Task DecryptAsync(
+		Stream input,
+		Stream output,
+		ReadOnlyMemory<byte> key,
+		ReadOnlyMemory<byte> aad,
+		CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(input, nameof(input));
+		ArgumentNullException.ThrowIfNull(output, nameof(output));
+		ArgumentNullException.ThrowIfNull(key, nameof(key));
+		byte[]? cipherBuffer = null;
+		byte[]? plainBuffer = null;
+		try
+		{
+			cipherBuffer = ArrayPool<byte>.Shared.Rent(CipherChunkSize);
+			plainBuffer = ArrayPool<byte>.Shared.Rent(PlainChunkSize);
+		}
+		catch
+		{
+			TryReturnBuffers(cipherBuffer, plainBuffer);
+			throw;
+		}
+
+		byte[] stateBuffer = new byte[CryptoSecretStream.StateLen];
+		byte[] headerBuffer = new byte[CryptoSecretStream.HeaderLen];
+
+		try
+		{
+			// Read header
+			await input.ReadExactlyAsync(headerBuffer).ConfigureAwait(false);
+
+			CryptoSecretStream.InitializeDecryption(stateBuffer, headerBuffer, key.Span);
+			bool tagFinalReached = false;
+			bool firstChunk = true;
+			while (true)
+			{
+				int chunkLength = await input.FillAsync(cipherBuffer, 0, CipherChunkSize, cancellationToken).ConfigureAwait(false);
+				if (chunkLength == 0)
+				{
+					if (!tagFinalReached)
+					{
+						throw new EndOfStreamException("Incomplete stream: Final tag not reached.");
+					}
+					break;
+				}
+				var ad = firstChunk ? aad : ReadOnlyMemory<byte>.Empty;
+				firstChunk = false;
+				CryptoSecretStreamTag tag;
+				var plainLen = CryptoSecretStream.DecryptChunk(
+					stateBuffer,
+					plainBuffer,
+					out tag,
+					cipherBuffer.AsSpan(0, chunkLength),
+					ad.Span
+				).Length;
+
+				await output.WriteAsync(plainBuffer.AsMemory(0, plainLen), cancellationToken).ConfigureAwait(false);
+
+				if (tag == CryptoSecretStreamTag.Final)
+				{
+					tagFinalReached = true;
+					break;
+				}
+			}
+		}
+		finally
+		{
+			SecureMemory.MemZero(stateBuffer);
+			SecureMemory.MemZero(plainBuffer);
+			TryReturnBuffers(cipherBuffer, plainBuffer);
+		}
+	}
+
+	/// <summary>
+	/// Asynchronously decrypts data from the <paramref name="input"/> stream and writes the plaintext
+	/// to the <paramref name="output"/> stream, verifying integrity using XChaCha20-Poly1305.
+	/// </summary>
+	/// <param name="input">
+	/// A readable stream containing encrypted data. The stream must begin with the header
+	/// produced during encryption.
+	/// </param>
+	/// <param name="output">The writable stream where decrypted plaintext will be written.</param>
+	/// <param name="key">
+	/// The secret key used for decryption. It must match the key used during encryption.
+	/// </param>
 	/// <param name="cancellationToken">Optional token to cancel the asynchronous operation.</param>
 	/// <returns>A task representing the asynchronous decryption process.</returns>
 	/// <exception cref="ArgumentNullException">Thrown if any argument is null.</exception>
@@ -257,68 +413,7 @@ public static class SecretStream
 		ReadOnlyMemory<byte> key,
 		CancellationToken cancellationToken = default)
 	{
-		ArgumentNullException.ThrowIfNull(input, nameof(input));
-		ArgumentNullException.ThrowIfNull(output, nameof(output));
-		ArgumentNullException.ThrowIfNull(key, nameof(key));
-		byte[]? cipherBuffer = null;
-		byte[]? plainBuffer = null;
-		try
-		{
-			cipherBuffer = ArrayPool<byte>.Shared.Rent(CipherChunkSize);
-			plainBuffer = ArrayPool<byte>.Shared.Rent(PlainChunkSize);
-		}
-		catch
-		{
-			TryReturnBuffers(cipherBuffer, plainBuffer);
-			throw;
-		}
-
-		byte[] stateBuffer = new byte[CryptoSecretStream.StateLen];
-		byte[] headerBuffer = new byte[CryptoSecretStream.HeaderLen];
-
-		try
-		{
-			// Read header
-			await input.ReadExactlyAsync(headerBuffer).ConfigureAwait(false);
-
-			CryptoSecretStream.InitializeDecryption(stateBuffer, headerBuffer, key.Span);
-			bool tagFinalReached = false;
-
-			while (true)
-			{
-				int chunkLength = await input.FillAsync(cipherBuffer, 0, CipherChunkSize, cancellationToken).ConfigureAwait(false);
-				if (chunkLength == 0)
-				{
-					if (!tagFinalReached)
-					{
-						throw new EndOfStreamException("Incomplete stream: Final tag not reached.");
-					}
-					break;
-				}
-
-				CryptoSecretStreamTag tag;
-				var plainLen = CryptoSecretStream.DecryptChunk(
-					stateBuffer,
-					plainBuffer,
-					out tag,
-					cipherBuffer.AsSpan(0, chunkLength)
-				).Length;
-
-				await output.WriteAsync(plainBuffer.AsMemory(0, plainLen), cancellationToken).ConfigureAwait(false);
-
-				if (tag == CryptoSecretStreamTag.Final)
-				{
-					tagFinalReached = true;
-					break;
-				}
-			}
-		}
-		finally
-		{
-			SecureMemory.MemZero(stateBuffer);
-			SecureMemory.MemZero(plainBuffer);
-			TryReturnBuffers(cipherBuffer, plainBuffer);
-		}
+		await DecryptAsync(input, output, key, ReadOnlyMemory<byte>.Empty, cancellationToken).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -370,6 +465,7 @@ public static class SecretStream
 	/// <param name="key">
 	/// The encryption key. Must be securely generated and exactly 32 bytes long for XChaCha20-Poly1305.
 	/// </param>
+	/// <param name="aad">Additional authenticated data</param>
 	/// <exception cref="ArgumentException">Thrown if the key is invalid.</exception>
 	/// <exception cref="EndOfStreamException">Thrown if the input stream ends unexpectedly.</exception>
 	/// <remarks>
@@ -389,7 +485,7 @@ public static class SecretStream
 	/// </remarks>
 
 
-	public static void Encrypt(Stream input, Stream output, ReadOnlySpan<byte> key)
+	public static void Encrypt(Stream input, Stream output, ReadOnlySpan<byte> key, ReadOnlySpan<byte> aad = default)
 	{
 		ArgumentNullException.ThrowIfNull(input, nameof(input));
 		ArgumentNullException.ThrowIfNull(output, nameof(output));
@@ -416,19 +512,20 @@ public static class SecretStream
 
 			int bytesRead = 0;
 			bool endOfStream = false;
-
+			bool firstChunk = true;
 			while (!endOfStream)
 			{
 				bytesRead = input.Fill(plainBuffer, 0, PlainChunkSize);
 				endOfStream = bytesRead < PlainChunkSize;
 
 				var tag = endOfStream ? CryptoSecretStreamTag.Final : CryptoSecretStreamTag.Message;
-
+				var ad = firstChunk ? aad : ReadOnlySpan<byte>.Empty;
+				firstChunk = false;
 				var ciphertext = CryptoSecretStream.EncryptChunk(
 					stateBuffer,
 					cipherBuffer,
 					plainBuffer.AsSpan(0, bytesRead),
-					tag
+					tag, ad
 				);
 
 				output.Write(ciphertext);
@@ -458,7 +555,7 @@ public static class SecretStream
 	/// <exception cref="ArgumentException">Thrown if the key is invalid (wrong length).</exception>
 	/// <remarks>
 	/// <para>
-	/// This method is functionally equivalent to <see cref="Encrypt(Stream, Stream, ReadOnlySpan{byte})"/>,
+	/// This method is functionally equivalent to <see cref="Encrypt(Stream, Stream, ReadOnlySpan{byte}, ReadOnlySpan{byte})"/>,
 	/// but accepts the encryption key wrapped in <see cref="SecureMemory{T}"/> for added in-memory protection.
 	/// </para>
 	/// <para>
@@ -482,6 +579,7 @@ public static class SecretStream
 	/// <param name="key">
 	/// The secret decryption key. It must match the key used to encrypt the stream and be exactly 32 bytes long.
 	/// </param>
+	/// <param name="aad">Additional authenticated data</param>
 	/// <exception cref="ArgumentException">Thrown if the key is invalid.</exception>
 	/// <exception cref="EndOfStreamException">
 	/// Thrown if the stream ends before the <see cref="CryptoSecretStreamTag.Final"/> tag is reached,
@@ -504,7 +602,7 @@ public static class SecretStream
 	/// </para>
 	/// </remarks>
 
-	public static void Decrypt(Stream input, Stream output, ReadOnlySpan<byte> key)
+	public static void Decrypt(Stream input, Stream output, ReadOnlySpan<byte> key, ReadOnlySpan<byte> aad = default)
 	{
 		byte[]? cipherBuffer = null;
 		byte[]? plainBuffer = null;
@@ -529,7 +627,7 @@ public static class SecretStream
 			CryptoSecretStream.InitializeDecryption(stateBuffer, headerBuffer, key);
 
 			bool tagFinalReached = false;
-
+			bool firstChunk = true;
 			while (true)
 			{
 				int chunkLength = input.Fill(cipherBuffer, 0, CipherChunkSize);
@@ -539,13 +637,15 @@ public static class SecretStream
 						throw new EndOfStreamException("Incomplete stream: Final tag was not reached.");
 					break;
 				}
-
+				var ad = firstChunk ? aad : ReadOnlySpan<byte>.Empty;
+				firstChunk = false;
 				CryptoSecretStreamTag tag;
 				var clearSpan = CryptoSecretStream.DecryptChunk(
 					stateBuffer,
 					plainBuffer,
 					out tag,
-					cipherBuffer.AsSpan(0, chunkLength)
+					cipherBuffer.AsSpan(0, chunkLength),
+					ad
 				);
 
 				output.Write(clearSpan);
@@ -576,6 +676,7 @@ public static class SecretStream
 	/// <param name="key">
 	/// A <see cref="SecureMemory{T}"/> buffer containing the decryption key. This key must match the one used to encrypt the stream.
 	/// </param>
+	/// <param name="aad">Additional authenticated data</param>
 	/// <exception cref="ArgumentNullException">Thrown if <paramref name="input"/>, <paramref name="output"/>, or <paramref name="key"/> is null.</exception>
 	/// <exception cref="ObjectDisposedException">Thrown if the secure memory key has already been disposed.</exception>
 	/// <exception cref="EndOfStreamException">Thrown if the stream ends before the <see cref="CryptoSecretStreamTag.Final"/> tag is encountered.</exception>
@@ -584,7 +685,7 @@ public static class SecretStream
 	/// </exception>
 	/// <remarks>
 	/// <para>
-	/// This method behaves identically to <see cref="Decrypt(Stream, Stream, ReadOnlySpan{byte})"/>,
+	/// This method behaves identically to <see cref="Decrypt(Stream, Stream, ReadOnlySpan{byte}, ReadOnlySpan{byte})"/>,
 	/// but uses a secure memory buffer for enhanced key confidentiality.
 	/// </para>
 	/// <para>
@@ -597,8 +698,8 @@ public static class SecretStream
 	/// </remarks>
 
 
-	public static void Decrypt(Stream input, Stream output, SecureMemory<byte> key)
+	public static void Decrypt(Stream input, Stream output, SecureMemory<byte> key, ReadOnlySpan<byte> aad = default)
 	{
-		Decrypt(input, output, key.AsReadOnlySpan());
+		Decrypt(input, output, key.AsReadOnlySpan(), aad);
 	}
 }

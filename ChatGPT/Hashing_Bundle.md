@@ -5,33 +5,36 @@ This bundle contains the full source, tests, and guide for:
 - `CryptoGenericHash` (BLAKE2b)
 - `CryptoShortHash` (SipHash-2-4)
 - `CryptoPasswordHash` (Argon2id/i13)
+- `CryptoSha256`
+- `CryptoSha512`
 - ✅ With complete test coverage and guide
 
 ---
-
-## 📄 Guide: Hashing.md
 
 # 🔀 Hashing
 
 LibSodium.Net provides multiple hashing APIs for different use cases:
 
-| API                  | Algorithm    | Use Case                                                                              |
-| -------------------- | ------------ | ------------------------------------------------------------------------------------- |
-| `GenericHash`        | BLAKE2b      | Cryptographic hash with optional key. Use for MAC, PRF, fingerprints.                 |
-| `ShortHash`          | SipHash‑2‑4  | Keyed hash designed to prevent collisions in hash tables. Fast for short inputs.      |
-| `CryptoSha256`       | SHA‑256      | Fast fixed‑length (32‑byte) hash for integrity checks, digital signatures, checksums. |
-| `CryptoSha512`       | SHA‑512      | Fast fixed‑length (64‑byte) hash for high‑strength integrity and digital signatures.  |
-| `CryptoPasswordHash` | Argon2id/i13 | Password hashing and key derivation (slow & memory‑hard)                              |
+| API                        | Algorithm    | Use Case                                                                              |
+| -------------------------- | ------------ | ------------------------------------------------------------------------------------- |
+| `GenericHash`              | BLAKE2b      | Cryptographic hash with optional key. Use for MAC, PRF, fingerprints.                 |
+| `ShortHash`                | SipHash‑2‑4  | Keyed hash designed to prevent collisions in hash tables. Fast for short inputs.      |
+| `CryptoSha256`             | SHA‑256      | Fast fixed‑length (32‑byte) hash for integrity checks, digital signatures, checksums. |
+| `CryptoSha512`             | SHA‑512      | Fast fixed‑length (64‑byte) hash for high‑strength integrity and digital signatures.  |
+| `CryptoPasswordHashArgon`  | Argon2id/i13 | Password hashing and key derivation (slow & memory‑hard)                              |
+| `CryptoPasswordHashScrypt` | Scrypt       | Password hashing and key derivation (slow & memory‑hard, legacy)                      |
 
-> [!NOTE] 
+
 > 🧂 Based on [libsodium’s Hashing](https://doc.libsodium.org/hashing)<br/>
 > 🧂 Based on [Password Hashing](https://doc.libsodium.org/password_hashing)<br/>
 > 🧂 Based on [SHA-2](https://doc.libsodium.org/advanced/sha-2_hash_function)<br/>
 > ℹ️ [API Reference: CryptoGenericHash](../api/LibSodium.CryptoGenericHash.yml)<br/>
-> ℹ️ [API Reference: CryptoShortHash](../api/LibSodium.CryptoShortHash.yml)<br/>
-> ℹ️ [API Reference: CryptoPasswordHash](../api/LibSodium.CryptoPasswordHash.yml)<br/>
 > ℹ️ [API Reference: CryptoSha256](../api/LibSodium.CryptoSha256.yml)<br/>
 > ℹ️ [API Reference: CryptoSha512](../api/LibSodium.CryptoSha512.yml)
+> ℹ️ [API Reference: CryptoShortHash](../api/LibSodium.CryptoShortHash.yml)<br/>
+> ℹ️ [API Reference: CryptoPasswordHashArgon](../api/LibSodium.CryptoPasswordHashArgon.yml)<br/>
+> ℹ️ [API Reference: CryptoPasswordHashScrypt](../api/LibSodium.CryptoPasswordHashScrypt.yml)<br/>
+
 
 
 ---
@@ -44,6 +47,7 @@ LibSodium.Net provides multiple hashing APIs for different use cases:
 * Password hashing and key derivation using Argon2 (CryptoPasswordHash)
 * All methods are allocation‑free, `Span`‑based, and deterministic (except password hash, which is randomized)
 * Stream and async support for large input hashing (GenericHash, CryptoSha256, CryptoSha512)
+* Incremental (multi-part) hashing  (GenericHash, CryptoSha256, CryptoSha512)
 
 ---
 
@@ -58,7 +62,7 @@ BLAKE2b is a cryptographic hash function designed as a faster and safer alternat
 * Unique deterministic identifiers
 * Pseudorandom functions (PRF) when keyed
 
-By default, it produces 32‑byte output, but can be configured to return between 16 and 64 bytes. It supports *keyed hashing* for MAC‑like behavior, or *unkeyed hashing* for general‑purpose hashing.
+By default, it produces 32‑byte output, but can be configured to return between 16 and 64 bytes. It supports *keyed hashing* for MAC‑like or PRF behavior, using a key of 32 bytes by default (configurable between 16 and 64 bytes), or *unkeyed hashing* for general‑purpose use.
 
 ### 📏 Constants
 
@@ -158,6 +162,52 @@ await CryptoSha512.ComputeHashAsync(hash, stream);
 ```
 
 ---
+## ✨ Incremental Hashing
+
+In some scenarios, data to be hashed is not available as a single contiguous buffer — for example, when you want to compute `hash(a || b || c)` from multiple inputs. LibSodium.Net offers **incremental hashing** for this purpose.
+
+The following classes support incremental hashing:
+
+* `CryptoGenericHash` (BLAKE2b, optionally keyed)
+* `CryptoSha256` (SHA-256)
+* `CryptoSha512` (SHA-512)
+
+These types expose an incremental API via the `ICryptoIncrementalHash` interface.
+
+### 📋 Compute hash from multiple parts
+
+```csharp
+Span<byte> hash = stackalloc byte[CryptoSha256.HashLen];
+using var hasher = CryptoSha256.CreateIncrementalHash();
+
+hasher.Update(Encoding.UTF8.GetBytes("header"));
+hasher.Update(Encoding.UTF8.GetBytes("payload"));
+hasher.Update(Encoding.UTF8.GetBytes("footer"));
+hasher.Final(hash);
+```
+
+This pattern ensures correctness and efficiency when you want to hash logically grouped inputs without allocating or copying them into a single buffer.
+
+### 📋 With a keyed BLAKE2b hash
+
+```csharp
+Span<byte> key = stackalloc byte[CryptoGenericHash.KeyLen];
+RandomGenerator.Fill(key);
+
+Span<byte> hash = stackalloc byte[32];
+var part1 = Encoding.UTF8.GetBytes("hello");
+var part2 = Encoding.UTF8.GetBytes("world");
+
+using var hasher = CryptoGenericHash.CreateIncrementalHash(key, hash.Length);
+
+hasher.Update(part1);
+hasher.Update(part2);
+hasher.Final(hash);
+```
+
+> ℹ️ The `Final()` method may only be called once per hash instance. You must create a new instance for each new computation.
+
+---
 
 ## ✨ ShortHash — SipHash‑2‑4
 
@@ -189,7 +239,7 @@ CryptoShortHash.ComputeHash(hash, message, key);
 
 ---
 
-## ✨ PasswordHash
+## ✨ PasswordHashArgon
 
 Secure password hashing and key derivation using Argon2 (Argon2id / Argon2i13). This algorithm is specifically designed to defend against brute‑force attacks by requiring significant computational work and memory. It is ideal for storing passwords, deriving keys from passphrases, or implementing authentication mechanisms.
 
@@ -209,11 +259,15 @@ The cost parameters (iterations and memory) can be tuned to balance security and
 | `MinKeyLen`             | 16             | Minimum key length for derivation       |
 | `EncodedLen`            | 128            | Length of the encoded hash string       |
 | `Prefix`                | "\$argon2id\$" | Prefix for Argon2id encoded hash        |
+| `MinMemoryLen`          | 8 KB           | Minimum acceptable memory for hashing   |
+| `MinInterations`        | 1              | Minimum acceptable iterations           |
 | `InteractiveIterations` | 2              | Iteration count for interactive targets |
 | `InteractiveMemoryLen`  | 64 MB          | Memory usage for interactive targets    |
+| `ModerateIterations`    | 3              | For app secrets or backup keys          |
+| `ModerateMemoryLen`     | 256Mb          | For app secrets or backup keys          |
 | `SensitiveIterations`   | 4              | Iteration count for sensitive targets   |
 | `SensitiveMemoryLen`    | 1 GB           | Memory usage for sensitive targets      |
-| `MinMemoryLen`          | 8 KB           | Minimum acceptable memory for hashing   |
+
 
 ### 📋 Hash a password (encoded, random salt)
 
@@ -247,6 +301,47 @@ CryptoPasswordHash.DeriveKey(
 
 ---
 
+## ✨ PasswordHashScrypt
+
+Password hashing and key derivation using `scrypt`, a memory-hard function introduced before Argon2. Though not side-channel resistant, it is still widely used and interoperable.
+
+LibSodium.Net improves over libsodium by offering consistent tuning options (`Min`, `Interactive`, `Moderate`, `Sensitive`) and full validation coverage.
+
+### 📏 Constants
+
+| Name                    | Value           | Description                         |
+| ----------------------- | --------------- | ----------------------------------- |
+| `SaltLen`               | 32              | Length of the salt in bytes         |
+| `MinKeyLen`             | 16              | Minimum key length for derivation   |
+| `EncodedLen`            | 102             | Length of the encoded hash string   |
+| `Prefix`                | "\$7\$"         | Prefix for scrypt encoded hash      |
+| `MinIterations`         | 1024 (2^10)     | Minimum recommended iterations      |
+| `MinMemoryLen`          | 32 KiB (2^15)   | Minimum recommended memory          |
+| `InteractiveIterations` | 524288 (2^19)   | For login/password use              |
+| `InteractiveMemoryLen`  | 16 MiB (2^24)   | For login/password use              |
+| `ModerateIterations`    | 4194304 (2^22)  | For app secrets or backup keys      |
+| `ModerateMemoryLen`     | 128 MiB (2^27)  | For app secrets or backup keys      |
+| `SensitiveIterations`   | 33554432 (2^25) | For long-term or high-value secrets |
+| `SensitiveMemoryLen`    | 1 GiB (2^30)    | For long-term or high-value secrets |
+
+### 📋 Examples
+
+```csharp
+string hash = CryptoPasswordHashScrypt.HashPassword("my password");
+bool valid = CryptoPasswordHashScrypt.VerifyPassword(hash, "my password");
+```
+
+```csharp
+Span<byte> key = stackalloc byte[32];
+Span<byte> salt = stackalloc byte[CryptoPasswordHashScrypt.SaltLen];
+RandomGenerator.Fill(salt);
+CryptoPasswordHashScrypt.DeriveKey(key, "password", salt,
+	iterations: CryptoPasswordHashScrypt.ModerateIterations,
+	requiredMemoryLen: CryptoPasswordHashScrypt.ModerateMemoryLen);
+```
+
+---
+
 ## ⚠️ Error Handling
 
 * `ArgumentException` — when input or key lengths are invalid
@@ -260,22 +355,24 @@ CryptoPasswordHash.DeriveKey(
 * `GenericHash` is based on BLAKE2b and supports variable‑length output and optional keys.
 * `CryptoSha256` and `CryptoSha512` provide interoperable SHA‑2 digests and are the best choice when you need a *fixed‑length* checksum or compatibility with external systems.
 * `ShortHash` is based on SipHash‑2‑4 — *not* a general‑purpose cryptographic hash, but a keyed primitive for protecting hash tables.
-* `CryptoPasswordHash` uses Argon2id/Argon2i13 with computational and memory hardness.
+* `CryptoPasswordHashArgon` uses Argon2id/Argon2i13 with computational and memory hardness.
 * All hash functions are deterministic: same input and key produce same output — **except** `CryptoPasswordHash.HashPassword`, which includes a random salt and produces a different hash each time.
+* `Scrypt` is **not side-channel resistant**. Use `Argon2i13` or `Argon2id13` for high-security or shared-host scenarios.
 * Use `ShortHash` only when you can keep the key secret.
 
 ---
 
 ## 🧭 Choosing the Right Hash API
 
-| Scenario                                                 | Recommended API       |
-| -------------------------------------------------------- | --------------------- |
-| Variable‑length cryptographic checksum                   | `GenericHash`         |
-| Fixed‑length 32‑byte digest (e.g., TLS cert fingerprint) | `CryptoSha256`        |
-| Fixed‑length 64‑byte digest, higher speed on x64         | `CryptoSha512`        |
-| MAC or PRF                                               | `GenericHash` (keyed) |
-| Hashing short keys in tables                             | `ShortHash`           |
-| Password storage / passphrase‑derived keys               | `CryptoPasswordHash`  |
+| Scenario                                                 | Recommended API            |
+| -------------------------------------------------------- | -------------------------- |
+| Variable‑length cryptographic checksum                   | `GenericHash`              |
+| Fixed‑length 32‑byte digest (e.g., TLS cert fingerprint) | `CryptoSha256`             |
+| Fixed‑length 64‑byte digest, higher speed on x64         | `CryptoSha512`             |
+| MAC or PRF                                               | `GenericHash` (keyed)      |
+| Hashing short keys in tables                             | `ShortHash`                |
+| Password storage / passphrase‑derived keys               | `CryptoPasswordHashArgon`  |
+| Legacy Password storage / passphrase‑derived keys        | `CryptoPasswordHashScrypt` |
 
 ## 👀 See Also
 
@@ -283,7 +380,8 @@ CryptoPasswordHash.DeriveKey(
 * ℹ️ [API Reference: CryptoSha256](../api/LibSodium.CryptoSha256.yml)
 * ℹ️ [API Reference: CryptoSha512](../api/LibSodium.CryptoSha512.yml)
 * ℹ️ [API Reference: CryptoShortHash](../api/LibSodium.CryptoShortHash.yml)
-* ℹ️ [API Reference: CryptoPasswordHash](../api/LibSodium.CryptoPasswordHash.yml)
+* ℹ️ [API Reference: CryptoPasswordHashArgon](../api/LibSodium.CryptoPasswordHashArgon.yml)
+* ℹ️ [API Reference: CryptoPasswordHashScrypt](../api/LibSodium.CryptoPasswordHashScrypt.yml)
 * 🧂 [libsodium Hashing](https://doc.libsodium.org/hashing)
 * 🧂 [libsodium Password Hashing](https://doc.libsodium.org/password_hashing)
 * 🧂 [libsodium SHA-2](https://doc.libsodium.org/advanced/sha-2_hash_function)<br/>
@@ -294,6 +392,8 @@ CryptoPasswordHash.DeriveKey(
 ## 📦 Source: CryptoGenericHash.cs
 ```csharp
 using LibSodium.Interop;
+using System.Buffers;
+using System.Security.Cryptography;
 
 namespace LibSodium
 {
@@ -311,6 +411,9 @@ namespace LibSodium
 	/// </remarks>
 	public static class CryptoGenericHash
 	{
+		private const int DefaultBufferSize = 8192; // Default buffer size for stream operations
+
+
 		/// <summary>
 		/// Default hash length in bytes (32).
 		/// </summary>
@@ -352,14 +455,19 @@ namespace LibSodium
 		public static void ComputeHash(Span<byte> hash, ReadOnlySpan<byte> message, ReadOnlySpan<byte> key = default)
 		{
 			if (hash.Length < MinHashLen || hash.Length > MaxHashLen)
+			{
 				throw new ArgumentException($"Hash length must be between {MinHashLen} and {MaxHashLen} bytes.", nameof(hash));
-			if (key.Length > MaxKeyLen)
-				throw new ArgumentException($"Key length must be between 0 and {MaxKeyLen} bytes.", nameof(key));
+			}
+			if (key.Length != 0 && (key.Length < MinKeyLen || key.Length > MaxKeyLen))
+			{
+				throw new ArgumentOutOfRangeException($"Key length must be between {MinKeyLen} and {MaxKeyLen} bytes.", nameof(key));
+			}
 			LibraryInitializer.EnsureInitialized();
 			int result = Native.crypto_generichash(hash, (nuint)hash.Length, message, (ulong)message.Length, key, (nuint)key.Length);
 			if (result != 0)
 				throw new LibSodiumException("Hashing failed.");
 		}
+
 
 		/// <summary>
 		/// Computes a generic hash from the contents of a stream.
@@ -374,27 +482,12 @@ namespace LibSodium
 
 		public static void ComputeHash(Span<byte> hash, Stream input, ReadOnlySpan<byte> key = default)
 		{
-			if (hash.Length < MinHashLen || hash.Length > MaxHashLen)
-				throw new ArgumentException($"Hash length must be between {MinHashLen} and {MaxHashLen} bytes.", nameof(hash));
-			if (key.Length > MaxKeyLen)
-				throw new ArgumentException($"Key length must be between 0 and {MaxKeyLen} bytes.", nameof(key));
-			Span<byte> state = stackalloc byte[StateLen];
-			LibraryInitializer.EnsureInitialized();
-			int result = Native.crypto_generichash_init(state, key, (nuint)key.Length, (nuint)hash.Length);
-			if (result != 0)
-				throw new LibSodiumException("Hashing failed.");
-			byte[] buffer = new byte[8192];
-			int bytesRead;
-			while ((bytesRead = input.Read(buffer, 0, buffer.Length)) > 0)
-			{
-				result = Native.crypto_generichash_update(state, buffer, (ulong)bytesRead);
-				if (result != 0)
-					throw new LibSodiumException("Hashing failed.");
-			}
-			result = Native.crypto_generichash_final(state, hash, (nuint)hash.Length);
-			if (result != 0)
-				throw new LibSodiumException("Hashing failed.");
+			ArgumentNullException.ThrowIfNull(input, nameof(input));
 
+			using (var incrementalHash = CreateIncrementalHash(key, hash.Length))
+			{
+				incrementalHash.Compute(input, hash);
+			}
 		}
 
 		/// <summary>
@@ -412,33 +505,108 @@ namespace LibSodium
 
 		public static async Task ComputeHashAsync(Memory<byte> hash, Stream input, ReadOnlyMemory<byte> key = default, CancellationToken cancellationToken = default)
 		{
-			if (hash.Length < MinHashLen || hash.Length > MaxHashLen)
-				throw new ArgumentException($"Hash length must be between {MinHashLen} and {MaxHashLen} bytes.", nameof(hash));
-			if (key.Length > MaxKeyLen)
-				throw new ArgumentException($"Key length must be between 0 and {MaxKeyLen} bytes.", nameof(key));
+			ArgumentNullException.ThrowIfNull(input, nameof(input));
 
-			byte[] stateBuffer = new byte[StateLen];
-			LibraryInitializer.EnsureInitialized();
-			int result = Native.crypto_generichash_init(stateBuffer, key.Span, (nuint)key.Length, (nuint)hash.Length);
-			if (result != 0)
-				throw new LibSodiumException("Hashing failed.");
-
-			byte[] buffer = new byte[8192];
-			int bytesRead;
-			while ((bytesRead = await input.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false)) > 0)
+			using (var incrementalHash = CreateIncrementalHash(key.Span, hash.Length))
 			{
-				result = Native.crypto_generichash_update(stateBuffer, buffer, (ulong) bytesRead);
-				if (result != 0)
-					throw new LibSodiumException("Hashing failed.");
+				await incrementalHash.ComputeAsync(input, hash, cancellationToken).ConfigureAwait(false);
 			}
+		}
 
-			result = Native.crypto_generichash_final(stateBuffer, hash.Span, (nuint)hash.Length);
-			if (result != 0)
-				throw new LibSodiumException("Hashing failed.");
+		public static ICryptoIncrementalHash CreateIncrementalHash(ReadOnlySpan<byte> key = default, int hashLen = HashLen)
+		{
+			return new CryptoGenericHashIncremental(key, hashLen);
 		}
 
 	}
 }
+
+```
+---
+## 📦 Source: CryptoGenericHashIncremental.cs
+
+```csharp
+using LibSodium.Interop;
+using System.Runtime.InteropServices;
+
+namespace LibSodium
+{
+	internal sealed class CryptoGenericHashIncremental : ICryptoIncrementalHash
+	{
+		private  Native.crypto_generichash_blake2b_state state;
+		private bool isDisposed = false;
+		private bool isFinalized = false;
+		private readonly int hashLen;
+
+		public CryptoGenericHashIncremental(ReadOnlySpan<byte> key, int hashLen)
+		{
+			this.hashLen = hashLen;
+			if (key.Length != 0 && (key.Length < CryptoGenericHash.MinKeyLen || key.Length > CryptoGenericHash.MaxKeyLen))
+			{
+				throw new ArgumentOutOfRangeException($"Key length must be between {CryptoGenericHash.MinKeyLen} and {CryptoGenericHash.MaxKeyLen} bytes.", nameof(key));
+			}
+			if (hashLen < CryptoGenericHash.MinHashLen || hashLen > CryptoGenericHash.MaxHashLen)
+			{
+				throw new ArgumentException($"Hash length must be between {CryptoGenericHash.MinHashLen} and {CryptoGenericHash.MaxHashLen} bytes.", nameof(hashLen));
+			}
+			if (Native.crypto_generichash_init(ref state, key, (nuint) key.Length, (nuint) hashLen) != 0)
+			{
+				throw new LibSodiumException("Failed to initialize incremental hashing.");
+			}
+		}
+
+		private void CheckDisposed()
+		{
+			if (isDisposed)
+			{
+				throw new ObjectDisposedException(nameof(CryptoGenericHashIncremental), "The incremental hash has already been disposed.");
+			}
+		}
+
+		public void Update(ReadOnlySpan<byte> data)
+		{
+			CheckDisposed();
+			if (isFinalized)
+			{
+				throw new InvalidOperationException("Cannot update a finalized hash");
+			}
+			int result = Native.crypto_generichash_update(ref state, data, (ulong)data.Length);
+			if (result != 0)
+				throw new LibSodiumException("Failed to update the incremental hashing operation.");
+		}
+
+		public void Final(Span<byte> hash)
+		{
+			CheckDisposed();
+			if (isFinalized)
+			{
+				throw new InvalidOperationException("Hash has already been finalized.");
+			}
+			if (hash.Length != hashLen)
+			{
+				throw new ArgumentException($"Hash must be exactly {hashLen} bytes, matching the hash length specified at construction.", nameof(hash));
+			}
+			int result = Native.crypto_generichash_final(ref state, hash, (nuint)hashLen);
+			if (result != 0)
+			{
+				throw new LibSodiumException("Failed to finalize the incremental hashing operation.");
+			}
+			SecureMemory.MemZero(ref state); // Clear the state to prevent sensitive data leakage
+			isFinalized = true;
+		}
+
+		public void Dispose()
+		{
+			if (isDisposed) return;
+			isDisposed = true;
+			if (!isFinalized)
+			{
+				SecureMemory.MemZero(ref state); // Clear the state to prevent sensitive data leakage
+			}
+		}
+	}
+}
+
 ```
 
 ---
@@ -1594,259 +1762,721 @@ namespace LibSodium.Interop
 # CryptoSha256 source code
 
 ```csharp
-using LibSodium.Interop;
-using System.Buffers;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using LibSodium.LowLevel;
 
-namespace LibSodium
+namespace LibSodium;
+
+/// <summary>
+/// Computes and verifies HMAC-SHA-256 message authentication codes.
+/// </summary>
+public static class CryptoHmacSha256
 {
 	/// <summary>
-	/// Provides one‑shot and streaming <b>SHA‑256</b> hashing helpers built on libsodium’s
-	/// <c>crypto_hash_sha256</c> API.
+	/// Length of the HMAC output in bytes (32).
 	/// </summary>
-	public static class CryptoSha256
+	public static readonly int MacLen = HmacSha256.MacLen;
+
+	/// <summary>
+	/// Length of the secret key in bytes (32).
+	/// </summary>
+	public static readonly int KeyLen = HmacSha256.KeyLen;
+
+	/// <summary>
+	/// Computes an HMAC-SHA-256 authentication code for the given message.
+	/// </summary>
+	/// <param name="key">A 32-byte secret key.</param>
+	/// <param name="message">The message to authenticate.</param>
+	/// <param name="mac">A buffer to receive the 32-byte MAC.</param>
+	/// <returns>The length of the MAC written (always 32).</returns>
+	/// <exception cref="ArgumentException">Thrown if <paramref name="key"/> or <paramref name="mac"/> has an invalid length.</exception>
+	/// <exception cref="LibSodiumException">Thrown if the MAC computation fails internally.</exception>
+	public static int ComputeMac(ReadOnlySpan<byte> key, ReadOnlySpan<byte> message, Span<byte> mac)
+		=> CryptoMac<HmacSha256>.ComputeMac(key, message, mac);
+
+	/// <summary>
+	/// Verifies an HMAC-SHA-256 authentication code against a given message.
+	/// </summary>
+	/// <param name="key">A 32-byte secret key.</param>
+	/// <param name="message">The message to verify.</param>
+	/// <param name="mac">The expected 32-byte MAC.</param>
+	/// <returns><c>true</c> if the MAC is valid; otherwise, <c>false</c>.</returns>
+	/// <exception cref="ArgumentException">Thrown if <paramref name="key"/> or <paramref name="mac"/> has an invalid length.</exception>
+	/// <exception cref="ArgumentException">Thrown if <paramref name="key"/> or <paramref name="mac"/> has an invalid length.</exception>
+	public static bool VerifyMac(ReadOnlySpan<byte> key, ReadOnlySpan<byte> message, ReadOnlySpan<byte> mac)
+		=> CryptoMac<HmacSha256>.VerifyMac(key, message, mac);
+
+	/// <summary>
+	/// Generates a random 32-byte key suitable for HMAC-SHA-256.
+	/// </summary>
+	/// <param name="key">A buffer to receive the generated key (must be 32 bytes).</param>
+	public static void GenerateKey(Span<byte> key)
+		=> CryptoMac<HmacSha256>.GenerateKey(key);
+
+	/// <summary>
+	/// Computes an HMAC-SHA-256 authentication code from a stream.
+	/// </summary>
+	/// <param name="key">A 32-byte secret key.</param>
+	/// <param name="messageStream">A stream containing the message.</param>
+	/// <param name="mac">A buffer to receive the 32-byte MAC.</param>
+	/// <exception cref="ArgumentException">Thrown if <paramref name="key"/> or <paramref name="mac"/> has an invalid length.</exception>
+	/// <exception cref="LibSodiumException">Thrown if the MAC computation fails internally.</exception>
+	public static void ComputeMac(ReadOnlySpan<byte> key, Stream messageStream, Span<byte> mac)
+		=> CryptoMac<HmacSha256>.ComputeMac(key, messageStream, mac);
+
+	/// <summary>
+	/// Verifies an HMAC-SHA-256 authentication code from a stream.
+	/// </summary>
+	/// <param name="key">A 32-byte secret key.</param>
+	/// <param name="messageStream">A stream containing the message.</param>
+	/// <param name="mac">The expected 32-byte MAC.</param>
+	/// <exception cref="ArgumentException">Thrown if <paramref name="key"/> or <paramref name="mac"/> has an invalid length.</exception>
+	/// <returns><c>true</c> if the MAC is valid; otherwise, <c>false</c>.</returns>
+	public static bool VerifyMac(ReadOnlySpan<byte> key, Stream messageStream, ReadOnlySpan<byte> mac)
+		=> CryptoMac<HmacSha256>.VerifyMac(key, messageStream, mac);
+
+	/// <summary>
+	/// Asynchronously computes an HMAC-SHA-256 authentication code from a stream.
+	/// </summary>
+	/// <param name="key">A 32-byte secret key.</param>
+	/// <param name="messageStream">A stream containing the message.</param>
+	/// <param name="mac">A buffer to receive the 32-byte MAC.</param>
+	/// <param name="cancellationToken">A token to cancel the operation.</param>
+	/// <returns>A task that represents the asynchronous operation.</returns>
+	/// <exception cref="ArgumentException">Thrown if <paramref name="key"/> or <paramref name="mac"/> has an invalid length.</exception>
+	/// <exception cref="LibSodiumException">Thrown if the MAC computation fails internally.</exception>
+	public static Task ComputeMacAsync(ReadOnlyMemory<byte> key, Stream messageStream, Memory<byte> mac, CancellationToken cancellationToken = default)
+		=> CryptoMac<HmacSha256>.ComputeMacAsync(key, messageStream, mac, cancellationToken);
+
+	/// <summary>
+	/// Asynchronously verifies an HMAC-SHA-256 authentication code from a stream.
+	/// </summary>
+	/// <param name="key">A 32-byte secret key.</param>
+	/// <param name="messageStream">A stream containing the message.</param>
+	/// <param name="mac">The expected 32-byte MAC.</param>
+	/// <param name="cancellationToken">A token to cancel the operation.</param>
+	/// <returns><c>true</c> if the MAC is valid; otherwise, <c>false</c>.</returns>
+	public static Task<bool> VerifyMacAsync(ReadOnlyMemory<byte> key, Stream messageStream, ReadOnlyMemory<byte> mac, CancellationToken cancellationToken = default)
+		=> CryptoMac<HmacSha256>.VerifyMacAsync(key, messageStream, mac, cancellationToken);
+
+
+	/// <summary>
+	/// Creates an incremental hash object using the HMAC-SHA256 algorithm.
+	/// </summary>
+	/// <remarks>The returned <see cref="ICryptoIncrementalHash"/> can be used to compute the HMAC-SHA256 hash
+	/// incrementally by processing data in chunks. This is useful for scenarios where the data to be hashed is too large
+	/// to fit in memory or is received in a streaming fashion.</remarks>
+	/// <param name="key">The cryptographic key (32 bytes) to use for the HMAC-SHA256 computation.</param>
+	/// <returns>An <see cref="ICryptoIncrementalHash"/> instance that allows incremental computation of the HMAC-SHA256 hash.</returns>
+	public static ICryptoIncrementalHash CreateIncrementalMac(ReadOnlySpan<byte> key)
 	{
-		/// <summary>Hash length in bytes (32).</summary>
-		public const int HashLen = Native.CRYPTO_HASH_SHA256_BYTES;
-
-		/// <summary>Size of the internal hashing state structure (implementation‑defined).</summary>
-		internal static readonly int StateLen = (int)Native.crypto_hash_sha256_statebytes();
-
-		private const int DefaultBufferSize = 8 * 1024; // 8 KiB
-
-
-		/// <summary>
-		/// Computes a SHA‑256 hash of <paramref name="message"/> and stores the result in
-		/// <paramref name="hash"/>.
-		/// </summary>
-		/// <param name="hash">Destination buffer (32 bytes).</param>
-		/// <param name="message">Message to hash.</param>
-		/// <exception cref="ArgumentException">If <paramref name="hash"/> length ≠ 32.</exception>
-		/// <exception cref="LibSodiumException">If the native function returns non‑zero.</exception>
-		public static void ComputeHash(Span<byte> hash, ReadOnlySpan<byte> message)
-		{
-			if (hash.Length != HashLen)
-				throw new ArgumentException($"Hash must be exactly {HashLen} bytes.", nameof(hash));
-			LibraryInitializer.EnsureInitialized();
-			int rc = Native.crypto_hash_sha256(hash, message, (ulong)message.Length);
-			if (rc != 0)
-				throw new LibSodiumException("SHA‑256 hashing failed.");
-		}
-
-		/// <summary>
-		/// Computes a SHA‑256 hash over the entire contents of the supplied <see cref="Stream"/>.
-		/// </summary>
-		/// <param name="hash">Destination buffer (32 bytes) that receives the final hash.</param>
-		/// <param name="input">The input stream to read and hash. The stream is read until its end.</param>
-		/// <exception cref="ArgumentNullException">Thrown if <paramref name="input"/> is <c>null</c>.</exception>
-		/// <exception cref="ArgumentException">Thrown if <paramref name="hash"/> is not exactly 32 bytes.</exception>
-		/// <exception cref="LibSodiumException">Thrown if the underlying libsodium call fails.</exception>
-		/// <remarks>
-		/// The method processes the stream in buffered chunks of <c>8 KiB</c>, keeping memory usage low even for very large inputs.
-		/// </remarks>
-		public static void ComputeHash(Span<byte> hash, Stream input)
-		{
-			ArgumentNullException.ThrowIfNull(input);
-			if (hash.Length != HashLen)
-				throw new ArgumentException($"Hash must be exactly {HashLen} bytes.", nameof(hash));
-
-			Span<byte> state = stackalloc byte[StateLen];
-			LibraryInitializer.EnsureInitialized();
-			if (Native.crypto_hash_sha256_init(state) != 0)
-				throw new LibSodiumException("SHA‑256 init failed.");
-
-			byte[] buffer = ArrayPool<byte>.Shared.Rent(DefaultBufferSize);
-			try
-			{
-				int read;
-				while ((read = input.Read(buffer, 0, DefaultBufferSize)) > 0)
-				{
-					if (Native.crypto_hash_sha256_update(state, buffer, (ulong)read) != 0)
-						throw new LibSodiumException("SHA‑256 update failed.");
-				}
-				if (Native.crypto_hash_sha256_final(state, hash) != 0)
-					throw new LibSodiumException("SHA‑256 final failed.");
-			}
-			finally
-			{
-				ArrayPool<byte>.Shared.Return(buffer, clearArray: true);
-			}
-		}
-
-		/// <summary>
-		/// Asynchronously computes a SHA‑256 hash over the supplied <see cref="Stream"/>, writing the
-		/// result into <paramref name="hash"/>.
-		/// </summary>
-		/// <param name="hash">Destination memory buffer (32 bytes) that receives the final hash.</param>
-		/// <param name="input">The input stream to read and hash. The stream is read until its end.</param>
-		/// <param name="cancellationToken">Token that can be used to cancel the asynchronous operation.</param>
-		/// <returns>A task that completes when the hash has been fully computed and written.</returns>
-		/// <exception cref="ArgumentNullException">Thrown if <paramref name="input"/> is <c>null</c>.</exception>
-		/// <exception cref="ArgumentException">Thrown if <paramref name="hash"/> is not exactly 32 bytes.</exception>
-		/// <exception cref="LibSodiumException">Thrown if the underlying libsodium call fails.</exception>
-		/// <remarks>
-		/// The method reads the stream in buffered chunks of <c>8 KiB</c> and is fully asynchronous, making it suitable for
-		/// hashing network streams or large files without blocking the calling thread.
-		/// </remarks>
-		public static async Task ComputeHashAsync(Memory<byte> hash, Stream input, CancellationToken cancellationToken = default)
-		{
-			ArgumentNullException.ThrowIfNull(input);
-			if (hash.Length != HashLen)
-				throw new ArgumentException($"Hash must be exactly {HashLen} bytes.", nameof(hash));
-
-			byte[] state = new byte[StateLen];
-			LibraryInitializer.EnsureInitialized();
-			if (Native.crypto_hash_sha256_init(state) != 0)
-				throw new LibSodiumException("SHA‑256 init failed.");
-
-			byte[] buffer = ArrayPool<byte>.Shared.Rent(DefaultBufferSize);
-			try
-			{
-				int read;
-				while ((read = await input.ReadAsync(buffer, 0, DefaultBufferSize, cancellationToken).ConfigureAwait(false)) > 0)
-				{
-					if (Native.crypto_hash_sha256_update(state, buffer, (ulong)read) != 0)
-						throw new LibSodiumException("SHA‑256 update failed.");
-				}
-				if (Native.crypto_hash_sha256_final(state, hash.Span) != 0)
-					throw new LibSodiumException("SHA‑256 final failed.");
-			}
-			finally
-			{
-				ArrayPool<byte>.Shared.Return(buffer, clearArray: true);
-			}
-		}
+		return new CryptoMacIncremental<HmacSha256>(key);
 	}
 }
+
 ```
 ## CryptoSha512 source code
 
 ```csharp
 using LibSodium.Interop;
-using System.Buffers;
 
-namespace LibSodium
+namespace LibSodium;
+
+/// <summary>
+/// Provides one‑shot and streaming <b>SHA‑512</b> hashing helpers built on libsodium’s
+/// <c>crypto_hash_sha512</c> API.
+/// </summary>
+public static class CryptoSha512
+{
+	/// <summary>Hash length in bytes (64).</summary>
+	public const int HashLen = Native.CRYPTO_HASH_SHA512_BYTES;
+
+	/// <summary>
+	/// Size of the native <c>crypto_hash_sha512_state</c> structure in bytes (implementation‑defined).
+	/// Used for stack‑allocating the state when hashing streams.
+	/// </summary>
+	internal static readonly int StateLen = (int)Native.crypto_hash_sha512_statebytes();
+
+	/// <summary>
+	/// Computes a SHA‑512 hash of <paramref name="message"/> and stores the result in
+	/// <paramref name="hash"/>.
+	/// </summary>
+	/// <param name="hash">Destination buffer (64 bytes).</param>
+	/// <param name="message">Message to hash.</param>
+	/// <exception cref="ArgumentException">If <paramref name="hash"/> length ≠ 64.</exception>
+	/// <exception cref="LibSodiumException">If the native function returns non‑zero.</exception>
+	public static void ComputeHash(Span<byte> hash, ReadOnlySpan<byte> message)
+		=> CryptoKeyLessHash<LowLevel.Sha512>.ComputeHash(hash, message);
+
+	/// <summary>
+	/// Computes a SHA‑512 hash over the entire contents of the supplied <see cref="Stream"/>.
+	/// </summary>
+	/// <param name="hash">Destination buffer (64 bytes) that receives the final hash.</param>
+	/// <param name="input">The input stream to read and hash. The stream is read until its end.</param>
+	/// <exception cref="ArgumentNullException">Thrown if <paramref name="input"/> is <c>null</c>.</exception>
+	/// <exception cref="ArgumentException">Thrown if <paramref name="hash"/> is not exactly 64 bytes.</exception>
+	/// <exception cref="LibSodiumException">Thrown if the underlying libsodium call fails.</exception>
+	/// <remarks>
+	/// The method processes the stream in buffered chunks of <c>8 KiB</c>, keeping memory usage low even for very large inputs.
+	/// </remarks>
+	public static void ComputeHash(Span<byte> hash, Stream input)
+		=> CryptoKeyLessHash<LowLevel.Sha512>.ComputeHash(hash, input);
+
+	/// <summary>
+	/// Asynchronously computes a SHA‑512 hash over the supplied <see cref="Stream"/>, writing the
+	/// result into <paramref name="hash"/>.
+	/// </summary>
+	/// <param name="hash">Destination memory buffer (64 bytes) that receives the final hash.</param>
+	/// <param name="input">The input stream to read and hash. The stream is read until its end.</param>
+	/// <param name="cancellationToken">Token that can be used to cancel the asynchronous operation.</param>
+	/// <returns>A task that completes when the hash has been fully computed and written.</returns>
+	/// <exception cref="ArgumentNullException">Thrown if <paramref name="input"/> is <c>null</c>.</exception>
+	/// <exception cref="ArgumentException">Thrown if <paramref name="hash"/> is not exactly 64 bytes.</exception>
+	/// <exception cref="LibSodiumException">Thrown if the underlying libsodium call fails.</exception>
+	/// <remarks>
+	/// The method reads the stream in buffered chunks of <c>8 KiB</c> and is fully asynchronous, making it suitable for
+	/// hashing network streams or large files without blocking the calling thread.
+	/// </remarks>
+	public static async Task ComputeHashAsync(Memory<byte> hash, Stream input, CancellationToken cancellationToken = default)
+		=> await CryptoKeyLessHash<LowLevel.Sha512>.ComputeHashAsync(hash, input, cancellationToken).ConfigureAwait(false);
+
+
+	/// <summary>
+	/// Creates a new instance of an incremental hash computation object using the SHA-512 algorithm.
+	/// </summary>
+	/// <remarks>This method provides an object for computing a hash incrementally, which is useful for processing
+	/// large data streams or when the data to be hashed is not available all at once.</remarks>
+	/// <returns>An <see cref="ICryptoIncrementalHash"/> instance that allows incremental computation of a SHA-512 hash.</returns>
+	/// <exception cref="LibSodiumException">Thrown if the underlying libsodium call fails.</exception>
+	public static ICryptoIncrementalHash CreateIncrementalHash()
+	{
+		return new CryptoKeyLessHashIncremental<LowLevel.Sha512>();
+	}
+}
+
+```
+
+## Source Code CryptoKeyLessHashIncremental.cs
+
+```csharp
+using LibSodium.LowLevel;
+
+namespace LibSodium;
+
+/// <summary>
+/// Incremental hashing engine for algorithms that do not require a key (e.g., SHA‑2).
+/// </summary>
+/// <typeparam name="T">The underlying hash algorithm.</typeparam>
+internal sealed class CryptoKeyLessHashIncremental<T> : ICryptoIncrementalHash
+	where T : IKeyLessHash
+{
+	private readonly byte[] state = new byte[T.StateLen];
+	private bool isFinalized = false;
+	private bool isDisposed = false;
+
+	/// <summary>
+	/// Initializes a new incremental hash instance for algorithm <typeparamref name="T"/>.
+	/// </summary>
+	public CryptoKeyLessHashIncremental()
+	{
+		if (T.Init(state) != 0)
+			throw new LibSodiumException("Failed to initialize the incremental hashing operation.");
+	}
+
+	private void CheckDisposed()
+	{
+		if (isDisposed)
+			throw new ObjectDisposedException(nameof(CryptoKeyLessHashIncremental<T>), "The incremental hashing instance has already been disposed.");
+	}
+
+	/// <summary>
+	/// Appends data to the ongoing hash computation.
+	/// </summary>
+	/// <param name="data">The input data to append.</param>
+	/// <exception cref="ObjectDisposedException">If the instance has been disposed.</exception>
+	/// <exception cref="InvalidOperationException">If <see cref="Final"/> has already been called.</exception>
+	public void Update(ReadOnlySpan<byte> data)
+	{
+		CheckDisposed();
+		if (isFinalized)
+			throw new InvalidOperationException("Cannot update after the incremental hashing operation has been finalized.");
+
+		if (T.Update(state, data) != 0)
+			throw new LibSodiumException("Failed to update the hash state.");
+	}
+
+	/// <summary>
+	/// Finalizes the hash computation and writes the result to the specified buffer.
+	/// </summary>
+	/// <param name="hash">The buffer to receive the final hash. Must be exactly <c>T.HashLen</c> bytes.</param>
+	/// <exception cref="ObjectDisposedException">If the instance has been disposed.</exception>
+	/// <exception cref="InvalidOperationException">If called more than once.</exception>
+	/// <exception cref="ArgumentException">If the buffer length is invalid.</exception>
+	public void Final(Span<byte> hash)
+	{
+		CheckDisposed();
+		if (isFinalized)
+			throw new InvalidOperationException("Hash has already been finalized.");
+
+		if (hash.Length != T.HashLen)
+			throw new ArgumentException($"Hash must be exactly {T.HashLen} bytes.", nameof(hash));
+
+		if (T.Final(state, hash) != 0)
+			throw new LibSodiumException("Failed to finalize the hash computation.");
+
+		isFinalized = true;
+		SecureMemory.MemZero(state);
+	}
+
+	/// <summary>
+	/// Disposes the hash state, zeroing it if not already finalized.
+	/// </summary>
+	public void Dispose()
+	{
+		if (isDisposed) return;
+		isDisposed = true;
+
+		if (!isFinalized)
+			SecureMemory.MemZero(state);
+	}
+}
+
+```
+
+## Source code CryptoKeyLessHash.cs
+
+```csharp
+using System.Buffers;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using LibSodium.LowLevel;
+
+namespace LibSodium;
+
+/// <summary>
+/// Provides generic one-shot and streaming helpers for key-less hash functions like SHA‑2.
+/// </summary>
+/// <typeparam name="T">The hash algorithm (e.g., <see cref="Sha256"/>).</typeparam>
+internal static class CryptoKeyLessHash<T> where T : IKeyLessHash
 {
 	/// <summary>
-	/// Provides one‑shot and streaming <b>SHA‑512</b> hashing helpers built on libsodium’s
-	/// <c>crypto_hash_sha512</c> API.
+	/// Gets the length of the output hash in bytes.
 	/// </summary>
-	public static class CryptoSha512
+	public static int HashLen => T.HashLen;
+
+	/// <summary>
+	/// Gets the size of the internal hashing state structure.
+	/// </summary>
+	public static int StateLen => T.StateLen;
+
+	/// <summary>
+	/// Computes a hash of <paramref name="message"/> and stores the result in <paramref name="hash"/>.
+	/// </summary>
+	/// <param name="hash">Destination buffer. Must be <see cref="HashLen"/> bytes.</param>
+	/// <param name="message">Message to hash.</param>
+	public static void ComputeHash(Span<byte> hash, ReadOnlySpan<byte> message)
 	{
-		/// <summary>Hash length in bytes (64).</summary>
-		public const int HashLen = Native.CRYPTO_HASH_SHA512_BYTES;
+		if (hash.Length != HashLen)
+			throw new ArgumentException($"Hash must be exactly {HashLen} bytes.", nameof(hash));
 
-		/// <summary>
-		/// Size of the native <c>crypto_hash_sha512_state</c> structure in bytes (implementation‑defined).
-		/// Used for stack‑allocating the state when hashing streams.
-		/// </summary>
-		internal static readonly int StateLen = (int)Native.crypto_hash_sha512_statebytes();
-		private const int DefaultBufferSize = 8 * 1024; // 8 KiB
+		LibraryInitializer.EnsureInitialized();
+		if (T.ComputeHash(hash, message) != 0)
+			throw new LibSodiumException("Hashing failed.");
+	}
 
-		/// <summary>
-		/// Computes a SHA‑512 hash of <paramref name="message"/> and stores the result in
-		/// <paramref name="hash"/>.
-		/// </summary>
-		/// <param name="hash">Destination buffer (64 bytes).</param>
-		/// <param name="message">Message to hash.</param>
-		/// <exception cref="ArgumentException">If <paramref name="hash"/> length ≠ 64.</exception>
-		/// <exception cref="LibSodiumException">If the native function returns non‑zero.</exception>
-		public static void ComputeHash(Span<byte> hash, ReadOnlySpan<byte> message)
+	/// <summary>
+	/// Computes a hash over the contents of a stream.
+	/// </summary>
+	/// <param name="hash">The buffer that will receive the final hash. Must be <see cref="HashLen"/> bytes.</param>
+	/// <param name="input">The input stream to read and hash.</param>
+	public static void ComputeHash(Span<byte> hash, Stream input)
+	{
+		ArgumentNullException.ThrowIfNull(input);
+		using var h = CreateIncrementalHash();
+		h.Compute(input, hash);
+	}
+
+	/// <summary>
+	/// Asynchronously computes a hash over the contents of a stream.
+	/// </summary>
+	/// <param name="hash">The buffer that will receive the final hash. Must be <see cref="HashLen"/> bytes.</param>
+	/// <param name="input">The input stream to read and hash.</param>
+	/// <param name="cancellationToken">A token to cancel the operation.</param>
+	public static Task ComputeHashAsync(Memory<byte> hash, Stream input, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(input);
+		using var h = CreateIncrementalHash();
+		return h.ComputeAsync(input, hash, cancellationToken);
+	}
+
+	/// <summary>
+	/// Creates an incremental hashing engine for algorithm <typeparamref name="T"/>.
+	/// </summary>
+	/// <returns>A new <see cref="ICryptoIncrementalHash"/> instance.</returns>
+	public static ICryptoIncrementalHash CreateIncrementalHash()
+		=> new CryptoKeyLessHashIncremental<T>();
+}
+
+```
+
+## Source code ICryptoIncrementalHash.cs
+
+```csharp
+using System.Buffers;
+
+namespace LibSodium;
+
+/// <summary>
+/// Represents an incremental hash or MAC calculator that processes data in chunks and produces a fixed-size output.
+/// </summary>
+public interface ICryptoIncrementalHash : IDisposable
+{
+	/// <summary>
+	/// Appends data to the ongoing hash or MAC computation.
+	/// </summary>
+	/// <param name="data">The input data to append. May be empty.</param>
+	void Update(ReadOnlySpan<byte> data);
+
+	/// <summary>
+	/// Finalizes the hash or MAC computation and writes the result to the specified buffer.
+	/// </summary>
+	/// <param name="hash">The buffer where the final result will be written. Must match the expected output length.</param>
+	/// <exception cref="InvalidOperationException">Thrown if called more than once.</exception>
+	void Final(Span<byte> hash);
+
+
+}
+
+internal static class CryptoIncrementalHashExtensions
+{
+	/// <summary>
+	/// Processes all data from the specified stream and finalizes the hash or MAC computation.
+	/// </summary>
+	/// <param name="incrementalHash"></param>
+	/// <param name="input">The input stream to read and process. Cannot be null.</param>
+	/// <param name="hash">The buffer where the final result will be written. Must match the expected output length.</param>
+	/// <exception cref="ArgumentNullException">Thrown if <paramref name="input"/> is null.</exception>
+	/// <exception cref="ArgumentException">Thrown if <paramref name="hash"/> has an invalid length.</exception>
+	/// <exception cref="LibSodiumException">Thrown if the computation fails internally.</exception>
+	public static void Compute(this ICryptoIncrementalHash incrementalHash, Stream input, Span<byte> hash)
+	{
+		ArgumentNullException.ThrowIfNull(input);
+
+		byte[] buffer = ArrayPool<byte>.Shared.Rent(Constants.DefaultBufferLen);
+		try
 		{
-			if (hash.Length != HashLen)
-				throw new ArgumentException($"Hash must be exactly {HashLen} bytes.", nameof(hash));
-			LibraryInitializer.EnsureInitialized();
-			int rc = Native.crypto_hash_sha512(hash, message, (ulong)message.Length);
-			if (rc != 0)
-				throw new LibSodiumException("SHA‑512 hashing failed.");
+			int read;
+			while ((read = input.Read(buffer, 0, Constants.DefaultBufferLen)) > 0)
+			{
+				incrementalHash.Update(buffer.AsSpan(0, read));
+			}
+			incrementalHash.Final(hash);
 		}
-
-		/// <summary>
-		/// Computes a SHA‑512 hash over the entire contents of the supplied <see cref="Stream"/>.
-		/// </summary>
-		/// <param name="hash">Destination buffer (64 bytes) that receives the final hash.</param>
-		/// <param name="input">The input stream to read and hash. The stream is read until its end.</param>
-		/// <exception cref="ArgumentNullException">Thrown if <paramref name="input"/> is <c>null</c>.</exception>
-		/// <exception cref="ArgumentException">Thrown if <paramref name="hash"/> is not exactly 64 bytes.</exception>
-		/// <exception cref="LibSodiumException">Thrown if the underlying libsodium call fails.</exception>
-		/// <remarks>
-		/// The method processes the stream in buffered chunks of <c>8 KiB</c>, keeping memory usage low even for very large inputs.
-		/// </remarks>
-		public static void ComputeHash(Span<byte> hash, Stream input)
+		finally
 		{
-			ArgumentNullException.ThrowIfNull(input);
-			if (hash.Length != HashLen)
-				throw new ArgumentException($"Hash must be exactly {HashLen} bytes.", nameof(hash));
-
-			Span<byte> state = stackalloc byte[StateLen];
-			LibraryInitializer.EnsureInitialized();
-			if (Native.crypto_hash_sha512_init(state) != 0)
-				throw new LibSodiumException("SHA‑512 init failed.");
-
-			byte[] buffer = ArrayPool<byte>.Shared.Rent(DefaultBufferSize);
-			try
-			{
-				int read;
-				while ((read = input.Read(buffer, 0, DefaultBufferSize)) > 0)
-				{
-					if (Native.crypto_hash_sha512_update(state, buffer, (ulong)read) != 0)
-						throw new LibSodiumException("SHA‑512 update failed.");
-				}
-				if (Native.crypto_hash_sha512_final(state, hash) != 0)
-					throw new LibSodiumException("SHA‑512 final failed.");
-			}
-			finally
-			{
-				ArrayPool<byte>.Shared.Return(buffer, clearArray: true);
-			}
-		}
-
-		/// <summary>
-		/// Asynchronously computes a SHA‑512 hash over the supplied <see cref="Stream"/>, writing the
-		/// result into <paramref name="hash"/>.
-		/// </summary>
-		/// <param name="hash">Destination memory buffer (64 bytes) that receives the final hash.</param>
-		/// <param name="input">The input stream to read and hash. The stream is read until its end.</param>
-		/// <param name="cancellationToken">Token that can be used to cancel the asynchronous operation.</param>
-		/// <returns>A task that completes when the hash has been fully computed and written.</returns>
-		/// <exception cref="ArgumentNullException">Thrown if <paramref name="input"/> is <c>null</c>.</exception>
-		/// <exception cref="ArgumentException">Thrown if <paramref name="hash"/> is not exactly 64 bytes.</exception>
-		/// <exception cref="LibSodiumException">Thrown if the underlying libsodium call fails.</exception>
-		/// <remarks>
-		/// The method reads the stream in buffered chunks of <c>8 KiB</c> and is fully asynchronous, making it suitable for
-		/// hashing network streams or large files without blocking the calling thread.
-		/// </remarks>
-		public static async Task ComputeHashAsync(Memory<byte> hash, Stream input, CancellationToken cancellationToken = default)
-		{
-			ArgumentNullException.ThrowIfNull(input);
-			if (hash.Length != HashLen)
-				throw new ArgumentException($"Hash must be exactly {HashLen} bytes.", nameof(hash));
-
-			byte[] state = new byte[StateLen];
-			LibraryInitializer.EnsureInitialized();
-			if (Native.crypto_hash_sha512_init(state) != 0)
-				throw new LibSodiumException("SHA‑512 init failed.");
-
-			byte[] buffer = ArrayPool<byte>.Shared.Rent(DefaultBufferSize);
-			try
-			{
-				int read;
-				while ((read = await input.ReadAsync(buffer, 0, DefaultBufferSize, cancellationToken).ConfigureAwait(false)) > 0)
-				{
-					if (Native.crypto_hash_sha512_update(state, buffer, (ulong)read) != 0)
-						throw new LibSodiumException("SHA‑512 update failed.");
-				}
-				if (Native.crypto_hash_sha512_final(state, hash.Span) != 0)
-					throw new LibSodiumException("SHA‑512 final failed.");
-			}
-			finally
-			{
-				ArrayPool<byte>.Shared.Return(buffer, clearArray: true);
-			}
+			SecureMemory.MemZero(buffer);
+			ArrayPool<byte>.Shared.Return(buffer);
 		}
 	}
+
+	/// <summary>
+	/// Asynchronously processes all data from the specified stream and finalizes the hash or MAC computation.
+	/// </summary>
+	/// <param name="incrementalHash">The incremental hash used to compute the hash over the stream</param>
+	/// <param name="input">The input stream to read and process. Cannot be null.</param>
+	/// <param name="hash">The memory buffer where the final result will be written. Must match the expected output length.</param>
+	/// <param name="cancellationToken">A cancellation token to abort the operation if needed.</param>
+	/// <returns>A task that completes when the final result has been written to <paramref name="hash"/>.</returns>
+	/// <exception cref="ArgumentNullException">Thrown if <paramref name="input"/> is null.</exception>
+	/// <exception cref="ArgumentException">Thrown if <paramref name="hash"/> has an invalid length.</exception>
+	/// <exception cref="LibSodiumException">Thrown if the computation fails internally.</exception>
+	public static async Task ComputeAsync(this ICryptoIncrementalHash incrementalHash, Stream input, Memory<byte> hash, CancellationToken cancellationToken = default)
+	{
+		ArgumentNullException.ThrowIfNull(input);
+
+		byte[] buffer = ArrayPool<byte>.Shared.Rent(Constants.DefaultBufferLen);
+		try
+		{
+			int read;
+			while ((read = await input.ReadAsync(buffer, 0, Constants.DefaultBufferLen, cancellationToken).ConfigureAwait(false)) > 0)
+			{
+				incrementalHash.Update(buffer.AsSpan(0, read));
+			}
+			incrementalHash.Final(hash.Span);
+		}
+		finally
+		{
+			SecureMemory.MemZero(buffer);
+			ArrayPool<byte>.Shared.Return(buffer);
+		}
+	}
+
 }
 ```
 
+## Source Code IKeyLessHash.cs
 
+```csharp
+namespace LibSodium.LowLevel;
+
+/// <summary>
+/// Defines a unified interface for hash functions like SHA-2.
+/// Supports one-shot and incremental hashing.
+/// </summary>
+internal interface IKeyLessHash
+{
+	/// <summary>
+	/// Length of the hash output in bytes.
+	/// </summary>
+	static abstract int HashLen { get; }
+
+	/// <summary>
+	/// Length of the internal state in bytes.
+	/// </summary>
+	static abstract int StateLen { get; }
+
+	/// <summary>
+	/// Computes the hash for the given message.
+	/// </summary>
+	/// <param name="hash">Output buffer. Must be exactly <see cref="HashLen"/> bytes.</param>
+	/// <param name="message">Input message to hash.</param>
+	/// <returns>Zero on success; non-zero on failure.</returns>
+	static abstract int ComputeHash(
+		Span<byte> hash,
+		ReadOnlySpan<byte> message);
+
+	/// <summary>
+	/// Initializes the hashing state.
+	/// </summary>
+	/// <param name="state">State buffer. Must be <see cref="StateLen"/> bytes.</param>
+	/// <returns>Zero on success; non-zero on failure.</returns>
+	static abstract int Init(Span<byte> state);
+
+	/// <summary>
+	/// Updates the hashing state with more data.
+	/// </summary>
+	/// <param name="state">State buffer previously initialized by <see cref="Init"/>.</param>
+	/// <param name="message">Data to append to the hash computation.</param>
+	/// <returns>Zero on success; non-zero on failure.</returns>
+	static abstract int Update(Span<byte> state, ReadOnlySpan<byte> message);
+
+	/// <summary>
+	/// Finalizes the hash computation and writes the output.
+	/// </summary>
+	/// <param name="state">State buffer previously initialized by <see cref="Init"/>.</param>
+	/// <param name="hash">Output buffer. Must be exactly <see cref="HashLen"/> bytes.</param>
+	/// <returns>Zero on success; non-zero on failure.</returns>
+	static abstract int Final(Span<byte> state, Span<byte> hash);
+}
+```
+
+## Source Code Sha256.cs
+
+```csharp
+using LibSodium.Interop;
+
+namespace LibSodium.LowLevel;
+
+/// <summary>
+/// Low-level wrapper for libsodium’s SHA‑256 implementation.
+/// </summary>
+internal readonly struct Sha256 : IKeyLessHash
+{
+	public static int HashLen => Native.CRYPTO_HASH_SHA256_BYTES;
+	public static int StateLen => (int)Native.crypto_hash_sha256_statebytes();
+
+	public static int ComputeHash(Span<byte> hash, ReadOnlySpan<byte> message)
+		=> Native.crypto_hash_sha256(hash, message, (ulong)message.Length);
+
+	public static int Init(Span<byte> state)
+		=> Native.crypto_hash_sha256_init(state);
+
+	public static int Update(Span<byte> state, ReadOnlySpan<byte> message)
+		=> Native.crypto_hash_sha256_update(state, message, (ulong)message.Length);
+
+	public static int Final(Span<byte> state, Span<byte> hash)
+		=> Native.crypto_hash_sha256_final(state, hash);
+}
+
+```
+
+## Source Code Sha512.cs
+
+```csharp
+using LibSodium.Interop;
+
+namespace LibSodium.LowLevel;
+
+/// <summary>
+/// Low-level wrapper for libsodium’s SHA‑512 implementation.
+/// </summary>
+internal readonly struct Sha512 : IKeyLessHash
+{
+	public static int HashLen => Native.CRYPTO_HASH_SHA512_BYTES;
+	public static int StateLen => (int)Native.crypto_hash_sha512_statebytes();
+
+	public static int ComputeHash(Span<byte> hash, ReadOnlySpan<byte> message)
+		=> Native.crypto_hash_sha512(hash, message, (ulong)message.Length);
+
+	public static int Init(Span<byte> state)
+		=> Native.crypto_hash_sha512_init(state);
+
+	public static int Update(Span<byte> state, ReadOnlySpan<byte> message)
+		=> Native.crypto_hash_sha512_update(state, message, (ulong)message.Length);
+
+	public static int Final(Span<byte> state, Span<byte> hash)
+		=> Native.crypto_hash_sha512_final(state, hash);
+}
+```
+
+## Source Coce CryptoSha2Tests.cs
+
+```csharp
+using System.Security.Cryptography;
+using LibSodium.Tests;
+
+namespace LibSodium.Net.Tests;
+
+public class CryptoSha2Tests
+{
+	// ── SHA‑256 ──────────────────────────────────────────────────────────────
+
+	[Test]
+	[Arguments(0)]
+	[Arguments(1)]
+	[Arguments(17)]
+	[Arguments(64)]
+	[Arguments(1024)]
+	public void ComputeHash256_Array_MatchesSystem(int size)
+	{
+		var message = new byte[size];
+		RandomGenerator.Fill(message);
+
+		Span<byte> hash = stackalloc byte[CryptoSha256.HashLen];
+		CryptoSha256.ComputeHash(hash, message);
+
+		var expected = SHA256.HashData(message);
+		hash.ShouldBe(expected);
+	}
+
+	[Test]
+	public void ComputeHash256_Stream_MatchesSystem()
+	{
+		var message = new byte[150_000];
+		RandomGenerator.Fill(message);
+
+		using var ms = new MemoryStream(message);
+		Span<byte> hash = stackalloc byte[CryptoSha256.HashLen];
+		CryptoSha256.ComputeHash(hash, ms);
+
+		var expected = SHA256.HashData(message);
+		hash.ShouldBe(expected);
+	}
+
+	[Test]
+	public void ComputeHash256_InvalidHashBuffer_ShouldThrow()
+	{
+		AssertLite.Throws<ArgumentException>(() =>
+		{
+			Span<byte> msg = stackalloc byte[1] { 0x01 };
+			Span<byte> small = stackalloc byte[CryptoSha256.HashLen - 1];
+			CryptoSha256.ComputeHash(small, msg);
+		});
+	}
+
+	[Test]
+	public void ComputeHash256_OversizedHashBuffer_ShouldThrow()
+	{
+		AssertLite.Throws<ArgumentException>(() =>
+		{
+			Span<byte> msg = stackalloc byte[1] { 0x01 };
+			Span<byte> large = stackalloc byte[CryptoSha256.HashLen + 1];
+			CryptoSha256.ComputeHash(large, msg);
+		});
+	}
+
+	[Test]
+	public void ComputeHash256_NullStream_ShouldThrow()
+	{
+		AssertLite.Throws<ArgumentNullException>(() =>
+		{
+			Span<byte> hash = stackalloc byte[CryptoSha256.HashLen];
+			Stream? s = null;
+			CryptoSha256.ComputeHash(hash, s!);
+		});
+	}
+
+	// ── SHA‑512 ──────────────────────────────────────────────────────────────
+
+	[Test]
+	[Arguments(0)]
+	[Arguments(1)]
+	[Arguments(17)]
+	[Arguments(64)]
+	[Arguments(1024)]
+	public void ComputeHash512_Array_MatchesSystem(int size)
+	{
+		var message = new byte[size];
+		RandomGenerator.Fill(message);
+
+		Span<byte> hash = stackalloc byte[CryptoSha512.HashLen];
+		CryptoSha512.ComputeHash(hash, message);
+
+		var expected = SHA512.HashData(message);
+		hash.ShouldBe(expected);
+	}
+
+	[Test]
+	public void ComputeHash512_Stream_MatchesSystem()
+	{
+		var message = new byte[150_000];
+		RandomGenerator.Fill(message);
+
+		using var ms = new MemoryStream(message);
+		Span<byte> hash = stackalloc byte[CryptoSha512.HashLen];
+		CryptoSha512.ComputeHash(hash, ms);
+
+		var expected = SHA512.HashData(message);
+		hash.ShouldBe(expected);
+	}
+
+	[Test]
+	public void ComputeHash512_InvalidHashBuffer_ShouldThrow()
+	{
+		AssertLite.Throws<ArgumentException>(() =>
+		{
+			Span<byte> msg = stackalloc byte[1] { 0x01 };
+			Span<byte> small = stackalloc byte[CryptoSha512.HashLen - 1];
+			CryptoSha512.ComputeHash(small, msg);
+		});
+	}
+
+	[Test]
+	public void ComputeHash512_OversizedHashBuffer_ShouldThrow()
+	{
+		AssertLite.Throws<ArgumentException>(() =>
+		{
+			Span<byte> msg = stackalloc byte[1] { 0x01 };
+			Span<byte> large = stackalloc byte[CryptoSha512.HashLen + 1];
+			CryptoSha512.ComputeHash(large, msg);
+		});
+	}
+
+	[Test]
+	public void ComputeHash512_NullStream_ShouldThrow()
+	{
+		AssertLite.Throws<ArgumentNullException>(() =>
+		{
+			Span<byte> hash = stackalloc byte[CryptoSha512.HashLen];
+			Stream? s = null;
+			CryptoSha512.ComputeHash(hash, s!);
+		});
+	}
+}
+
+```
 
 

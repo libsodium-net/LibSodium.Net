@@ -26,20 +26,6 @@ namespace LibSodium.Interop
 			ReadOnlySpan<byte> key
 		);
 
-		// 4) push() - Encrypt (and authenticate) a chunk
-		[LibraryImport(LibSodiumNativeLibraryName, EntryPoint = nameof(crypto_secretstream_xchacha20poly1305_push))]
-		[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
-		public static partial int crypto_secretstream_xchacha20poly1305_push(
-			Span<byte> state,
-			Span<byte> cipher,
-			out ulong cipherLen,
-			ReadOnlySpan<byte> message,
-			ulong messageLen,
-			nint ad,    // set to IntPtr.Zero when unused
-			ulong adLen,
-			byte tag
-		);
-
 		[LibraryImport(LibSodiumNativeLibraryName, EntryPoint = nameof(crypto_secretstream_xchacha20poly1305_push))]
 		[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
 		public static partial int crypto_secretstream_xchacha20poly1305_push(
@@ -60,20 +46,6 @@ namespace LibSodium.Interop
 			Span<byte> state,
 			ReadOnlySpan<byte> header,
 			ReadOnlySpan<byte> key
-		);
-
-		// 6) pull() - Decrypt (and verify) a chunk
-		[LibraryImport(LibSodiumNativeLibraryName, EntryPoint = nameof(crypto_secretstream_xchacha20poly1305_pull))]
-		[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
-		public static partial int crypto_secretstream_xchacha20poly1305_pull(
-			Span<byte> state,
-			Span<byte> message,
-			out ulong messageLen,
-			out byte tag,
-			ReadOnlySpan<byte> cipher,
-			ulong cipherLen,
-			nint ad,    // set to IntPtr.Zero when unused
-			ulong adLen
 		);
 
 		[LibraryImport(LibSodiumNativeLibraryName, EntryPoint = nameof(crypto_secretstream_xchacha20poly1305_pull))]
