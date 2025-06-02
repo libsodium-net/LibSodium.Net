@@ -8,7 +8,7 @@ LibSodium.Net provides two powerful primitives for key derivation:
 >🧂 Based on libsodium's [Key derivation](https://doc.libsodium.org/key_derivation)<br/>
 >🧂 Based on libsodium's [HKDF](https://doc.libsodium.org/key_derivation/hkdf)<br/>
 > ℹ️ *See also*: [API Reference for `CryptoKeyDerivation`](../api/LibSodium.CryptoKeyDerivation.yml)<br/>
-> ℹ️ *See also*: [API Reference for `HKDF`](../api/LibSodium.HKDF.yml)
+> ℹ️ *See also*: [API Reference for `HKDF`](../api/LibSodium.CryptoHkdf.yml)
 
 This guide compares both options, shows how to choose between them, and offers practical usage advice.
 
@@ -237,4 +237,4 @@ await HKDF.ExtractAsync(HashAlgorithmName.SHA512, stream, salt, prk);
 * [libsodium key derivation](https://doc.libsodium.org/key_derivation)
 * [RFC 5869](https://datatracker.ietf.org/doc/html/rfc5869)
 * [API Reference: CryptoKeyDerivation](../api/LibSodium.CryptoKeyDerivation.yml)
-* [API Reference: HKDF](../api/LibSodium.HKDF.yml)
+* [API Reference: HKDF](../api/LibSodium.CryptoHkdf.yml)
