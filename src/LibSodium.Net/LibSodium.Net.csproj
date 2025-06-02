@@ -8,7 +8,7 @@
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 		<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
-		<Version>0.13.0-alpha</Version>
+		<Version>0.14.0-alpha</Version>
 		<Authors>jesuslpm</Authors>
 		<Description>LibSodium.Bindings.Net provides comprehensive .NET bindings for the libsodium native library</Description>
 		<Copyright>Copyright 2025</Copyright>

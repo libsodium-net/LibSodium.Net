@@ -38,6 +38,8 @@ LibSodium.Net exposes three HMAC‑SHA‑2 variants and Poly1305 that cover the 
 | `CryptoHmacSha512_256` | SHA‑512/256      | 32     | 32     | 32‑byte tag with SHA‑512 speed & security margin.                                |
 | `CryptoOneTimeAuth`    | Poly1305         | 16     | 32     | One‑time MAC for single‑key usage (AEAD internals, per‑message keys, SecretBox). |
 
+> ℹ️ All lengths are in bytes
+
 ---
 
 ## ✨ HMAC‑SHA‑256
@@ -100,12 +102,45 @@ Use cases include:
 
 ---
 
-## 🗝️ Key Management Tips
+## 🗝️ Key Management
+
+You can pass keys to MAC methods using:
+
+* `SecureMemory<byte>` – most secure, with memory protection and automatic zeroing.
+* `Span<byte>`/`ReadOnlySpan<byte>` – fast and stack-allocated, but not supported in asynchronous methods.
+* `byte[]` – works with both synchronous and asynchronous APIs.
+* `Memory<byte>`/`ReadOnlyMemory<byte>` — used in async APIs. Can be converted to span if needed.
+
+> 📝 Use `Span<T>` when performance is critical, and `SecureMemory<byte>` when security is paramount.
+
+**Examples**:
+
+```csharp
+// SecureMemory<byte>
+using var key = new SecureMemory<byte>(CryptoHmacSha256.KeyLen);
+CryptoHmacSha256.GenerateKey(key);
+key.ProtectReadOnly();
+```
+
+```csharp
+// Span<byte>
+Span<byte> key = stackalloc byte[CryptoHmacSha256.KeyLen];
+CryptoHmacSha256.GenerateKey(key);
+```
+
+```csharp
+// byte[]
+var key = new byte[CryptoHmacSha256.KeyLen];
+CryptoHmacSha256.GenerateKey(key);
+```
+
+**Tips:**
 
 * Generate a fresh random key with `GenerateKey` and store it securely (e.g., Azure Key Vault, environment variable, HSM).
-* **Never** reuse keys across different algorithms or protocols.
-* Rotate keys periodically and re‑compute MACs for stored data when you do.
+* Never reuse keys across different algorithms or protocols. Even if the key size is compatible, doing so weakens isolation and security boundaries.
+* Rotate keys periodically.
 * Don't reuse keys in `CryptoOneTimeAuth`.
+
 
 ---
 
@@ -116,10 +151,7 @@ using System.Diagnostics;
 
 // Async overloads accept Memory<byte>/ReadOnlyMemory<byte>, not Span<byte>.
 // We use byte[] because it implicitly converts to both Memory<byte> and Span<byte>.
-byte[] key = new byte[CryptoHmacSha256.KeyLen];
 byte[] mac = new byte[CryptoHmacSha256.MacLen];
-
-CryptoHmacSha256.GenerateKey(key);
 
 // UTF‑8 string literal (.NET 8+)
 ReadOnlySpan<byte> message = "hello"u8; 
@@ -163,38 +195,37 @@ The following APIs expose incremental MAC support via the `ICryptoIncrementalHas
 * `CryptoHmacSha512_256`
 * `CryptoOneTimeAuth`
 
-Each class provides a `CreateIncrementalMac(ReadOnlySpan<byte> key)` method.
+Each class provides `CreateIncrementalMac(ReadOnlySpan<byte> key)` and `CreateIncrementalMac(SecureMemory<byte> key)` methods.
 
-### 📋 Compute MAC over multiple parts
+**Compute MAC over multiple parts:**
 
 ```csharp
 Span<byte> mac = stackalloc byte[CryptoHmacSha512.MacLen];
-Span<byte> key = stackalloc byte[CryptoHmacSha512.KeyLen];
-RandomGenerator.Fill(key);
 
-var part1 = Encoding.UTF8.GetBytes("hello ");
-var part2 = Encoding.UTF8.GetBytes("world");
+ReadOnlySpan<byte> part1 = "hello "u8;
+ReadOnlySpan<byte> part2 = "world"u8;
 
-using var macCalc = CryptoHmacSha512.CreateIncrementalMac(key);
-macCalc.Update(part1);
-macCalc.Update(part2);
-macCalc.Final(mac);
+using var incMac = CryptoHmacSha512.CreateIncrementalMac(key);
+incMac.Update(part1);
+incMac.Update(part2);
+incMac.Final(mac);
 ```
 
-### 📋 Poly1305 incremental MAC
+**Poly1305 incremental MAC:**
 
 ```csharp
 Span<byte> mac = stackalloc byte[CryptoOneTimeAuth.MacLen];
-Span<byte> key = stackalloc byte[CryptoOneTimeAuth.KeyLen];
-RandomGenerator.Fill(key);
 
-using var macCalc = CryptoOneTimeAuth.CreateIncrementalMac(key);
-macCalc.Update(data1);
-macCalc.Update(data2);
-macCalc.Final(mac);
+ReadOnlySpan<byte> part1 = "hello "u8;
+ReadOnlySpan<byte> part2 = "world"u8;
+
+using var incMac = CryptoOneTimeAuth.CreateIncrementalMac(key);
+incMac.Update(part1);
+incMac.Update(part2);
+incMac.Final(mac);
 ```
 
-> ⚠️ The `Final()` method may only be called once. Create a new incremental MAC instance for each new message.
+> ⚠️ The `Final()` method may only be called once. If you need to compute another MAC, create a new incremental instance with `CreateIncrementalMac()`.
 
 ---
 
@@ -225,7 +256,7 @@ macCalc.Final(mac);
 
 * All APIs are **deterministic**: same key + message ⇒ same MAC.
 * Verification is **constant‑time** to avoid timing attacks.
-* The secret key length is fixed (32).
+* The secret key length is fixed: 32 bytes.
 
 ---
 

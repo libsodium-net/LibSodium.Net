@@ -158,9 +158,9 @@ namespace LibSodium.Tests
 		[Test]
 		public void MemZero_SpanByte_ZerosBuffer()
 		{
-			byte[] buffer = { 1, 2, 3, 4, 5 };
+			Span<byte> buffer = stackalloc byte[] { 1, 2, 3, 4, 5 };
 			SecureMemory.MemZero(buffer);
-			SecureMemory.IsZero(buffer).ShouldBeTrue();
+			buffer.ShouldBeZero();
 		}
 
 		[Test]
@@ -168,15 +168,15 @@ namespace LibSodium.Tests
 		{
 			byte[] buffer = { 1, 2, 3, 4, 5 };
 			SecureMemory.MemZero(buffer);
-			SecureMemory.IsZero(buffer).ShouldBeTrue();
+			buffer.ShouldBeZero();
 		}
 
 		[Test]
 		public void MemZero_SpanLong_ZerosBuffer()
 		{
-			long[] buffer = { 1, 2, 3, 4, 5 };
-			SecureMemory.MemZero(buffer.AsSpan());
-			SecureMemory.IsZero<long>(buffer.AsSpan()).ShouldBeTrue();
+			Span<long> buffer = stackalloc long[] { 1, 2, 3, 4, 5 };
+			SecureMemory.MemZero(buffer);
+			buffer.ShouldBeZero();
 		}
 
 		[Test]
@@ -184,7 +184,7 @@ namespace LibSodium.Tests
 		{
 			long[] buffer = { 1, 2, 3, 4, 5 };
 			SecureMemory.MemZero(buffer);
-			SecureMemory.IsZero(buffer).ShouldBeTrue();
+			buffer.ShouldBeZero();
 		}
 
 		[Test]
@@ -193,9 +193,8 @@ namespace LibSodium.Tests
 			var buffer = SecureMemory.Allocate(1000);
 			try
 			{
-				var holder = new UnmanagedMemorySpanHolder<byte>(buffer);
-				SecureMemory.MemLock(holder.GetOriginalSpan());
-				SecureMemory.MemUnlock(holder.GetOriginalSpan());
+				SecureMemory.MemLock(buffer);
+				SecureMemory.MemUnlock(buffer);
 			}
 			finally
 			{

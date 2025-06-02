@@ -96,15 +96,48 @@ This API is built on libsodium’s BLAKE2b-based `crypto_kdf_*` functions. It al
 
 ### 📋 Generate a master key
 
+You can use  `CryptoKeyDerivation.GenerateMasterKey` to generate a cryptographically secure random master key. Alternatively, the key may be securely stored or derived.
+
+Master key can be `SecureMemory<byte>`, `Span<byte>`, or `byte[]` (implicitly convertible to `Span<byte>`)
+
 ```csharp
+// SecureMemory masterKey
+using var masterKey = new SecureMemory<byte>(CryptoKeyDerivation.MasterKeyLen);
+CryptoKeyDerivation.GenerateMasterKey(masterKey);
+```
+
+```csharp
+// Span masterKey
 Span<byte> masterKey = stackalloc byte[CryptoKeyDerivation.MasterKeyLen];
+CryptoKeyDerivation.GenerateMasterKey(masterKey);
+```
+
+```csharp
+// byte[] masterKey
+var masterKey = new byte[CryptoKeyDerivation.MasterKeyLen];
 CryptoKeyDerivation.GenerateMasterKey(masterKey);
 ```
 
 ### 📋 Derive a subkey
 
+You derive a subkey from a master key, a subkey id and a context using `DeriveSubKey()` method. 
+Subkeys can be `SecureMemory<byte>`, `Span<byte>`, or `byte[]` (implicitly convertible to `Span<byte>`)
+
 ```csharp
+// SecureMemory subkey
+using var subkey = new SecureMemory<byte>(32);
+CryptoKeyDerivation.DeriveSubkey(subkey, 42, "MYCTX", masterKey);
+```
+
+```csharp
+// Span subkey
 Span<byte> subkey = stackalloc byte[32];
+CryptoKeyDerivation.DeriveSubkey(subkey, 42, "MYCTX", masterKey);
+```
+
+```csharp
+// byte[] subkey
+using var subkey = new byte[32];
 CryptoKeyDerivation.DeriveSubkey(subkey, 42, "MYCTX", masterKey);
 ```
 
@@ -118,6 +151,10 @@ CryptoKeyDerivation.DeriveSubkey(subkey, 42, "MYCTX", masterKey);
 
 📝 LibSodium.Net's `HKDF` is fully interoperable with `System.Security.Cryptography.HKDF` from .NET — both produce identical outputs when using the same inputs and hash algorithm.
 
+Key, IKM (Initial Key Material), PRK (Pseudo-Random Key), and OKM (Output Key Material) can be provided as `SecureMemory<byte>`, `Span<byte>` / `ReadOnlySpan<byte>`, or `byte[]` (implicitly convertible to `Span<byte>`) for synchronous methods.
+For asynchronous streaming methods, use `SecureMemory<byte>`, `Memory<byte>` / `ReadOnlyMemory<byte>`, or `byte[]` (implicitly convertible to `Memory<byte>` / `ReadOnlyMemory<byte>`).
+
+
 ### 📏 Constants
 
 | Name        | SHA256 | SHA512 | Description                              |
@@ -128,9 +165,9 @@ CryptoKeyDerivation.DeriveSubkey(subkey, 42, "MYCTX", masterKey);
 
 ### 🪄 HKDF Phases
 
-* `Extract`: converts input keying material (IKM) and salt into a pseudorandom key (PRK).
-* `Expand`: derives the final output key material (OKM) from the PRK and optional `info`.
-* `DeriveKey`: performs both steps in one call.
+* `Extract`: Converts input keying material (IKM) and salt into a pseudorandom key (PRK).
+* `Expand`: Derives the final output key material (OKM) from the PRK and optional `info`.
+* `DeriveKey`: Performs both steps in one call.
 
 #### When to use which:
 
@@ -140,8 +177,17 @@ CryptoKeyDerivation.DeriveSubkey(subkey, 42, "MYCTX", masterKey);
 
 ### 📋 Derive a key in one step
 
+
+
 ```csharp
+// Span key
 Span<byte> key = stackalloc byte[64];
+HKDF.DeriveKey(HashAlgorithmName.SHA512, ikm, key, salt, info);
+```
+
+```csharp
+// SecureMemory key
+using var key = new SecureMemory<byte>(64);
 HKDF.DeriveKey(HashAlgorithmName.SHA512, ikm, key, salt, info);
 ```
 
@@ -157,7 +203,7 @@ HKDF.Expand(HashAlgorithmName.SHA512, prk, okm, info);
 
 ### 📋 Extract from stream (incremental entropy)
 
-This allows deriving a PRK from streamed IKM's.
+This allows deriving a PRK from streamed IKM.
 
 ```csharp
 using var stream = File.OpenRead("large-secret.bin");
@@ -182,6 +228,7 @@ await HKDF.ExtractAsync(HashAlgorithmName.SHA512, stream, salt, prk);
 * Use `Extract`/`Expand` for advanced scenarios: PRK reuse, incremental entropy, or interoperability layers.
 * Only `HKDF` supports streaming input for IKM.
 * `CryptoKeyDerivation` is deterministic and optimized for fast sequential subkey derivation.
+* Using `SecureMemory<byte>` for keys and ikm's is strongly recommended, as it protects key material in unmanaged memory with automatic zeroing and access control.
 
 ---
 

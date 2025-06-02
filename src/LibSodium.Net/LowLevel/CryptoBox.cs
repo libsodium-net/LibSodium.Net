@@ -21,7 +21,7 @@ namespace LibSodium.LowLevel
 			=> Native.crypto_scalarmult_base(publicKey, privateKey);
 
 		public static int CalculateSharedKey(Span<byte> sharedKey, ReadOnlySpan<byte> publicKey, ReadOnlySpan<byte> privateKey)
-			=> Native.crypto_box_beforenm(sharedKey, privateKey, publicKey);
+			=> Native.crypto_box_beforenm(sharedKey, publicKey, privateKey);
 
 		public static int EncryptCombined(Span<byte> ciphertext, ReadOnlySpan<byte> plaintext, ReadOnlySpan<byte> nonce, ReadOnlySpan<byte> publicKey, ReadOnlySpan<byte> privateKey)
 			=> Native.crypto_box_easy(ciphertext, plaintext, (ulong)plaintext.Length, nonce, publicKey, privateKey);

@@ -17,39 +17,52 @@ The `RandomGenerator` class in **LibSodium.Net** provides access to cryptographi
 
 ---
 
-## ✨ Getting Random Values
+## 📋 Getting Random Values
 
-### 📋 Get a random 32-bit unsigned integer
+&nbsp;**Get a random 32-bit unsigned integer:** returns a cryptographically secure, uniformly distributed value.
 
 ```csharp
 uint value = RandomGenerator.GetUInt32();
 ```
 
-Returns a cryptographically secure, uniformly distributed value.
 
-### 📋 Get a random value less than an upper bound
+
+&nbsp; **Get a random value less than an upper bound**: Returns a value in the range `[0, upperBound)`.
 
 ```csharp
 uint lessThan100 = RandomGenerator.GetUInt32(100);
 ```
 
-Returns a value in the range `[0, upperBound)`.
-Uses a rejection sampling method to ensure uniform distribution.
 
 ---
 
-## ✨ Filling Buffers
+## 📋 Filling Buffers
 
-### 📋 Fill a buffer with random bytes
+> 🔐 *When dealing with sensitive data (e.g., seeds, key material), prefer using `SecureMemory<byte>` for guarded heap allocations and automatic zeroing.*
+
+&nbsp; **Fill a buffer with unpredictable cryptographic random bytes:**
 
 ```csharp
 Span<byte> buffer = stackalloc byte[32];
 RandomGenerator.Fill(buffer);
 ```
 
-This fills the buffer with unpredictable cryptographic random bytes.
+```csharp
+var buffer = new byte[32];
+RandomGenerator.Fill(buffer);
+```
 
-### 📋 Fill a buffer with deterministic random bytes
+&nbsp; **
+
+
+```csharp
+using var buffer = SecureMemory.Create<byte>(32);
+RandomGenerator.Fill(buffer);
+```
+
+
+
+&nbsp; **Fill a buffer with deterministic random bytes:**
 
 ```csharp
 Span<byte> seed = stackalloc byte[RandomGenerator.SeedLen];
@@ -59,15 +72,31 @@ Span<byte> buffer = stackalloc byte[32];
 RandomGenerator.FillDeterministic(buffer, seed);
 ```
 
+```csharp
+var seed = new byte[RandomGenerator.SeedLen];
+RandomGenerator.Fill(seed); // Generate a secure seed
+
+var buffer = new byte[32];
+RandomGenerator.FillDeterministic(buffer, seed);
+```
+
+```csharp
+using var seed = SecureMemory.Create<byte>(RandomGenerator.SeedLen);
+RandomGenerator.Fill(seed); // Generate a secure seed
+
+using var buffer = SecureMemory.Create<byte>(32);
+RandomGenerator.FillDeterministic(buffer, seed);
+```
+
 The same seed and length will always produce the same output.
 
 > ⚠️ Seed must be exactly `RandomGenerator.SeedLen` bytes long. Otherwise, `ArgumentException` is thrown.
 
 ---
 
-## ✨ Stirring and Closing the RNG
+## 📋 Stirring and Closing
 
-### 📋 Stir the RNG
+&nbsp; **Stir the RNG:**
 
 ```csharp
 RandomGenerator.Stir();
@@ -75,7 +104,7 @@ RandomGenerator.Stir();
 
 This reseeds the RNG, recommended after forking a process or when explicitly needed.
 
-### 📋 Close the RNG
+&nbsp; **Close the RNG:**
 
 ```csharp
 RandomGenerator.Close();

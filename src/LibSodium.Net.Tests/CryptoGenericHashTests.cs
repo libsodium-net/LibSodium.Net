@@ -170,5 +170,85 @@ namespace LibSodium.Net.Tests
 			var expected = Convert.FromHexString("E4CFA39A3D37BE31C59609E807970799CAA68A19BFAA15135F165085E01D41A65BA1E1B146AEB6BD0092B49EAC214C103CCFA3A365954BBBE52F74A2B3620C94");
 			hash.ShouldBe(expected);
 		}
+
+		[Test]
+		public void ComputeHash_Span_WithSecureMemoryKey_ProducesSameHash()
+		{
+			using var key = SecureMemory.Create<byte>(CryptoGenericHash.KeyLen);
+			RandomGenerator.Fill(key);
+			var message = Encoding.UTF8.GetBytes("Test message");
+
+			Span<byte> hash1 = stackalloc byte[CryptoGenericHash.HashLen];
+			CryptoGenericHash.ComputeHash(hash1, message, key);
+
+			Span<byte> hash2 = stackalloc byte[CryptoGenericHash.HashLen];
+			CryptoGenericHash.ComputeHash(hash2, message, key.AsReadOnlySpan());
+
+			hash1.ShouldBe(hash2);
+		}
+
+		[Test]
+		public void ComputeHash_Stream_WithSecureMemoryKey_ProducesSameHash()
+		{
+			using var key = SecureMemory.Create<byte>(CryptoGenericHash.KeyLen);
+			RandomGenerator.Fill(key);
+			var message = Encoding.UTF8.GetBytes("Secure stream test");
+
+			using var stream = new MemoryStream(message);
+
+			var hash1 = new byte[CryptoGenericHash.HashLen];
+			CryptoGenericHash.ComputeHash(hash1, stream, key);
+
+			using var stream2 = new MemoryStream(message);
+			var hash2 = new byte[CryptoGenericHash.HashLen];
+			CryptoGenericHash.ComputeHash(hash2, stream2, key.AsReadOnlySpan());
+
+			hash1.ShouldBe(hash2);
+		}
+
+		[Test]
+		public async Task ComputeHashAsync_Stream_WithSecureMemoryKey_ProducesSameHash()
+		{
+			using var key = SecureMemory.Create<byte>(CryptoGenericHash.KeyLen);
+			RandomGenerator.Fill(key);
+			var message = Encoding.UTF8.GetBytes("Secure async test");
+
+			using var stream = new MemoryStream(message);
+			var hash1 = new byte[CryptoGenericHash.HashLen];
+			await CryptoGenericHash.ComputeHashAsync(hash1, stream, key);
+
+			using var stream2 = new MemoryStream(message);
+			var hash2 = new byte[CryptoGenericHash.HashLen];
+			await CryptoGenericHash.ComputeHashAsync(hash2, stream2, key.AsReadOnlyMemory());
+
+			hash1.ShouldBe(hash2);
+		}
+
+		[Test]
+		public void CreateIncrementalHash_WithSecureMemoryKey_ProducesSameResult()
+		{
+			using var key = SecureMemory.Create<byte>(CryptoGenericHash.KeyLen);
+			RandomGenerator.Fill(key);
+			var part1 = Encoding.UTF8.GetBytes("hello ");
+			var part2 = Encoding.UTF8.GetBytes("world");
+
+			Span<byte> hash1 = stackalloc byte[CryptoGenericHash.HashLen];
+			using (var hasher = CryptoGenericHash.CreateIncrementalHash(key))
+			{
+				hasher.Update(part1);
+				hasher.Update(part2);
+				hasher.Final(hash1);
+			}
+
+			Span<byte> hash2 = stackalloc byte[CryptoGenericHash.HashLen];
+			using (var hasher = CryptoGenericHash.CreateIncrementalHash(key.AsReadOnlySpan()))
+			{
+				hasher.Update(part1);
+				hasher.Update(part2);
+				hasher.Final(hash2);
+			}
+
+			hash1.ShouldBe(hash2);
+		}
 	}
 }

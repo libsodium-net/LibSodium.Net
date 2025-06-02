@@ -175,4 +175,115 @@ public class CryptoHmacSha256Tests
 			CryptoHmacSha256.GenerateKey(invalid);
 		});
 	}
+
+	[Test]
+	public void ComputeMac_WithSecureMemoryKey_ProducesSameMac()
+	{
+		using var key = SecureMemory.Create<byte>(CryptoHmacSha256.KeyLen);
+		RandomGenerator.Fill(key);
+		var message = Encoding.UTF8.GetBytes("Hello with secure key");
+
+		Span<byte> mac1 = stackalloc byte[CryptoHmacSha256.MacLen];
+		CryptoHmacSha256.ComputeMac(key, message, mac1);
+
+		Span<byte> mac2 = stackalloc byte[CryptoHmacSha256.MacLen];
+		CryptoHmacSha256.ComputeMac(key.AsReadOnlySpan(), message, mac2);
+
+		mac1.ShouldBe(mac2);
+	}
+
+	[Test]
+	public void VerifyMac_WithSecureMemoryKey_ValidMac_ReturnsTrue()
+	{
+		using var key = SecureMemory.Create<byte>(CryptoHmacSha256.KeyLen);
+		RandomGenerator.Fill(key);
+		var message = Encoding.UTF8.GetBytes("Secure verify message");
+
+		Span<byte> mac = stackalloc byte[CryptoHmacSha256.MacLen];
+		CryptoHmacSha256.ComputeMac(key, message, mac);
+
+		bool valid = CryptoHmacSha256.VerifyMac(key, message, mac);
+		valid.ShouldBeTrue();
+	}
+
+	[Test]
+	public void ComputeMac_Stream_WithSecureMemoryKey_ProducesSameMac()
+	{
+		using var key = SecureMemory.Create<byte>(CryptoHmacSha256.KeyLen);
+		RandomGenerator.Fill(key);
+		var message = Encoding.UTF8.GetBytes("Stream with secure key");
+		using var stream1 = new MemoryStream(message);
+		using var stream2 = new MemoryStream(message);
+
+		Span<byte> mac1 = stackalloc byte[CryptoHmacSha256.MacLen];
+		CryptoHmacSha256.ComputeMac(key, stream1, mac1);
+
+		Span<byte> mac2 = stackalloc byte[CryptoHmacSha256.MacLen];
+		CryptoHmacSha256.ComputeMac(key.AsReadOnlySpan(), stream2, mac2);
+
+		mac1.ShouldBe(mac2);
+	}
+
+	[Test]
+	public async Task ComputeMacAsync_Stream_WithSecureMemoryKey_ProducesSameMac()
+	{
+		using var key = SecureMemory.Create<byte>(CryptoHmacSha256.KeyLen);
+		RandomGenerator.Fill(key);
+		var message = Encoding.UTF8.GetBytes("Async stream secure test");
+
+		await using var stream1 = new MemoryStream(message);
+		await using var stream2 = new MemoryStream(message);
+
+		var mac1 = new byte[CryptoHmacSha256.MacLen];
+		await CryptoHmacSha256.ComputeMacAsync(key, stream1, mac1);
+
+		var mac2 = new byte[CryptoHmacSha256.MacLen];
+		await CryptoHmacSha256.ComputeMacAsync(key.AsReadOnlyMemory(), stream2, mac2);
+
+		mac1.ShouldBe(mac2);
+	}
+
+	[Test]
+	public void CreateIncrementalMac_WithSecureMemoryKey_ProducesSameResult()
+	{
+		using var key = SecureMemory.Create<byte>(CryptoHmacSha256.KeyLen);
+		RandomGenerator.Fill(key);
+		var part1 = Encoding.UTF8.GetBytes("chunk1");
+		var part2 = Encoding.UTF8.GetBytes("chunk2");
+
+		Span<byte> mac1 = stackalloc byte[CryptoHmacSha256.MacLen];
+		using (var h = CryptoHmacSha256.CreateIncrementalMac(key))
+		{
+			h.Update(part1);
+			h.Update(part2);
+			h.Final(mac1);
+		}
+
+		Span<byte> mac2 = stackalloc byte[CryptoHmacSha256.MacLen];
+		using (var h = CryptoHmacSha256.CreateIncrementalMac(key.AsReadOnlySpan()))
+		{
+			h.Update(part1);
+			h.Update(part2);
+			h.Final(mac2);
+		}
+
+		mac1.ShouldBe(mac2);
+	}
+
+	[Test]
+	public async Task VerifyMacAsync_Stream_WithSecureMemoryKey_ReturnsTrue()
+	{
+		using var key = SecureMemory.Create<byte>(CryptoHmacSha256.KeyLen);
+		RandomGenerator.Fill(key);
+		var message = Encoding.UTF8.GetBytes("secure verify async");
+
+		var mac = new byte[CryptoHmacSha256.MacLen];
+		await using var stream1 = new MemoryStream(message);
+		await CryptoHmacSha256.ComputeMacAsync(key, stream1, mac);
+
+		await using var stream2 = new MemoryStream(message);
+		bool valid = await CryptoHmacSha256.VerifyMacAsync(key, stream2, mac);
+		valid.ShouldBeTrue();
+	}
+
 }

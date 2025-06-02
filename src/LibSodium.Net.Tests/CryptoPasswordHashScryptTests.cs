@@ -269,5 +269,77 @@ public class CryptoPasswordHashScryptTests
 		CryptoPasswordHashScrypt.VerifyPassword(hash, password).ShouldBeTrue();
 	}
 
+	[Test]
+	public void DeriveKey_WithSecureMemoryInputs_ShouldSucceed()
+	{
+		using var key = SecureMemory.Create<byte>(32);
+		using var pwd = SecureMemory.Create<byte>(16);
+		Span<byte> salt = stackalloc byte[CryptoPasswordHashScrypt.SaltLen];
+		RandomGenerator.Fill(pwd);
+		RandomGenerator.Fill(salt);
+
+		CryptoPasswordHashScrypt.DeriveKey(key, pwd, salt);
+		key.AsSpan().ShouldNotBeZero();
+	}
+
+	[Test]
+	public void DeriveKey_SameInputs_WithSecureMemory_ProducesSameKey()
+	{
+		using var key1 = SecureMemory.Create<byte>(32);
+		using var key2 = SecureMemory.Create<byte>(32);
+		using var pwd = SecureMemory.Create<byte>(16);
+		Span<byte> salt = stackalloc byte[CryptoPasswordHashScrypt.SaltLen];
+		RandomGenerator.Fill(pwd);
+		RandomGenerator.Fill(salt);
+
+		CryptoPasswordHashScrypt.DeriveKey(key1, pwd, salt);
+		CryptoPasswordHashScrypt.DeriveKey(key2, pwd, salt);
+		key1.AsSpan().ShouldBe(key2.AsSpan());
+	}
+
+	[Test]
+	public void DeriveKey_WithSecureMemoryStringPassword_ShouldSucceed()
+	{
+		using var key = SecureMemory.Create<byte>(32);
+		Span<byte> salt = stackalloc byte[CryptoPasswordHashScrypt.SaltLen];
+		RandomGenerator.Fill(salt);
+
+		CryptoPasswordHashScrypt.DeriveKey(key, "strong-pass", salt);
+		key.AsSpan().ShouldNotBeZero();
+	}
+
+	[Test]
+	public void HashPassword_WithSecureMemory_Succeeds()
+	{
+		using var pwd = SecureMemory.Create<byte>(16);
+		RandomGenerator.Fill(pwd);
+
+		string hash = CryptoPasswordHashScrypt.HashPassword(pwd);
+		hash.ShouldStartWith(CryptoPasswordHashScrypt.Prefix);
+	}
+
+	[Test]
+	public void VerifyPassword_WithSecureMemory_Succeeds()
+	{
+		using var pwd = SecureMemory.Create<byte>(16);
+		RandomGenerator.Fill(pwd);
+
+		string hash = CryptoPasswordHashScrypt.HashPassword(pwd);
+		CryptoPasswordHashScrypt.VerifyPassword(hash, pwd).ShouldBeTrue();
+	}
+
+	[Test]
+	public void VerifyPassword_WithWrongSecureMemory_ShouldFail()
+	{
+		using var pwd1 = SecureMemory.Create<byte>(16);
+		using var pwd2 = SecureMemory.Create<byte>(16);
+		RandomGenerator.Fill(pwd1);
+		RandomGenerator.Fill(pwd2);
+
+		string hash = CryptoPasswordHashScrypt.HashPassword(pwd1);
+		CryptoPasswordHashScrypt.VerifyPassword(hash, pwd2).ShouldBeFalse();
+	}
+
+
 
 }

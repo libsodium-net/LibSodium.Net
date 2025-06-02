@@ -62,6 +62,22 @@
 		}
 
 		/// <summary>
+		/// Computes a message authentication code (MAC) for the given input using HMAC-SHA-512-256.
+		/// </summary>
+		/// <param name="mac">A writable buffer with a length of <see cref="MacLen"/> bytes that will receive the computed MAC.</param>
+		/// <param name="input">The message data to authenticate.</param>
+		/// <param name="key">The secret key to use for authentication, must be <see cref="KeyLen"/> bytes long.</param>
+		/// <exception cref="ArgumentException">Thrown when the length of <paramref name="mac"/> or <paramref name="key"/> is invalid.</exception>
+		/// <exception cref="LibSodiumException">Thrown when the underlying libsodium operation fails unexpectedly.</exception>
+		/// <remarks>
+		/// This method is a wrapper around libsodium's <c>crypto_auth</c> function.
+		/// </remarks>
+		public static void ComputeMac(Span<byte> mac, ReadOnlySpan<byte> input, SecureMemory<byte> key)
+		{
+			ComputeMac(mac, input, key.AsReadOnlySpan());
+		}
+
+		/// <summary>
 		/// Attempts to verify that a given MAC is valid for the specified input and key using HMAC-SHA-512-256.
 		/// </summary>
 		/// <param name="mac">The message authentication code to verify. Must be <see cref="MacLen"/> bytes long.</param>
@@ -87,6 +103,23 @@
 		}
 
 		/// <summary>
+		/// Attempts to verify that a given MAC is valid for the specified input and key using HMAC-SHA-512-256.
+		/// </summary>
+		/// <param name="mac">The message authentication code to verify. Must be <see cref="MacLen"/> bytes long.</param>
+		/// <param name="input">The original message data that the MAC should authenticate.</param>
+		/// <param name="key">The secret key that was used to generate the MAC. Must be <see cref="KeyLen"/> bytes long.</param>
+		/// <returns><c>true</c> if the MAC is valid; otherwise, <c>false</c>.</returns>
+		/// <exception cref="ArgumentException">Thrown when the length of <paramref name="mac"/> or <paramref name="key"/> is invalid.</exception>
+		/// <exception cref="LibSodiumException">Thrown when an unexpected error occurs during verification.</exception>
+		/// <remarks>
+		/// This method wraps the <c>crypto_auth_verify</c> function from libsodium.
+		/// </remarks>
+		public static bool TryVerifyMac(ReadOnlySpan<byte> mac, ReadOnlySpan<byte> input, SecureMemory<byte> key)
+		{
+			return TryVerifyMac(mac, input, key.AsReadOnlySpan());
+		}
+
+		/// <summary>
 		/// Verifies that a given MAC is valid for the specified input and key using HMAC-SHA-512-256.
 		/// </summary>
 		/// <param name="mac">The message authentication code to verify. Must be <see cref="MacLen"/> bytes long.</param>
@@ -94,9 +127,6 @@
 		/// <param name="key">The secret key that was used to generate the MAC. Must be <see cref="KeyLen"/> bytes long.</param>
 		/// <exception cref="ArgumentException">Thrown when the length of <paramref name="mac"/> or <paramref name="key"/> is invalid.</exception>
 		/// <exception cref="LibSodiumException">Thrown when the MAC verification fails or an unexpected error occurs.</exception>
-		/// <remarks>
-		/// Internally calls <see cref="TryVerifyMac"/> and throws if the verification fails.
-		/// </remarks>
 		public static void VerifyMac(ReadOnlySpan<byte> mac, ReadOnlySpan<byte> input, ReadOnlySpan<byte> key)
 		{
 			if (TryVerifyMac(mac, input, key))
@@ -107,6 +137,19 @@
 			{
 				throw new LibSodiumException("MAC verification failed.");
 			}
+		}
+
+		/// <summary>
+		/// Verifies that a given MAC is valid for the specified input and key using HMAC-SHA-512-256.
+		/// </summary>
+		/// <param name="mac">The message authentication code to verify. Must be <see cref="MacLen"/> bytes long.</param>
+		/// <param name="input">The original message data that the MAC should authenticate.</param>
+		/// <param name="key">The secret key that was used to generate the MAC. Must be <see cref="KeyLen"/> bytes long.</param>
+		/// <exception cref="ArgumentException">Thrown when the length of <paramref name="mac"/> or <paramref name="key"/> is invalid.</exception>
+		/// <exception cref="LibSodiumException">Thrown when the MAC verification fails or an unexpected error occurs.</exception>
+		public static void VerifyMac(ReadOnlySpan<byte> mac, ReadOnlySpan<byte> input, SecureMemory<byte> key)
+		{
+			VerifyMac(mac, input, key.AsReadOnlySpan());
 		}
 	}
 }

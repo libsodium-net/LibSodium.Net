@@ -14,6 +14,7 @@ namespace LibSodium
 	/// lambda expressions, anonymous methods or other contexts with limited scope, such as after awaiting a task.
 	/// </remarks>
 	/// <typeparam name="T">The unmanaged type of the span elements.</typeparam>
+	[Obsolete("This class is deprecated and will be removed in a future version. Use SecureMemory<T> instead.")]
 	public unsafe class UnmanagedMemorySpanHolder<T> where T : unmanaged
 	{
 		private void* pointer;

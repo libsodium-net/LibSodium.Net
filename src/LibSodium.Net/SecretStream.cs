@@ -154,6 +154,49 @@ public static class SecretStream
 	/// The secret key for encryption. Must be securely generated and kept confidential.
 	/// Typically 32 bytes in length for XChaCha20-Poly1305.
 	/// </param>
+	/// <param name="aad">Additional autenticated data</param>
+	/// <param name="cancellationToken">Optional token to cancel the asynchronous operation.</param>
+	/// <returns>A task representing the asynchronous encryption process.</returns>
+	/// <exception cref="ArgumentNullException">Thrown if any argument is null.</exception>
+	/// <exception cref="OperationCanceledException">Thrown if the operation is canceled.</exception>
+	/// <remarks>
+	/// <para>
+	/// The input stream is read in <see cref="PlainChunkSize"/> blocks. Each block is encrypted
+	/// and written to the output stream with an authentication tag to ensure integrity.
+	/// </para>
+	/// <para>
+	/// A cryptographic header (including a randomly generated nonce) is prepended to the output.
+	/// This header is required for successful decryption.
+	/// </para>
+	/// <para>
+	/// The encryption state is maintained internally and finalized when the last chunk is written
+	/// with the <see cref="CryptoSecretStreamTag.Final"/> tag.
+	/// </para>
+	/// <para>
+	/// <b>Note:</b> The caller is responsible for managing the lifetime of the input/output streams.
+	/// They are not closed or disposed automatically.
+	/// </para>
+	/// </remarks>
+	public static async Task EncryptAsync(
+		Stream input,
+		Stream output,
+		SecureMemory<byte> key,
+		ReadOnlyMemory<byte> aad,
+		CancellationToken cancellationToken = default)
+	{
+		await EncryptAsync(input, output, key.AsReadOnlyMemory(), aad, cancellationToken).ConfigureAwait(false);
+	}
+
+	/// <summary>
+	/// Asynchronously encrypts data from the <paramref name="input"/> stream and writes the ciphertext
+	/// to the <paramref name="output"/> stream using the XChaCha20-Poly1305 algorithm.
+	/// </summary>
+	/// <param name="input">The readable stream containing plaintext to encrypt.</param>
+	/// <param name="output">The writable stream where ciphertext will be written.</param>
+	/// <param name="key">
+	/// The secret key for encryption. Must be securely generated and kept confidential.
+	/// Typically 32 bytes in length for XChaCha20-Poly1305.
+	/// </param>
 	/// <param name="cancellationToken">Optional token to cancel the asynchronous operation.</param>
 	/// <returns>A task representing the asynchronous encryption process.</returns>
 	/// <exception cref="ArgumentNullException">Thrown if any argument is null.</exception>
@@ -186,29 +229,35 @@ public static class SecretStream
 	}
 
 	/// <summary>
-	/// Asynchronously encrypts data from the <paramref name="input"/> stream using a key
-	/// stored in <see cref="SecureMemory{T}"/> and writes the ciphertext to the <paramref name="output"/> stream.
+	/// Asynchronously encrypts data from the <paramref name="input"/> stream and writes the ciphertext
+	/// to the <paramref name="output"/> stream using the XChaCha20-Poly1305 algorithm.
 	/// </summary>
 	/// <param name="input">The readable stream containing plaintext to encrypt.</param>
 	/// <param name="output">The writable stream where ciphertext will be written.</param>
 	/// <param name="key">
-	/// A secure memory buffer containing the secret key. It is critical that this buffer is disposed properly
-	/// to ensure the key is wiped from memory.
+	/// The secret key for encryption. Must be securely generated and kept confidential.
+	/// Typically 32 bytes in length for XChaCha20-Poly1305.
 	/// </param>
 	/// <param name="cancellationToken">Optional token to cancel the asynchronous operation.</param>
 	/// <returns>A task representing the asynchronous encryption process.</returns>
 	/// <exception cref="ArgumentNullException">Thrown if any argument is null.</exception>
-	/// <exception cref="ObjectDisposedException">Thrown if the secure key has already been disposed.</exception>
 	/// <exception cref="OperationCanceledException">Thrown if the operation is canceled.</exception>
 	/// <remarks>
 	/// <para>
-	/// This overload offers identical functionality to
-	/// <see cref="EncryptAsync(Stream, Stream, ReadOnlyMemory{byte}, CancellationToken)"/>,
-	/// but uses a <see cref="SecureMemory{T}"/> buffer to enhance key security during runtime.
+	/// The input stream is read in <see cref="PlainChunkSize"/> blocks. Each block is encrypted
+	/// and written to the output stream with an authentication tag to ensure integrity.
 	/// </para>
 	/// <para>
-	/// Using secure memory reduces the risk of sensitive data being captured in memory dumps
-	/// or accessed by unauthorized code.
+	/// A cryptographic header (including a randomly generated nonce) is prepended to the output.
+	/// This header is required for successful decryption.
+	/// </para>
+	/// <para>
+	/// The encryption state is maintained internally and finalized when the last chunk is written
+	/// with the <see cref="CryptoSecretStreamTag.Final"/> tag.
+	/// </para>
+	/// <para>
+	/// <b>Note:</b> The caller is responsible for managing the lifetime of the input/output streams.
+	/// They are not closed or disposed automatically.
 	/// </para>
 	/// </remarks>
 	public static async Task EncryptAsync(
@@ -217,9 +266,9 @@ public static class SecretStream
 		SecureMemory<byte> key,
 		CancellationToken cancellationToken = default)
 	{
-		ArgumentNullException.ThrowIfNull(key, nameof(key));
-		await EncryptAsync(input, output, key.AsMemory(), cancellationToken).ConfigureAwait(false);
+		await EncryptAsync(input, output, key.AsReadOnlyMemory(), cancellationToken).ConfigureAwait(false);
 	}
+
 
 	/// <summary>
 	/// Attempts to return a rented buffer back to the shared <see cref="ArrayPool{T}"/> instance.
@@ -381,6 +430,55 @@ public static class SecretStream
 	/// <param name="key">
 	/// The secret key used for decryption. It must match the key used during encryption.
 	/// </param>
+	/// <param name="aad">Additional authenticated data</param>
+	/// <param name="cancellationToken">Optional token to cancel the asynchronous operation.</param>
+	/// <returns>A task representing the asynchronous decryption process.</returns>
+	/// <exception cref="ArgumentNullException">Thrown if any argument is null.</exception>
+	/// <exception cref="EndOfStreamException">
+	/// Thrown if the stream ends unexpectedly or the final tag is never reached.
+	/// </exception>
+	/// <exception cref="LibSodiumException">
+	/// Thrown if the integrity check fails on any chunk (i.e., authentication tag mismatch).
+	/// </exception>
+	/// <exception cref="OperationCanceledException">Thrown if the operation is canceled.</exception>
+	/// <remarks>
+	/// <para>
+	/// The decryption process begins by reading the stream header, which includes a nonce required
+	/// to initialize the decryption state. Each encrypted chunk is then read, authenticated,
+	/// and decrypted in order.
+	/// </para>
+	/// <para>
+	/// If any chunk fails authentication, a <see cref="LibSodiumException"/> is thrown and no plaintext
+	/// is written for that chunk. If the stream ends before encountering a chunk tagged as
+	/// <see cref="CryptoSecretStreamTag.Final"/>, an <see cref="EndOfStreamException"/> is thrown.
+	/// </para>
+	/// <para>
+	/// This method uses pooled buffers and zeroes out internal state after use to reduce memory leakage risks.
+	/// Input and output streams are not closed automatically.
+	/// </para>
+	/// </remarks>
+	public static async Task DecryptAsync(
+		Stream input,
+		Stream output,
+		SecureMemory<byte> key,
+		ReadOnlyMemory<byte> aad,
+		CancellationToken cancellationToken = default)
+	{
+		await DecryptAsync(input, output, key.AsReadOnlyMemory(), aad, cancellationToken).ConfigureAwait(false);
+	}
+
+	/// <summary>
+	/// Asynchronously decrypts data from the <paramref name="input"/> stream and writes the plaintext
+	/// to the <paramref name="output"/> stream, verifying integrity using XChaCha20-Poly1305.
+	/// </summary>
+	/// <param name="input">
+	/// A readable stream containing encrypted data. The stream must begin with the header
+	/// produced during encryption.
+	/// </param>
+	/// <param name="output">The writable stream where decrypted plaintext will be written.</param>
+	/// <param name="key">
+	/// The secret key used for decryption. It must match the key used during encryption.
+	/// </param>
 	/// <param name="cancellationToken">Optional token to cancel the asynchronous operation.</param>
 	/// <returns>A task representing the asynchronous decryption process.</returns>
 	/// <exception cref="ArgumentNullException">Thrown if any argument is null.</exception>
@@ -415,6 +513,7 @@ public static class SecretStream
 	{
 		await DecryptAsync(input, output, key, ReadOnlyMemory<byte>.Empty, cancellationToken).ConfigureAwait(false);
 	}
+
 
 	/// <summary>
 	/// Asynchronously decrypts data from the <paramref name="input"/> stream using a key
@@ -550,6 +649,7 @@ public static class SecretStream
 	/// A <see cref="SecureMemory{T}"/> buffer containing the encryption key. It must be 32 bytes in size,
 	/// and will be securely wiped from memory after use.
 	/// </param>
+	/// <param name="aad">Additional authenticated data</param>
 	/// <exception cref="ArgumentNullException">Thrown if <paramref name="key"/>, <paramref name="input"/>, or <paramref name="output"/> is null.</exception>
 	/// <exception cref="ObjectDisposedException">Thrown if the key has already been disposed.</exception>
 	/// <exception cref="ArgumentException">Thrown if the key is invalid (wrong length).</exception>
@@ -562,10 +662,12 @@ public static class SecretStream
 	/// This improves resistance to key leakage through memory inspection, especially in long-lived processes.
 	/// </para>
 	/// </remarks>
-	public static void Encrypt(Stream input, Stream output, SecureMemory<byte> key)
+	public static void Encrypt(Stream input, Stream output, SecureMemory<byte> key, ReadOnlySpan<byte> aad = default)
 	{
-		Encrypt(input, output, key.AsSpan());
+		Encrypt(input, output, key.AsReadOnlySpan(), aad);
 	}
+
+
 
 	/// <summary>
 	/// Synchronously decrypts data from the <paramref name="input"/> stream and writes the plaintext

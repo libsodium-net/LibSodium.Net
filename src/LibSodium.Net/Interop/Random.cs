@@ -6,7 +6,7 @@ namespace LibSodium.Interop
 	internal static partial class Native
 	{
 
-		internal const uint randombytes_SEEDBYTES = 32U;
+		internal const int RANDOMBYTES_SEEDBYTES = 32;
 
 		[LibraryImport(LibSodiumNativeLibraryName, EntryPoint = nameof(randombytes_random))]
 		[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]

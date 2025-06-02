@@ -11,6 +11,8 @@ LibSodium.Net provides multiple hashing APIs for different use cases:
 | `CryptoPasswordHashArgon`  | Argon2id/i13 | Password hashing and key derivation (slow & memory‑hard)                              |
 | `CryptoPasswordHashScrypt` | Scrypt       | Password hashing and key derivation (slow & memory‑hard, legacy)                      |
 
+> 📝 SHA‑2 functions are **not suitable** for password hashing or key derivation. Use Argon2 or scrypt instead.
+
 
 > 🧂 Based on [libsodium’s Hashing](https://doc.libsodium.org/hashing)<br/>
 > 🧂 Based on [Password Hashing](https://doc.libsodium.org/password_hashing)<br/>
@@ -38,6 +40,53 @@ LibSodium.Net provides multiple hashing APIs for different use cases:
 
 ---
 
+## 🗝️ Key Management
+
+Some hash functions accept a key (e.g., GenericHash, ShortHash), while others produce one as output (e.g., Argon2, Scrypt). This section explains how to pass and store keys safely. 
+
+Keys can be provided or stored using the following types:
+
+* `SecureMemory<byte>` — most secure option, with memory protection and automatic zeroing.
+* `Span<byte>` / `ReadOnlySpan<byte>` — fast and stack-allocated. Ideal for synchronous use.
+* `byte[]` — interoperable and usable in both sync and async contexts.
+* `Memory<byte>` / `ReadOnlyMemory<byte>` — for use with async methods.
+
+> 📝 Use `Span<T>` for high-performance local operations, and `SecureMemory<byte>` to protect secrets in memory.
+
+When using key derivation functions (e.g., Argon2, Scrypt):
+
+
+
+
+**Examples**:
+
+```csharp
+// SecureMemory<byte>
+using var key = new SecureMemory<byte>(GenericHash.KeyLen);
+RandomGenerator.Fill(key);
+key.ProtectReadOnly();
+```
+
+```csharp
+// Span<byte>
+Span<byte> key = stackalloc byte[GenericHash.KeyLen];
+RandomGenerator.Fill(key);
+```
+
+```csharp
+// byte[]
+var key = new byte[GenericHash.KeyLen];
+RandomGenerator.Fill(key);
+```
+
+**Tips:**
+* Store the derived key in `SecureMemory<byte>`, mark it as read-only using `.ProtectReadOnly()`, and dispose it properly.
+* Never reuse keys across different algorithms or protocols. Even if the key size is compatible, doing so weakens isolation and security boundaries.
+* Use a strong, random salt and a context-specific derivation strategy.
+* Generate a fresh random key with `RandomGenerator.Fill()` and store it securely (e.g., Azure Key Vault, environment variable, HSM).
+* Rotate keys periodically.
+
+
 ## ✨ GenericHash — BLAKE2b
 
 BLAKE2b is a cryptographic hash function designed as a faster and safer alternative to SHA‑2. It provides high‑performance hashing with optional key support, making it suitable for:
@@ -62,26 +111,30 @@ By default, it produces 32‑byte output, but can be configured to return betwee
 | `MinKeyLen`  | 16    | Minimum key length    |
 | `MaxKeyLen`  | 64    | Maximum key length    |
 
-### 📋 Hash with optional key
+
+
+### 📋 Hashing with GenericHash
+
+**With optional key:**
 
 ```csharp
 Span<byte> hash = stackalloc byte[CryptoGenericHash.HashLen];
 CryptoGenericHash.ComputeHash(hash, message);              // unkeyed
-CryptoGenericHash.ComputeHash(hash, message, key);         // keyed (MAC or PRF)
+CryptoGenericHash.ComputeHash(hash, message, key);         // keyed
 ```
 
-### 📋 Hash from a stream
+**from a stream:**
 
 ```csharp
 using var stream = File.OpenRead("large-input.dat");
 CryptoGenericHash.ComputeHash(hash, stream);
 ```
 
-### 📋 Async stream support
+**Async stream support:**
 
 ```csharp
 using var stream = File.OpenRead("large-input.dat");
-await CryptoGenericHash.ComputeHashAsync(hash, stream);
+await CryptoGenericHash.ComputeHashAsync(hash, stream, key);
 ```
 
 ---
@@ -96,21 +149,23 @@ await CryptoGenericHash.ComputeHashAsync(hash, stream);
 | --------- | ----- | ------------------------ |
 | `HashLen` | 32    | Output length (32 bytes) |
 
-### 📋 Hash a byte array
+### 📋 Hashing with CryptoSha256
+
+**Hash a byte array:**
 
 ```csharp
 Span<byte> hash = stackalloc byte[CryptoSha256.HashLen];
 CryptoSha256.ComputeHash(hash, message);
 ```
 
-### 📋 Hash a stream (buffered, sync)
+**Hash a stream (buffered, sync):**
 
 ```csharp
 using var stream = File.OpenRead("video.mp4");
 CryptoSha256.ComputeHash(hash, stream);
 ```
 
-### 📋 Async stream hashing
+**Async stream hashing:**
 
 ```csharp
 await CryptoSha256.ComputeHashAsync(hash, stream);
@@ -128,21 +183,23 @@ await CryptoSha256.ComputeHashAsync(hash, stream);
 | --------- | ----- | ------------------------ |
 | `HashLen` | 64    | Output length (64 bytes) |
 
-### 📋 Hash a byte array
+### 📋 Hashing with CryptoSha512
+
+**Hash a Span<byte>:**
 
 ```csharp
 Span<byte> hash = stackalloc byte[CryptoSha512.HashLen];
 CryptoSha512.ComputeHash(hash, message);
 ```
 
-### 📋 Hash a stream (buffered, sync)
+**Hash a stream (buffered, sync):**
 
 ```csharp
 using var stream = File.OpenRead("backup.tar");
 CryptoSha512.ComputeHash(hash, stream);
 ```
 
-### 📋 Async stream hashing
+**Async stream hashing:**
 
 ```csharp
 await CryptoSha512.ComputeHashAsync(hash, stream);
@@ -161,7 +218,7 @@ The following classes support incremental hashing:
 
 These types expose an incremental API via the `ICryptoIncrementalHash` interface.
 
-### 📋 Compute hash from multiple parts
+**Compute hash from multiple parts:**
 
 ```csharp
 Span<byte> hash = stackalloc byte[CryptoSha256.HashLen];
@@ -175,7 +232,7 @@ hasher.Final(hash);
 
 This pattern ensures correctness and efficiency when you want to hash logically grouped inputs without allocating or copying them into a single buffer.
 
-### 📋 With a keyed BLAKE2b hash
+**With a keyed BLAKE2b hash**
 
 ```csharp
 Span<byte> key = stackalloc byte[CryptoGenericHash.KeyLen];
@@ -217,7 +274,9 @@ SipHash is always keyed, and its output is always 8 bytes.
 | `HashLen` | 8     | Output length (8 bytes) |
 | `KeyLen`  | 16    | Key length (16 bytes)   |
 
-### 📋 Hash with key
+### 📋 Hashing with ShortHash
+
+> ℹ️ key is required
 
 ```csharp
 Span<byte> hash = stackalloc byte[CryptoShortHash.HashLen];
@@ -246,32 +305,34 @@ The cost parameters (iterations and memory) can be tuned to balance security and
 | `MinKeyLen`             | 16             | Minimum key length for derivation       |
 | `EncodedLen`            | 128            | Length of the encoded hash string       |
 | `Prefix`                | "\$argon2id\$" | Prefix for Argon2id encoded hash        |
-| `MinMemoryLen`          | 8 KB           | Minimum acceptable memory for hashing   |
-| `MinInterations`        | 1              | Minimum acceptable iterations           |
+| `MinMemoryLen`          | 8 KiB          | Minimum acceptable memory for hashing   |
+| `MinIterations`         | 1              | Minimum acceptable iterations           |
 | `InteractiveIterations` | 2              | Iteration count for interactive targets |
-| `InteractiveMemoryLen`  | 64 MB          | Memory usage for interactive targets    |
+| `InteractiveMemoryLen`  | 64 MiB         | Memory usage for interactive targets    |
 | `ModerateIterations`    | 3              | For app secrets or backup keys          |
-| `ModerateMemoryLen`     | 256Mb          | For app secrets or backup keys          |
+| `ModerateMemoryLen`     | 256 MiB        | For app secrets or backup keys          |
 | `SensitiveIterations`   | 4              | Iteration count for sensitive targets   |
-| `SensitiveMemoryLen`    | 1 GB           | Memory usage for sensitive targets      |
+| `SensitiveMemoryLen`    | 1 GiB          | Memory usage for sensitive targets      |
+
+### 📋 Working with PasswordHashArgon
 
 
-### 📋 Hash a password (encoded, random salt)
+**Hash a password (encoded, random salt):**
 
 ```csharp
 string hash = CryptoPasswordHash.HashPassword("my password");
 ```
 
-### 📋 Verify a password
+**Verify a password:**
 
 ```csharp
 bool valid = CryptoPasswordHash.VerifyPassword(hash, "my password");
 ```
 
-### 📋 Derive a secret key from a password (e.g., for encryption)
+**Derive a secret key from a password (e.g., for encryption):**
 
 ```csharp
-Span<byte> key = stackalloc byte[32];
+using var key = new SecureMemory(32);
 Span<byte> salt = stackalloc byte[CryptoPasswordHash.SaltLen];
 RandomGenerator.Fill(salt);
 CryptoPasswordHash.DeriveKey(key, "password", salt);
@@ -311,15 +372,19 @@ LibSodium.Net improves over libsodium by offering consistent tuning options (`Mi
 | `SensitiveIterations`   | 33554432 (2^25) | For long-term or high-value secrets |
 | `SensitiveMemoryLen`    | 1 GiB (2^30)    | For long-term or high-value secrets |
 
-### 📋 Examples
+### 📋 Working with PasswordHashScrypt
+
+**Hash and verify:**
 
 ```csharp
 string hash = CryptoPasswordHashScrypt.HashPassword("my password");
 bool valid = CryptoPasswordHashScrypt.VerifyPassword(hash, "my password");
 ```
 
+**Deriving a key from a password:**
+
 ```csharp
-Span<byte> key = stackalloc byte[32];
+using var key = new SecureMemory<byte>(32);
 Span<byte> salt = stackalloc byte[CryptoPasswordHashScrypt.SaltLen];
 RandomGenerator.Fill(salt);
 CryptoPasswordHashScrypt.DeriveKey(key, "password", salt,
@@ -351,15 +416,15 @@ CryptoPasswordHashScrypt.DeriveKey(key, "password", salt,
 
 ## 🧭 Choosing the Right Hash API
 
-| Scenario                                                 | Recommended API            |
-| -------------------------------------------------------- | -------------------------- |
-| Variable‑length cryptographic checksum                   | `GenericHash`              |
-| Fixed‑length 32‑byte digest (e.g., TLS cert fingerprint) | `CryptoSha256`             |
-| Fixed‑length 64‑byte digest, higher speed on x64         | `CryptoSha512`             |
-| MAC or PRF                                               | `GenericHash` (keyed)      |
-| Hashing short keys in tables                             | `ShortHash`                |
-| Password storage / passphrase‑derived keys               | `CryptoPasswordHashArgon`  |
-| Legacy Password storage / passphrase‑derived keys        | `CryptoPasswordHashScrypt` |
+| Scenario                                                          | Recommended API            |
+| ------------------------------------------------------------------| -------------------------- |
+| Variable‑length cryptographic checksum                            | `GenericHash`              |
+| Fixed‑length 32‑byte digest (e.g., TLS cert fingerprint)          | `CryptoSha256`             |
+| Fixed‑length 64‑byte digest, higher speed on x64                  | `CryptoSha512`             |
+| MAC (Message Authentication Code) or PRF (Pseudo Random Function) | `GenericHash` (with key)   |
+| Hashing short keys in tables                                      | `ShortHash`                |
+| Password storage / passphrase‑derived keys                        | `CryptoPasswordHashArgon`  |
+| Legacy Password storage / passphrase‑derived keys                 | `CryptoPasswordHashScrypt` |
 
 ## 👀 See Also
 

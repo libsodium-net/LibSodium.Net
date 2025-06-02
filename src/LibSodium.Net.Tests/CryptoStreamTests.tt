@@ -124,5 +124,67 @@ public class <#= algo #>Tests
 		var result = decrypted.ToArray();
 		result.ShouldBe(plaintext);
 	}
+
+	[Test]
+	public void EncryptDecrypt_WithSecureMemoryKey_ShouldRoundtrip()
+	{
+		using var key = SecureMemory.Create<byte>(<#= algo #>.KeyLen);
+		Span<byte> nonce = stackalloc byte[<#= algo #>.NonceLen];
+		RandomGenerator.Fill(key);
+		RandomGenerator.Fill(nonce);
+
+		var plaintext = Encoding.UTF8.GetBytes("secure stream test");
+		Span<byte> ciphertext = stackalloc byte[plaintext.Length];
+		Span<byte> decrypted = stackalloc byte[plaintext.Length];
+
+		<#= algo #>.Encrypt(key, nonce, plaintext, ciphertext);
+		<#= algo #>.Decrypt(key, nonce, ciphertext, decrypted);
+
+		decrypted.ShouldBe(plaintext);
+	}
+
+	[Test]
+	public void EncryptDecrypt_Stream_WithSecureMemoryKey_ShouldRoundtrip()
+	{
+		using var key = SecureMemory.Create<byte>(<#= algo #>.KeyLen);
+		Span<byte> nonce = stackalloc byte[<#= algo #>.NonceLen];
+		RandomGenerator.Fill(key);
+		RandomGenerator.Fill(nonce);
+
+		var plaintext = Encoding.UTF8.GetBytes("stream encryption test");
+		using var input = new MemoryStream(plaintext);
+		using var encrypted = new MemoryStream();
+		using var decrypted = new MemoryStream();
+
+		<#= algo #>.Encrypt(key, nonce, input, encrypted);
+
+		encrypted.Position = 0;
+		<#= algo #>.Decrypt(key, nonce, encrypted, decrypted);
+
+		var result = decrypted.ToArray();
+		result.ShouldBe(plaintext);
+	}
+
+	[Test]
+	public async Task EncryptDecrypt_StreamAsync_WithSecureMemoryKey_ShouldRoundtrip()
+	{
+		using var key = SecureMemory.Create<byte>(<#= algo #>.KeyLen);
+		byte[] nonce = new byte[<#= algo #>.NonceLen];
+		RandomGenerator.Fill(key);
+		RandomGenerator.Fill(nonce);
+
+		var plaintext = Encoding.UTF8.GetBytes("secure async stream");
+		await using var input = new MemoryStream(plaintext);
+		await using var encrypted = new MemoryStream();
+		await using var decrypted = new MemoryStream();
+
+		await <#= algo #>.EncryptAsync(key, nonce, input, encrypted);
+
+		encrypted.Position = 0;
+		await <#= algo #>.DecryptAsync(key, nonce, encrypted, decrypted);
+
+		var result = decrypted.ToArray();
+		result.ShouldBe(plaintext);
+	}
 }
 <# } #>

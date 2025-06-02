@@ -310,5 +310,76 @@ namespace LibSodium.Tests
 			Decrypt(decrypted, encrypted, key, mac: mac, nonce: nonce);
 			decrypted.ShouldBe(plaintext);
 		}
+
+		[Test]
+		public void EncryptCombinedDecryptCombined_WithSecureMemoryKey_Succeeds()
+		{
+			using var key = SecureMemory.Create<byte>(KeyLen);
+			Span<byte> nonce = stackalloc byte[NonceLen];
+			RandomGenerator.Fill(key);
+			RandomGenerator.Fill(nonce);
+
+			var plaintext = new byte[64];
+			RandomGenerator.Fill(plaintext);
+			Span<byte> ciphertext = stackalloc byte[plaintext.Length + MacLen];
+			Span<byte> decrypted = stackalloc byte[plaintext.Length];
+
+			var enc = Encrypt(ciphertext, plaintext, key, nonce: nonce);
+			var dec = Decrypt(decrypted, enc, key, nonce: nonce);
+			dec.ShouldBe(plaintext);
+		}
+
+		[Test]
+		public void EncryptCombinedAutoNonceDecryptCombinedAutoNonce_WithSecureMemoryKey_Succeeds()
+		{
+			using var key = SecureMemory.Create<byte>(KeyLen);
+			RandomGenerator.Fill(key);
+
+			var plaintext = new byte[48];
+			RandomGenerator.Fill(plaintext);
+			Span<byte> ciphertext = stackalloc byte[NonceLen + MacLen + plaintext.Length];
+			Span<byte> decrypted = stackalloc byte[plaintext.Length];
+
+			var enc = Encrypt(ciphertext, plaintext, key);
+			var dec = Decrypt(decrypted, enc, key);
+			dec.ShouldBe(plaintext);
+		}
+
+		[Test]
+		public void EncryptDetachedDecryptDetached_WithSecureMemoryKey_Succeeds()
+		{
+			using var key = SecureMemory.Create<byte>(KeyLen);
+			Span<byte> nonce = stackalloc byte[NonceLen];
+			RandomGenerator.Fill(key);
+			RandomGenerator.Fill(nonce);
+
+			var plaintext = new byte[32];
+			RandomGenerator.Fill(plaintext);
+			Span<byte> ciphertext = stackalloc byte[plaintext.Length];
+			Span<byte> mac = stackalloc byte[MacLen];
+			Span<byte> decrypted = stackalloc byte[plaintext.Length];
+
+			var enc = Encrypt(ciphertext, plaintext, key, mac: mac, nonce: nonce);
+			var dec = Decrypt(decrypted, enc, key, mac: mac, nonce: nonce);
+			dec.ShouldBe(plaintext);
+		}
+
+		[Test]
+		public void EncryptDetachedAutoNonceDecryptDetachedAutoNonce_WithSecureMemoryKey_Succeeds()
+		{
+			using var key = SecureMemory.Create<byte>(KeyLen);
+			RandomGenerator.Fill(key);
+
+			var plaintext = new byte[16];
+			RandomGenerator.Fill(plaintext);
+			Span<byte> ciphertext = stackalloc byte[NonceLen + plaintext.Length];
+			Span<byte> mac = stackalloc byte[MacLen];
+			Span<byte> decrypted = stackalloc byte[plaintext.Length];
+
+			var enc = Encrypt(ciphertext, plaintext, key, mac: mac);
+			var dec = Decrypt(decrypted, enc, key, mac: mac);
+			dec.ShouldBe(plaintext);
+		}
+
 	}
 }

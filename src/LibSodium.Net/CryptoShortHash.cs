@@ -48,5 +48,19 @@ namespace LibSodium
             if (result != 0)
                 throw new LibSodiumException("Short hash computation failed.");
         }
-    }
+
+		/// <summary>
+		/// Computes a short hash (SipHash-2-4) of the given message using the provided 16-byte key. The key must remain secret. 
+		/// This function will not provide any mitigations against DoS attacks if the key is known from attackers.
+		/// </summary>
+		/// <param name="hash">A buffer of exactly 8 bytes to receive the output.</param>
+		/// <param name="message">The message to hash.</param>
+		/// <param name="key">A 16-byte secret key.</param>
+		/// <exception cref="ArgumentException">Thrown if the key or hash buffer is not of expected length.</exception>
+		/// <exception cref="LibSodiumException">Thrown if the hashing operation fails.</exception>
+		public static void ComputeHash(Span<byte> hash, ReadOnlySpan<byte> message, SecureMemory<byte> key)
+		{
+			ComputeHash(hash, message, key.AsReadOnlySpan());
+		}
+	}
 }

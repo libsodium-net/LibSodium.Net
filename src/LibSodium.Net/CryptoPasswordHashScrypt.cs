@@ -102,6 +102,31 @@ public static class CryptoPasswordHashScrypt
 	}
 
 	/// <summary>
+	/// Derives a secret key from a password and salt using scrypt.
+	/// </summary>
+	/// <param name="key">Buffer to receive the derived key (recommended: 32 bytes).</param>
+	/// <param name="password">The password to hash.</param>
+	/// <param name="salt">The salt (must be 32 bytes).</param>
+	/// <param name="iterations">Computation cost (default: INTERACTIVE).</param>
+	/// <param name="requiredMemoryLen">Memory usage limit in bytes (default: INTERACTIVE).</param>
+	/// <exception cref="ArgumentException">If arguments are invalid.</exception>
+	/// <exception cref="LibSodiumException">If hashing fails.</exception>
+	public static void DeriveKey(
+		SecureMemory<byte> key,
+		SecureMemory<byte> password,
+		ReadOnlySpan<byte> salt,
+		int iterations = InteractiveIterations,
+		int requiredMemoryLen = InteractiveMemoryLen)
+	{
+		DeriveKey(
+			key.AsSpan(),
+			password.AsReadOnlySpan(),
+			salt,
+			iterations,
+			requiredMemoryLen);
+	}
+
+	/// <summary>
 	/// Derives a secret key from a password string and salt using scrypt.
 	/// </summary>
 	/// <param name="key">Buffer to receive the derived key (recommended: 32 bytes).</param>
@@ -125,6 +150,31 @@ public static class CryptoPasswordHashScrypt
 		Encoding.UTF8.GetBytes(password, passwordUtf8);
 
 		DeriveKey(key, passwordUtf8, salt, iterations, requiredMemoryLen);
+	}
+
+	/// <summary>
+	/// Derives a secret key from a password string and salt using scrypt.
+	/// </summary>
+	/// <param name="key">Buffer to receive the derived key (recommended: 32 bytes).</param>
+	/// <param name="password">The password string to hash.</param>
+	/// <param name="salt">The salt (must be 32 bytes).</param>
+	/// <param name="iterations">Computation cost (default: INTERACTIVE).</param>
+	/// <param name="requiredMemoryLen">Memory usage limit in bytes (default: INTERACTIVE).</param>
+	/// <exception cref="ArgumentNullException">If the password is null.</exception>
+	/// <exception cref="LibSodiumException">If hashing fails.</exception>
+	public static void DeriveKey(
+		SecureMemory<byte> key,
+		string password,
+		ReadOnlySpan<byte> salt,
+		int iterations = InteractiveIterations,
+		int requiredMemoryLen = InteractiveMemoryLen)
+	{
+		DeriveKey(
+			key.AsSpan(),
+			password,
+			salt,
+			iterations,
+			requiredMemoryLen);
 	}
 
 	/// <summary>
@@ -160,6 +210,26 @@ public static class CryptoPasswordHashScrypt
 			throw new LibSodiumException("HashPassword failed. Possible out of memory.");
 
 		return Encoding.ASCII.GetString(buffer.Slice(0, buffer.IndexOf((byte)0)));
+	}
+
+	/// <summary>
+	/// Hashes a password into a human-readable string (including algorithm and parameters).
+	/// </summary>
+	/// <param name="password">The password to hash (in UTF-8).</param>
+	/// <param name="iterations">Computation cost (default: INTERACTIVE).</param>
+	/// <param name="requiredMemoryLen">Memory usage limit in bytes (default: INTERACTIVE).</param>
+	/// <returns>A string containing only ASCII characters, including the algorithm identifier, salt, and parameters.</returns>
+	/// <exception cref="ArgumentOutOfRangeException">If password is too short or parameters are invalid.</exception>
+	/// <exception cref="LibSodiumException">If hashing fails.</exception>
+	public static string HashPassword(
+	SecureMemory<byte> password,
+	int iterations = InteractiveIterations,
+	int requiredMemoryLen = InteractiveMemoryLen)
+	{
+		return HashPassword(
+			password.AsReadOnlySpan(),
+			iterations,
+			requiredMemoryLen);
 	}
 
 	/// <summary>
@@ -210,6 +280,23 @@ public static class CryptoPasswordHashScrypt
 			(ulong)password.Length);
 
 		return result == 0;
+	}
+
+	/// <summary>
+	/// Verifies a password against a previously hashed string.
+	/// </summary>
+	/// <param name="hashedPassword">The encoded password hash string (must be ASCII and null-terminated).</param>
+	/// <param name="password">The password to verify.</param>
+	/// <returns><c>true</c> if the password is valid; otherwise, <c>false</c>.</returns>
+	/// <exception cref="ArgumentNullException">If <paramref name="hashedPassword"/> is null.</exception>
+	/// <exception cref="ArgumentException">If <paramref name="hashedPassword"/> is too long.</exception>
+	public static bool VerifyPassword(
+		string hashedPassword,
+		SecureMemory<byte> password)
+	{
+		return VerifyPassword(
+			hashedPassword,
+			password.AsReadOnlySpan());
 	}
 
 	/// <summary>

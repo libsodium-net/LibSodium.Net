@@ -33,6 +33,7 @@ Beyond encryption you can treat the keystream itself as a fast **pseudorandom fu
 * Key & nonce length checks throw early (`ArgumentException`).
 * Deterministic: same key + nonce ⇒ same keystream.
 * Huge keystream period: 2^64 blocks ≈ 2^70 bytes —except for the IETF variant— *practically* limitless but **not infinite**.
+* Accepts `SecureMemory<byte>` as key input.
 
 ---
 
@@ -82,12 +83,31 @@ All stream cipher classes share the following members:
 
 All examples are in C# and work for all stream cipher algorithms, just change the class name.
 
+LibSodium.Net accepts `Span<byte>`/`ReadOnlySpan<byte>`, `byte[]`, or `SecureMemory<byte>` as key inputs for synchronous methods.
+For asynchronous methods, it accepts `Memory<byte>`/`ReadOnlyMemory<byte>`, `byte[]`, or `SecureMemory<byte>`.
+
+Using `SecureMemory<byte>` is strongly recommended, as it protects key material in unmanaged memory with automatic zeroing and access control.
+
 ```csharp
 // Async overloads accept Memory<byte>/ReadOnlyMemory<byte>, not Span<byte>.
 // We use byte[] because it implicitly converts to both Memory<byte> and Span<byte>.
 byte[] key = new byte[CryptoStreamXChaCha20.KeyLen];
-byte[] nonce = new byte[CryptoStreamXChaCha20.NonceLen];
 RandomGenerator.Fill(key);
+```
+
+```csharp
+// SecureMemory works for both synchronous and asynchronous methods.
+using var key = new SecureMemory<byte>(CryptoStreamXChaCha20.KeyLen);
+RandomGenerator.Fill(key);
+key.ProtectReadOnly();
+```
+
+Use `RandomGenerator.Fill()` to generate a cryptographically secure random key. 
+Alternatively, keys may be securely stored or derived using a key derivation function.
+
+```csharp
+
+byte[] nonce = new byte[CryptoStreamXChaCha20.NonceLen];
 RandomGenerator.Fill(nonce);
 
 // 1. Basic usage encrypt and decrypt buffer
@@ -149,10 +169,9 @@ CryptoStreamXChaCha20.Decrypt(key, nonce, ciphertext, decrypted, initialCounter:
 
 ## 🗝️ Key & Nonce Management Tips
 
-* Generate keys with `RandomGenerator.Fill` or `GenerateKey`.
 * **Never** reuse a nonce with the same key—this reveals keystream and breaks confidentiality.
 * Prefer 24‑byte variants for random nonces; use counters for 8/12‑byte variants.
-* Rotate keys well before exceeding **2^64 blocks** (≈ 1 PiB) of keystream.
+* Use `SecureMemory<byte>` for keys. It provides guarded heap allocations with memory protection and automatic wiping.
 
 ---
 

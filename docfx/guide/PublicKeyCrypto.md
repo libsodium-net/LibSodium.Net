@@ -17,6 +17,7 @@ LibSodium.Net provides high-level APIs for public-key cryptography based on Curv
 * Digital signatures with Ed25519 (`CryptoSign`)
 * Span-based APIs for efficient, allocation-free usage
 * Conversion from Ed25519 keys to Curve25519 (`CryptoSign.PublicKeyToCurve`, `CryptoSign.PrivateKeyToCurve`)
+* Keys and seeds can be provided as `SecureMemory<byte>`, `Span<byte>`/`ReadOnlySpan<byte>`, and `byte[]`.
 
 ---
 
@@ -45,57 +46,68 @@ Internally, it uses Curve25519 for key exchange, XSalsa20 for encryption, and Po
 
 ---
 
-## 🗝️ Key Management
+### 📋 CryptoBox Key Management
 
-### 📋 Generate Keypair
+**Generate random key pair:**
 
 ```csharp
+// SecureMemory
+Span<byte> publicKey = stackalloc byte[CryptoBox.PublicKeyLen];
+using var privateKey = new SecureMemory<byte>(CryptoBox.PrivateKeyLen);
+CryptoBox.GenerateKeypair(publicKey, privateKey);
+privateKey.ProtectReadOnly();
+```
+
+```csharp
+// Span
 Span<byte> publicKey = stackalloc byte[CryptoBox.PublicKeyLen];
 Span<byte> privateKey = stackalloc byte[CryptoBox.PrivateKeyLen];
 CryptoBox.GenerateKeypair(publicKey, privateKey);
 ```
 
-### 📋 Deterministic Keypair from Seed
+**Deterministic key pair from seed:**
 
 ```csharp
+// SecureMemory
+using var seed = new SecureMemory<byte>(CryptoBox.SeedLen);
+//TODO: fill the seed using seed.AsSpan() 
+seed.ProtectReadOnly();
+Span<byte> publicKey = stackalloc byte[CryptoBox.PublicKeyLen];
+using var privateKey = new SecureMemory<byte>(CryptoBox.PrivateKeyLen);
+CryptoBox.GenerateKeypairDeterministically(publicKey, privateKey, seed);
+privateKey.ProtectReadOnly();
+```
+
+
+```csharp
+// Span
 Span<byte> seed = stackalloc byte[CryptoBox.SeedLen];
+//TODO: fill the seed
 Span<byte> publicKey = stackalloc byte[CryptoBox.PublicKeyLen];
 Span<byte> privateKey = stackalloc byte[CryptoBox.PrivateKeyLen];
 CryptoBox.GenerateKeypairDeterministically(publicKey, privateKey, seed);
 ```
 
-### 📋 Precompute Shared Key
+**Precompute shared key:
 
 ```csharp
+// SecureMemory
+using var  sharedKey = SecureMemory<byte>(CryptoBox.SharedKeyLen);
+CryptoBox.CalculateSharedKey(sharedKey, otherPartyPublicKey, myPrivateKey);
+sharedKey.ProtectReadOnly();
+```
+
+```csharp
+// Span
 Span<byte> sharedKey = stackalloc byte[CryptoBox.SharedKeyLen];
 CryptoBox.CalculateSharedKey(sharedKey, otherPartyPublicKey, myPrivateKey);
 ```
 
-### 📋 Convert Ed25519 to Curve25519
-
-LibSodium.Net allows converting Ed25519 key pairs (used for digital signatures) to Curve25519 format, suitable for encryption and key exchange.
-
-These converted keys can be used with the `CryptoBox` and `CryptoKeyExchange` APIs.
-
-
-```csharp
-Span<byte> edPk = stackalloc byte[CryptoSign.PublicKeyLen];
-Span<byte> edSk = stackalloc byte[CryptoSign.PrivateKeyLen];
-CryptoSign.GenerateKeyPair(edPk, edSk);
-
-Span<byte> curvePk = stackalloc byte[CryptoBox.PublicKeyLen];
-Span<byte> curveSk = stackalloc byte[CryptoBox.PrivateKeyLen];
-CryptoSign.PublicKeyToCurve(curvePk, edPk);
-CryptoSign.PrivateKeyToCurve(curveSk, edSk);
-```
-
-The resulting `curvePk` and `curveSk` can be used anywhere a Curve25519 key is expected.
-
 ---
 
-## ✨ Encryption Modes
+### ✨ Encrypting and Decrypting with CryptoBox
 
-### 📋 Encrypt / Decrypt with Keypair (Combined, Auto Nonce)
+**Encrypt / Decrypt with Keypair (Combined, Auto Nonce):**
 
 
 ```csharp
@@ -108,7 +120,7 @@ CryptoBox.DecryptWithKeypair(decrypted, ciphertext, senderPublicKey, recipientPr
 AssertLite.True(decrypted.SequenceEqual(message));
 ```
 
-### 📋 Encrypt / Decrypt with Keypair (Detached, Manual Nonce)
+**Encrypt / Decrypt with Keypair (Detached, Manual Nonce)**
 
 
 ```csharp
@@ -119,16 +131,16 @@ CryptoBox.EncryptWithKeypair(ciphertext, message, recipientPublicKey, senderPriv
 CryptoBox.DecryptWithKeypair(decrypted, ciphertext, senderPublicKey, recipientPublicKey, mac, nonce);
 ```
 
-### 📋 Encrypt / Decrypt with Shared Key (Combined, Auto Nonce)
+**Encrypt / Decrypt with Shared Key (Combined, Auto Nonce):**
 
 ```csharp
 Span<byte> ciphertext = stackalloc byte[message.Length + CryptoBox.MacLen + CryptoBox.NonceLen];
 CryptoBox.EncryptWithSharedKey(ciphertext, message, sharedKey);
 CryptoBox.DecryptWithSharedKey(decrypted, ciphertext, sharedKey);
-AssertLite.True(decrypted.SequenceEqual(message));
+Debug.Assert(decrypted.SequenceEqual(message));
 ```
 
-### 📋 Encrypt / Decrypt with Shared Key (Detached, Manual Nonce)
+**Encrypt / Decrypt with Shared Key (Detached, Manual Nonce):**
 
 ```csharp
 Span<byte> nonce = stackalloc byte[CryptoBox.NonceLen];
@@ -138,10 +150,9 @@ CryptoBox.EncryptWithSharedKey(ciphertext, message, sharedKey, mac, nonce);
 CryptoBox.DecryptWithSharedKey(decrypted, ciphertext, sharedKey, mac, nonce);
 ```
 
-### 📋 Sealed Boxes — Anonymous Encryption
+**Sealed Boxes — Anonymous Encryption:**
 
-Sealed boxes enable **anonymous encryption**: anyone can encrypt a message to a recipient’s public key without revealing their identity. Internally, a random ephemeral keypair is generated and embedded in the ciphertext.
-
+Sealed boxes enable **anonymous encryption**: anyone can encrypt a message to a recipient’s public key without revealing their identity.
 
 ```csharp
 Span<byte> ciphertext = stackalloc byte[message.Length + CryptoBox.SealOverheadLen];
@@ -170,15 +181,26 @@ Uses Ed25519 to sign and verify messages. Produces 64-byte signatures. This is u
 | `SignatureLen`  | 64    | Signature length                  |
 | `SeedLen`       | 32    | Seed length for deterministic key |
 
-### 📋 Generate Keypair
+### 📋 Working with CryptoSign
+
+**Generate random key pair:**
 
 ```csharp
+// SecureMemory
+Span<byte> publicKey = stackalloc byte[CryptoSign.PublicKeyLen];
+using var privateKey = new SecureMemory<byte>(CryptoSign.PrivateKeyLen);
+CryptoSign.GenerateKeyPair(publicKey, privateKey);
+privateKey.ProtectReadOnly();
+```
+
+```csharp
+// Span
 Span<byte> publicKey = stackalloc byte[CryptoSign.PublicKeyLen];
 Span<byte> privateKey = stackalloc byte[CryptoSign.PrivateKeyLen];
 CryptoSign.GenerateKeyPair(publicKey, privateKey);
 ```
 
-### 📋 Sign and Verify
+**Sign and Verify:**
 
 ```csharp
 Span<byte> signature = stackalloc byte[CryptoSign.SignatureLen];
@@ -187,6 +209,40 @@ CryptoSign.Sign(message, signature, privateKey);
 bool ok = CryptoSign.TryVerify(message, signature, publicKey);
 CryptoSign.Verify(message, signature, publicKey); // throws LibSodiumException if the signature is invalid
 ```
+
+### 📋 Convert Ed25519 to Curve25519
+
+`CryptoSign` allows converting Ed25519 key pairs to Curve25519 format, suitable for encryption and key exchange.
+
+These converted keys can be used with the `CryptoBox` and `CryptoKeyExchange` APIs.
+
+```csharp
+// SecureMemory
+Span<byte> edPk = stackalloc byte[CryptoSign.PublicKeyLen];
+using var edSk = new SecureMemory<byte>(CryptoSign.PrivateKeyLen);
+CryptoSign.GenerateKeyPair(edPk, edSk);
+edSk.ProtectReadOnly();
+
+Span<byte> curvePk = stackalloc byte[CryptoBox.PublicKeyLen];
+using var curveSk = SecureMemory<byte>(CryptoBox.PrivateKeyLen);
+CryptoSign.PublicKeyToCurve(curvePk, edPk);
+CryptoSign.PrivateKeyToCurve(curveSk, edSk);
+curveSk.ProtectReadOnly();
+```
+
+```csharp
+// Span
+Span<byte> edPk = stackalloc byte[CryptoSign.PublicKeyLen];
+Span<byte> edSk = stackalloc byte[CryptoSign.PrivateKeyLen];
+CryptoSign.GenerateKeyPair(edPk, edSk);
+
+Span<byte> curvePk = stackalloc byte[CryptoBox.PublicKeyLen];
+Span<byte> curveSk = stackalloc byte[CryptoBox.PrivateKeyLen];
+CryptoSign.PublicKeyToCurve(curvePk, edPk);
+CryptoSign.PrivateKeyToCurve(curveSk, edSk);
+```
+
+The resulting `curvePk` and `curveSk` can be used anywhere a Curve25519 key is expected.
 
 ---
 ## ✨ CryptoScalarMult — Raw Scalar Multiplication
@@ -212,7 +268,9 @@ This API is rarely needed directly. Prefer CryptoBox or CryptoKeyExchange unless
 
 ---
 
-### 📋 Calculate Public Key
+### 📋 Working with CryptoScalarMult
+
+**Calculate Public Key:**
 
 Computes the public key `q = n·B` given a private scalar `n`:
 
@@ -223,9 +281,7 @@ RandomGenerator.Fill(privateKey);
 CryptoScalarMult.CalculatePublicKey(publicKey, privateKey);
 ```
 
----
-
-### 📋 Compute Shared Point
+**Compute Shared Point:**
 
 Performs scalar multiplication `q = n·P` with a private scalar and a peer’s public key:
 

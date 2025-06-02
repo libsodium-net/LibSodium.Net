@@ -45,6 +45,22 @@ namespace LibSodium
 		}
 
 		/// <summary>
+		/// Computes the scalar multiplication of a private scalar and a public point on Curve25519.
+		/// </summary>
+		/// <param name="sharedPoint">The output buffer where the result (32 bytes) will be stored.</param>
+		/// <param name="privateKey">The private scalar (32 bytes).</param>
+		/// <param name="publicKey">The public point (32 bytes).</param>
+		/// <exception cref="ArgumentException">Thrown if any input or output buffer has incorrect length.</exception>
+		/// <exception cref="LibSodiumException">Thrown if the operation fails.</exception>
+		/// <remarks>
+		/// This method wraps <c>crypto_scalarmult</c>. Do not use the output directly as a symmetric key.
+		/// </remarks>
+		public static void Compute(Span<byte> sharedPoint, SecureMemory<byte> privateKey, ReadOnlySpan<byte> publicKey)
+		{
+			Compute(sharedPoint, privateKey.AsReadOnlySpan(), publicKey);
+		}
+
+		/// <summary>
 		/// Computes the public key corresponding to a private scalar on Curve25519.
 		/// </summary>
 		/// <param name="publicKey">The output buffer where the public key (32 bytes) will be stored.</param>
@@ -64,6 +80,21 @@ namespace LibSodium
 			LibraryInitializer.EnsureInitialized();
 			if (Native.crypto_scalarmult_base(publicKey, privateKey) != 0)
 				throw new LibSodiumException("crypto_scalarmult_base failed.");
+		}
+
+		/// <summary>
+		/// Computes the public key corresponding to a private scalar on Curve25519.
+		/// </summary>
+		/// <param name="publicKey">The output buffer where the public key (32 bytes) will be stored.</param>
+		/// <param name="privateKey">The private scalar (32 bytes).</param>
+		/// <exception cref="ArgumentException">Thrown if any buffer has incorrect length.</exception>
+		/// <exception cref="LibSodiumException">Thrown if the operation fails.</exception>
+		/// <remarks>
+		/// This method wraps <c>crypto_scalarmult_base</c>.
+		/// </remarks>
+		public static void CalculatePublicKey(Span<byte> publicKey, SecureMemory<byte> privateKey)
+		{
+			CalculatePublicKey(publicKey, privateKey.AsReadOnlySpan());
 		}
 	}
 }

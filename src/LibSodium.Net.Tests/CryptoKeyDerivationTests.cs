@@ -161,4 +161,80 @@ public class CryptoKeyDerivationTests
 
 		sk1.ShouldNotBe(sk2);
 	}
+
+	[Test]
+	public void GenerateMasterKey_WithSecureMemory_Succeeds()
+	{
+		using var masterKey = SecureMemory.Create<byte>(CryptoKeyDerivation.MasterKeyLen);
+		CryptoKeyDerivation.GenerateMasterKey(masterKey);
+		masterKey.AsSpan().ShouldNotBeZero();
+	}
+
+	[Test]
+	public void DeriveSubkey_WithSecureMemoryAndSpanContext_Succeeds()
+	{
+		using var masterKey = SecureMemory.Create<byte>(CryptoKeyDerivation.MasterKeyLen);
+		using var subkey = SecureMemory.Create<byte>(CryptoKeyDerivation.MinSubkeyLen);
+		RandomGenerator.Fill(masterKey);
+
+		Span<byte> context = stackalloc byte[CryptoKeyDerivation.ContextLen];
+		context[0] = (byte)'A';
+
+		CryptoKeyDerivation.DeriveSubkey(subkey, 99, context, masterKey);
+		subkey.AsSpan().ShouldNotBeZero();
+	}
+
+	[Test]
+	public void DeriveSubkey_WithSecureMemoryAndStringContext_Succeeds()
+	{
+		using var masterKey = SecureMemory.Create<byte>(CryptoKeyDerivation.MasterKeyLen);
+		using var subkey = SecureMemory.Create<byte>(CryptoKeyDerivation.MinSubkeyLen);
+		RandomGenerator.Fill(masterKey);
+
+		CryptoKeyDerivation.DeriveSubkey(subkey, 321, "devtest", masterKey);
+		subkey.AsSpan().ShouldNotBeZero();
+	}
+
+	[Test]
+	public void DeriveSubkey_SameInputsWithSecureMemory_Deterministic()
+	{
+		using var key = SecureMemory.Create<byte>(CryptoKeyDerivation.MasterKeyLen);
+		using var sk1 = SecureMemory.Create<byte>(CryptoKeyDerivation.MinSubkeyLen);
+		using var sk2 = SecureMemory.Create<byte>(CryptoKeyDerivation.MinSubkeyLen);
+		RandomGenerator.Fill(key);
+
+		CryptoKeyDerivation.DeriveSubkey(sk1, 88, "ctx8", key);
+		CryptoKeyDerivation.DeriveSubkey(sk2, 88, "ctx8", key);
+
+		sk1.AsSpan().ShouldBe(sk2.AsSpan());
+	}
+
+	[Test]
+	public void DeriveSubkey_DifferentContextsWithSecureMemory_ProducesDifferentSubkeys()
+	{
+		using var key = SecureMemory.Create<byte>(CryptoKeyDerivation.MasterKeyLen);
+		using var sk1 = SecureMemory.Create<byte>(CryptoKeyDerivation.MinSubkeyLen);
+		using var sk2 = SecureMemory.Create<byte>(CryptoKeyDerivation.MinSubkeyLen);
+		RandomGenerator.Fill(key);
+
+		CryptoKeyDerivation.DeriveSubkey(sk1, 7, "ctxA", key);
+		CryptoKeyDerivation.DeriveSubkey(sk2, 7, "ctxB", key);
+
+		sk1.AsSpan().ShouldNotBe(sk2.AsSpan());
+	}
+
+	[Test]
+	public void DeriveSubkey_DifferentIdsWithSecureMemory_ProducesDifferentSubkeys()
+	{
+		using var key = SecureMemory.Create<byte>(CryptoKeyDerivation.MasterKeyLen);
+		using var sk1 = SecureMemory.Create<byte>(CryptoKeyDerivation.MinSubkeyLen);
+		using var sk2 = SecureMemory.Create<byte>(CryptoKeyDerivation.MinSubkeyLen);
+		RandomGenerator.Fill(key);
+
+		CryptoKeyDerivation.DeriveSubkey(sk1, 10, "ctx", key);
+		CryptoKeyDerivation.DeriveSubkey(sk2, 11, "ctx", key);
+
+		sk1.AsSpan().ShouldNotBe(sk2.AsSpan());
+	}
+
 }

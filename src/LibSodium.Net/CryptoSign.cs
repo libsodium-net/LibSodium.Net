@@ -34,7 +34,6 @@ namespace LibSodium
 		/// <param name="privateKey">A span where the generated private key will be stored (must be <see cref="PrivateKeyLen"/> bytes).</param>
 		/// <exception cref="ArgumentException">Thrown if the buffer sizes are incorrect.</exception>
 		/// <exception cref="LibSodiumException">Thrown if key pair generation fails.</exception>
-
 		public static void GenerateKeyPair(Span<byte> publicKey, Span<byte> privateKey)
 		{
 			if (publicKey.Length != PublicKeyLen)
@@ -45,6 +44,18 @@ namespace LibSodium
 			int result = Native.crypto_sign_keypair(publicKey, privateKey);
 			if (result != 0)
 				throw new LibSodiumException("Failed to generate key pair.");
+		}
+
+		/// <summary>
+		/// Generates a new Ed25519 public/private key pair.
+		/// </summary>
+		/// <param name="publicKey">A span where the generated public key will be stored (must be <see cref="PublicKeyLen"/> bytes).</param>
+		/// <param name="privateKey">A span where the generated private key will be stored (must be <see cref="PrivateKeyLen"/> bytes).</param>
+		/// <exception cref="ArgumentException">Thrown if the buffer sizes are incorrect.</exception>
+		/// <exception cref="LibSodiumException">Thrown if key pair generation fails.</exception>
+		public static void GenerateKeyPair(Span<byte> publicKey, SecureMemory<byte> privateKey)
+		{
+			GenerateKeyPair(publicKey, privateKey.AsSpan());
 		}
 
 		/// <summary>
@@ -70,6 +81,22 @@ namespace LibSodium
 			int result = Native.crypto_sign_seed_keypair(publicKey, secretKey, seed);
 			if (result != 0)
 				throw new LibSodiumException("Failed to generate key pair.");
+		}
+
+		/// <summary>
+		/// Generates a Ed25519 public/private key pair from a seed deterministically.
+		/// </summary>
+		/// <param name="publicKey">A span where the generated public key will be stored (must be <see cref="PublicKeyLen"/> bytes).</param>
+		/// <param name="secretKey">A span where the generated private key will be stored (must be <see cref="PrivateKeyLen"/> bytes).</param>
+		/// <param name="seed">A seed used for key generation (must be <see cref="SeedLen"/> bytes).</param>
+		/// <exception cref="ArgumentException">Thrown if the buffer sizes are incorrect.</exception>
+		/// <exception cref="LibSodiumException">Thrown if key pair generation fails.</exception>
+		public static void GenerateKeyPairDeterministically(
+			Span<byte> publicKey,
+			SecureMemory<byte> secretKey,
+			SecureMemory<byte> seed)
+		{
+			GenerateKeyPairDeterministically(publicKey, secretKey.AsSpan(), seed.AsReadOnlySpan());
 		}
 
 		/// <summary>
@@ -99,6 +126,23 @@ namespace LibSodium
 		}
 
 		/// <summary>
+		/// Creates a signature for the given message using the provided private key.
+		/// </summary>
+		/// <param name="message">The message to be signed.</param>
+		/// <param name="signature">A span to store the signature (must be at least <see cref="SignatureLen"/> bytes).</param>
+		/// <param name="privateKey">The private key to sign with (must be <see cref="PrivateKeyLen"/> bytes).</param>
+		/// <returns>A slice of the signature span containing the actual signature.</returns>
+		/// <exception cref="ArgumentException">Thrown if the signature or private key length is incorrect.</exception>
+		/// <exception cref="LibSodiumException">Thrown if the signing operation fails.</exception>
+		public static Span<byte> Sign(
+			ReadOnlySpan<byte> message,
+			Span<byte> signature,
+			SecureMemory<byte> privateKey)
+		{
+			return Sign(message, signature, privateKey.AsReadOnlySpan());
+		}
+
+		/// <summary>
 		/// Verifies a signature against a given message and public key.
 		/// </summary>
 		/// <param name="message">The original message.</param>
@@ -119,6 +163,7 @@ namespace LibSodium
 			int result = Native.crypto_sign_verify_detached(signature, message, (ulong)message.Length, publicKey);
 			return result == 0;
 		}
+
 
 		/// <summary>
 		/// Verifies a signature against a given message and public key.
@@ -180,6 +225,21 @@ namespace LibSodium
 			LibraryInitializer.EnsureInitialized();
 			if (Native.crypto_sign_ed25519_sk_to_curve25519(curvePrivateKey, edPrivateKey) != 0)
 				throw new LibSodiumException("Conversion from Ed25519 private key to Curve25519 failed.");
+		}
+
+		/// <summary>
+		/// Converts an Ed25519 private key (64 bytes) to a Curve25519 private key (32 bytes).
+		/// </summary>
+		/// <param name="curvePrivateKey">The buffer where the resulting Curve25519 private key will be written. Must be 32 bytes.</param>
+		/// <param name="edPrivateKey">The source Ed25519 private key. Must be 64 bytes.</param>
+		/// <exception cref="ArgumentException">Thrown if buffer sizes are incorrect.</exception>
+		/// <exception cref="LibSodiumException">Thrown if the conversion fails.</exception>
+		/// <remarks>
+		/// The resulting Curve25519 private key can be used with <see cref="CryptoBox"/> and <see cref="CryptoKeyExchange"/> APIs.
+		/// </remarks>
+		public static void PrivateKeyToCurve(SecureMemory<byte> curvePrivateKey, SecureMemory<byte> edPrivateKey)
+		{
+			PrivateKeyToCurve(curvePrivateKey.AsSpan(), edPrivateKey.AsReadOnlySpan());
 		}
 	}
 }

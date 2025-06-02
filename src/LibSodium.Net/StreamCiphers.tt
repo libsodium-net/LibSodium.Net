@@ -55,6 +55,25 @@ foreach (var cipher in ciphers) {
 		public static void Encrypt(ReadOnlySpan<byte> key, ReadOnlySpan<byte> nonce, ReadOnlySpan<byte> plaintext, Span<byte> ciphertext, ulong initialCounter = 0L)
 			=> CryptoStreamCipher<LowLevel.<#= cipher.Struct #>>.Encrypt(key, nonce, plaintext, ciphertext);
 
+        /// <summary>
+        /// Encrypts the given plaintext using the <c><#= cipher.AlgorithmName #></c> stream cipher, with the provided key and nonce.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c><#= cipher.KeyLen #></c> bytes long.</param>
+        /// <param name="nonce">The nonce. Must be exactly <c><#= cipher.NonceLen #></c> bytes long. Must never be reused with the same key.</param>
+        /// <param name="plaintext">The plaintext data to encrypt.</param>
+        /// <param name="ciphertext">The output buffer to receive the encrypted data. Must be at least as long as <paramref name="plaintext"/>.</param>
+        /// <param name="initialCounter">
+        /// The starting block index for the keystream (each block is 64 bytes).
+        /// Use this to skip blocks, resume encryption, or decrypt from a specific offset.
+        /// Defaults to 0.
+        /// </param>
+        /// <exception cref="ArgumentException">Thrown if any input length is invalid.</exception>
+        /// <remarks>
+        /// This method XORs the plaintext with a keystream derived from the key and nonce.
+        /// </remarks>
+		public static void Encrypt(SecureMemory<byte> key, ReadOnlySpan<byte> nonce, ReadOnlySpan<byte> plaintext, Span<byte> ciphertext, ulong initialCounter = 0L)
+			=> CryptoStreamCipher<LowLevel.<#= cipher.Struct #>>.Encrypt(key.AsReadOnlySpan(), nonce, plaintext, ciphertext);
+
 		/// <summary>
         /// Decrypts the given ciphertext using the <c><#= cipher.AlgorithmName #></c> stream cipher, with the provided key and nonce.
         /// </summary>
@@ -75,6 +94,26 @@ foreach (var cipher in ciphers) {
 			=> CryptoStreamCipher<LowLevel.<#= cipher.Struct #>>.Decrypt(key, nonce, ciphertext, plaintext);
 
 		/// <summary>
+        /// Decrypts the given ciphertext using the <c><#= cipher.AlgorithmName #></c> stream cipher, with the provided key and nonce.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c><#= cipher.KeyLen #></c> bytes long.</param>
+        /// <param name="nonce">The nonce used during encryption. Must be exactly <c><#= cipher.NonceLen #></c> bytes long.</param>
+        /// <param name="ciphertext">The ciphertext to decrypt (produced by XOR with keystream).</param>
+        /// <param name="plaintext">The output buffer to receive the decrypted plaintext. Must be at least as long as <paramref name="ciphertext"/>.</param>
+        /// <param name="initialCounter">
+        /// The starting block index for the keystream (each block is 64 bytes).
+        /// Use this to skip blocks, resume encryption, or decrypt from a specific offset.
+        /// Defaults to 0.
+        /// </param>
+        /// <exception cref="ArgumentException">Thrown if any input length is invalid.</exception>
+        /// <remarks>
+        /// Decryption is symmetric: it re-generates the same keystream and XORs it with the ciphertext.
+        /// </remarks>
+		public static void Decrypt(SecureMemory<byte> key, ReadOnlySpan<byte> nonce, ReadOnlySpan<byte> ciphertext, Span<byte> plaintext, ulong initialCounter = 0L)
+			=> CryptoStreamCipher<LowLevel.<#= cipher.Struct #>>.Decrypt(key.AsReadOnlySpan(), nonce, ciphertext, plaintext);
+
+
+		/// <summary>
         /// Encrypts a stream using the <c><#= cipher.AlgorithmName #></c> stream cipher.
         /// </summary>
         /// <param name="key">The secret key. Must be exactly <c><#= cipher.KeyLen #></c> bytes long.</param>
@@ -84,6 +123,18 @@ foreach (var cipher in ciphers) {
         /// <exception cref="ArgumentException">Thrown if key or nonce are invalid.</exception>
 		public static void Encrypt(ReadOnlySpan<byte> key, ReadOnlySpan<byte> nonce, Stream input, Stream output)
 			=> CryptoStreamCipher<LowLevel.<#= cipher.Struct #>>.Encrypt(key, nonce, input, output);
+
+
+        /// <summary>
+        /// Encrypts a stream using the <c><#= cipher.AlgorithmName #></c> stream cipher.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c><#= cipher.KeyLen #></c> bytes long.</param>
+        /// <param name="nonce">The nonce. Must be exactly <c><#= cipher.NonceLen #></c> bytes long.</param>
+        /// <param name="input">The stream containing plaintext data to encrypt.</param>
+        /// <param name="output">The stream to receive the encrypted data.</param>
+        /// <exception cref="ArgumentException">Thrown if key or nonce are invalid.</exception>
+		public static void Encrypt(SecureMemory<byte> key, ReadOnlySpan<byte> nonce, Stream input, Stream output)
+			=> CryptoStreamCipher<LowLevel.<#= cipher.Struct #>>.Encrypt(key.AsReadOnlySpan(), nonce, input, output);
 
 		/// <summary>
         /// Decrypts a stream using the <c><#= cipher.AlgorithmName #></c> stream cipher.
@@ -95,6 +146,17 @@ foreach (var cipher in ciphers) {
         /// <exception cref="ArgumentException">Thrown if key or nonce are invalid.</exception>
 		public static void Decrypt(ReadOnlySpan<byte> key, ReadOnlySpan<byte> nonce, Stream input, Stream output)
 			=> CryptoStreamCipher<LowLevel.<#= cipher.Struct #>>.Decrypt(key, nonce, input, output);
+
+        /// <summary>
+        /// Decrypts a stream using the <c><#= cipher.AlgorithmName #></c> stream cipher.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c><#= cipher.KeyLen #></c> bytes long.</param>
+        /// <param name="nonce">The nonce used during encryption. Must be exactly <c><#= cipher.NonceLen #></c> bytes long.</param>
+        /// <param name="input">The stream containing ciphertext to decrypt.</param>
+        /// <param name="output">The stream to receive the decrypted data.</param>
+        /// <exception cref="ArgumentException">Thrown if key or nonce are invalid.</exception>
+		public static void Decrypt(SecureMemory<byte> key, ReadOnlySpan<byte> nonce, Stream input, Stream output)
+			=> CryptoStreamCipher<LowLevel.<#= cipher.Struct #>>.Decrypt(key.AsReadOnlySpan(), nonce, input, output);
 
 		/// <summary>
         /// Asynchronously encrypts a stream using the <c><#= cipher.AlgorithmName #></c> stream cipher.
@@ -109,6 +171,19 @@ foreach (var cipher in ciphers) {
 			=> CryptoStreamCipher<LowLevel.<#= cipher.Struct #>>.EncryptAsync(key, nonce, input, output, cancellationToken);
 
 		/// <summary>
+        /// Asynchronously encrypts a stream using the <c><#= cipher.AlgorithmName #></c> stream cipher.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c><#= cipher.KeyLen #></c> bytes.</param>
+        /// <param name="nonce">The nonce. Must be exactly <c><#= cipher.NonceLen #></c> bytes.</param>
+        /// <param name="input">The readable stream with plaintext data.</param>
+        /// <param name="output">The writable stream to receive ciphertext.</param>
+        /// <param name="cancellationToken">Optional token to cancel the async operation.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+		public static Task EncryptAsync(SecureMemory<byte> key, ReadOnlyMemory<byte> nonce, Stream input, Stream output, CancellationToken cancellationToken = default)
+			=> CryptoStreamCipher<LowLevel.<#= cipher.Struct #>>.EncryptAsync(key.AsReadOnlyMemory(), nonce, input, output, cancellationToken);
+
+
+		/// <summary>
         /// Asynchronously decrypts a stream using the <c><#= cipher.AlgorithmName #></c> stream cipher.
         /// </summary>
         /// <param name="key">The secret key. Must be exactly <c><#= cipher.KeyLen #></c> bytes.</param>
@@ -121,6 +196,19 @@ foreach (var cipher in ciphers) {
 			=> CryptoStreamCipher<LowLevel.<#= cipher.Struct #>>.DecryptAsync(key, nonce, input, output, cancellationToken);
 
 		/// <summary>
+        /// Asynchronously decrypts a stream using the <c><#= cipher.AlgorithmName #></c> stream cipher.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c><#= cipher.KeyLen #></c> bytes.</param>
+        /// <param name="nonce">The nonce used during encryption. Must be <c><#= cipher.NonceLen #></c> bytes.</param>
+        /// <param name="input">The readable stream with ciphertext.</param>
+        /// <param name="output">The writable stream to receive decrypted data.</param>
+        /// <param name="cancellationToken">Optional token to cancel the async operation.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+		public static Task DecryptAsync(SecureMemory<byte> key, ReadOnlyMemory<byte> nonce, Stream input, Stream output, CancellationToken cancellationToken = default)
+			=> CryptoStreamCipher<LowLevel.<#= cipher.Struct #>>.DecryptAsync(key.AsReadOnlyMemory(), nonce, input, output, cancellationToken);
+
+
+		/// <summary>
         /// Generates a keystream of the specified length using the <c><#= cipher.AlgorithmName #></c> stream cipher.
         /// </summary>
         /// <param name="output">The buffer to receive the generated keystream.</param>
@@ -129,6 +217,17 @@ foreach (var cipher in ciphers) {
         /// <exception cref="ArgumentException">Thrown if <paramref name="output"/> is empty or lengths are invalid.</exception>
 		public static void GenerateKeystream(Span<byte> output, ReadOnlySpan<byte> nonce, ReadOnlySpan<byte> key)
 			=> CryptoStreamCipher<LowLevel.<#= cipher.Struct #>>.GenerateKeystream(output, nonce, key);
+
+		/// <summary>
+        /// Generates a keystream of the specified length using the <c><#= cipher.AlgorithmName #></c> stream cipher.
+        /// </summary>
+        /// <param name="output">The buffer to receive the generated keystream.</param>
+        /// <param name="nonce">The nonce. Must be exactly <c><#= cipher.NonceLen #></c> bytes.</param>
+        /// <param name="key">The key. Must be exactly <c><#= cipher.KeyLen #></c> bytes.</param>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="output"/> is empty or lengths are invalid.</exception>
+		public static void GenerateKeystream(SecureMemory<byte> output, ReadOnlySpan<byte> nonce, SecureMemory<byte> key)
+			=> CryptoStreamCipher<LowLevel.<#= cipher.Struct #>>.GenerateKeystream(output.AsSpan(), nonce, key.AsReadOnlySpan());
+
 	}
 <# } #>
 } // namespace

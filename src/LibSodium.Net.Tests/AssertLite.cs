@@ -57,6 +57,22 @@ public static class AssertLite
 		}
 	}
 
+	public static void ShouldBeZero<T>(this Span<T> actual, string? message = null)  where T : unmanaged
+	{
+		if (SecureMemory.IsZero(actual) == false)
+		{
+			throw new AssertionException($"Should be zero, but is not. {message}");
+		}
+	}
+
+	public static void ShouldBeZero<T>(this T[] actual, string? message = null) where T : unmanaged
+	{
+		if (SecureMemory.IsZero(actual) == false)
+		{
+			throw new AssertionException($"Should be zero, but is not. {message}");
+		}
+	}
+
 	public static void ShouldNotBeZero(this Span<byte> actual, string? message = null)
 	{
 		if (SecureMemory.IsZero(actual))

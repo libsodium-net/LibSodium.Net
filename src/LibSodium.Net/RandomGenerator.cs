@@ -10,7 +10,7 @@ namespace LibSodium
 		/// <summary>
 		/// The length of the seed used for deterministic random byte generation.
 		/// </summary>
-		public const int SeedLen = (int)Native.randombytes_SEEDBYTES;
+		public const int SeedLen = Native.RANDOMBYTES_SEEDBYTES;
 
 		/// <summary>
 		/// Gets a random unsigned 32-bit integer.
@@ -44,6 +44,15 @@ namespace LibSodium
 		}
 
 		/// <summary>
+		/// Fills the specified secure memory buffer with random bytes.
+		/// </summary>
+		/// <param name="buffer">The buffer to fill with random bytes.</param>
+		public static void Fill(SecureMemory<byte> buffer)
+		{
+			Fill(buffer.AsSpan());
+		}
+
+		/// <summary>
 		/// Fills the specified buffer with deterministic random bytes based on the provided seed.
 		/// It produces the same sequence of random bytes for the same seed.
 		/// </summary>
@@ -58,6 +67,18 @@ namespace LibSodium
 				throw new ArgumentException($"seed must be {SeedLen} bytes in length", nameof(seed));
 			}
 			Native.randombytes_buf_deterministic(buffer, (nuint)buffer.Length, seed);
+		}
+
+		/// <summary>
+		/// Fills the specified buffer with deterministic random bytes based on the provided seed.
+		/// It produces the same sequence of random bytes for the same seed.
+		/// </summary>
+		/// <param name="buffer">The buffer to fill with deterministic random bytes.</param>
+		/// <param name="seed">The seed used for deterministic random byte generation.</param>
+		/// <exception cref="ArgumentException">Thrown when the seed length is not equal to SeedLen.</exception>
+		public static void FillDeterministic(SecureMemory<byte> buffer, SecureMemory<byte> seed)
+		{
+			FillDeterministic(buffer.AsSpan(), seed.AsReadOnlySpan());
 		}
 
 		/// <summary>

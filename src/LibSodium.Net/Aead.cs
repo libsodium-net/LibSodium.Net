@@ -58,6 +58,37 @@ namespace LibSodium
             ReadOnlySpan<byte> nonce = default)
             => AeadCore<LowLevel.XChaCha20Poly1305>.Encrypt(ciphertext, plaintext, key, mac, aad, nonce);
 
+                /// <summary>
+        /// Encrypts a message using XChaCha20-Poly1305. Supports combined and detached modes,
+        /// with optional AAD and nonce.
+        /// </summary>
+        /// <param name="ciphertext">The buffer where the ciphertext will be written. It can be longer than needed.</param>
+        /// <param name="plaintext">The message to encrypt.</param>
+        /// <param name="key">The secret encryption key (32 bytes).</param>
+        /// <param name="mac">
+        /// Optional. If provided, the encryption is done in detached mode and the MAC (16 bytes) is written here.
+        /// Otherwise, combined mode is used.
+        /// </param>
+        /// <param name="aad">
+        /// Optional additional authenticated data. Not encrypted, but authenticated.
+        /// </param>
+        /// <param name="nonce">
+        /// Optional nonce (24 bytes). If not provided, a random nonce is generated and prepended.
+        /// </param>
+        /// <returns>
+        /// The span representing the full ciphertext, including MAC and possibly nonce.
+        /// </returns>
+        /// <exception cref="ArgumentException">Thrown when buffer sizes are incorrect or parameters are invalid.</exception>
+        /// <exception cref="LibSodiumException">Thrown when encryption fails.</exception>
+        public static Span<byte> Encrypt(
+            Span<byte> ciphertext,
+            ReadOnlySpan<byte> plaintext,
+            SecureMemory<byte> key,
+            Span<byte> mac = default,
+            ReadOnlySpan<byte> aad = default,
+            ReadOnlySpan<byte> nonce = default)
+            => AeadCore<LowLevel.XChaCha20Poly1305>.Encrypt(ciphertext, plaintext, key, mac, aad, nonce);
+
         /// <summary>
         /// Decrypts a message using XChaCha20-Poly1305. Supports combined and detached modes,
         /// with optional AAD and nonce.
@@ -83,6 +114,36 @@ namespace LibSodium
             Span<byte> plaintext,
             ReadOnlySpan<byte> ciphertext,
             ReadOnlySpan<byte> key,
+            ReadOnlySpan<byte> mac = default,
+            ReadOnlySpan<byte> aad = default,
+            ReadOnlySpan<byte> nonce = default)
+            => AeadCore<LowLevel.XChaCha20Poly1305>.Decrypt(plaintext, ciphertext, key, mac, aad, nonce);
+
+                /// <summary>
+        /// Decrypts a message using XChaCha20-Poly1305. Supports combined and detached modes,
+        /// with optional AAD and nonce.
+        /// </summary>
+        /// <param name="plaintext">The buffer where the decrypted message will be written.</param>
+        /// <param name="ciphertext">
+        /// The encrypted message. May include MAC and nonce (combined) or exclude them (detached).
+        /// </param>
+        /// <param name="key">The secret decryption key (32 bytes).</param>
+        /// <param name="mac">
+        /// Optional. If provided, decryption is done in detached mode. Otherwise, combined mode is used..
+        /// </param>
+        /// <param name="aad">
+        /// Optional additional authenticated data. Must match what was used for encryption.
+        /// </param>
+        /// <param name="nonce">
+        /// Optional nonce (24 bytes). Required for manual nonce mode.
+        /// </param>
+        /// <returns>The span representing the decrypted plaintext.</returns>
+        /// <exception cref="ArgumentException">Thrown when buffer sizes are incorrect or parameters are invalid.</exception>
+        /// <exception cref="LibSodiumException">Thrown when MAC verification fails or decryption fails.</exception>
+        public static Span<byte> Decrypt(
+            Span<byte> plaintext,
+            ReadOnlySpan<byte> ciphertext,
+            SecureMemory<byte> key,
             ReadOnlySpan<byte> mac = default,
             ReadOnlySpan<byte> aad = default,
             ReadOnlySpan<byte> nonce = default)
@@ -144,6 +205,37 @@ namespace LibSodium
             ReadOnlySpan<byte> nonce = default)
             => AeadCore<LowLevel.Aegis256>.Encrypt(ciphertext, plaintext, key, mac, aad, nonce);
 
+                /// <summary>
+        /// Encrypts a message using AEGIS-256. Supports combined and detached modes,
+        /// with optional AAD and nonce.
+        /// </summary>
+        /// <param name="ciphertext">The buffer where the ciphertext will be written. It can be longer than needed.</param>
+        /// <param name="plaintext">The message to encrypt.</param>
+        /// <param name="key">The secret encryption key (32 bytes).</param>
+        /// <param name="mac">
+        /// Optional. If provided, the encryption is done in detached mode and the MAC (32 bytes) is written here.
+        /// Otherwise, combined mode is used.
+        /// </param>
+        /// <param name="aad">
+        /// Optional additional authenticated data. Not encrypted, but authenticated.
+        /// </param>
+        /// <param name="nonce">
+        /// Optional nonce (32 bytes). If not provided, a random nonce is generated and prepended.
+        /// </param>
+        /// <returns>
+        /// The span representing the full ciphertext, including MAC and possibly nonce.
+        /// </returns>
+        /// <exception cref="ArgumentException">Thrown when buffer sizes are incorrect or parameters are invalid.</exception>
+        /// <exception cref="LibSodiumException">Thrown when encryption fails.</exception>
+        public static Span<byte> Encrypt(
+            Span<byte> ciphertext,
+            ReadOnlySpan<byte> plaintext,
+            SecureMemory<byte> key,
+            Span<byte> mac = default,
+            ReadOnlySpan<byte> aad = default,
+            ReadOnlySpan<byte> nonce = default)
+            => AeadCore<LowLevel.Aegis256>.Encrypt(ciphertext, plaintext, key, mac, aad, nonce);
+
         /// <summary>
         /// Decrypts a message using AEGIS-256. Supports combined and detached modes,
         /// with optional AAD and nonce.
@@ -169,6 +261,36 @@ namespace LibSodium
             Span<byte> plaintext,
             ReadOnlySpan<byte> ciphertext,
             ReadOnlySpan<byte> key,
+            ReadOnlySpan<byte> mac = default,
+            ReadOnlySpan<byte> aad = default,
+            ReadOnlySpan<byte> nonce = default)
+            => AeadCore<LowLevel.Aegis256>.Decrypt(plaintext, ciphertext, key, mac, aad, nonce);
+
+                /// <summary>
+        /// Decrypts a message using AEGIS-256. Supports combined and detached modes,
+        /// with optional AAD and nonce.
+        /// </summary>
+        /// <param name="plaintext">The buffer where the decrypted message will be written.</param>
+        /// <param name="ciphertext">
+        /// The encrypted message. May include MAC and nonce (combined) or exclude them (detached).
+        /// </param>
+        /// <param name="key">The secret decryption key (32 bytes).</param>
+        /// <param name="mac">
+        /// Optional. If provided, decryption is done in detached mode. Otherwise, combined mode is used..
+        /// </param>
+        /// <param name="aad">
+        /// Optional additional authenticated data. Must match what was used for encryption.
+        /// </param>
+        /// <param name="nonce">
+        /// Optional nonce (32 bytes). Required for manual nonce mode.
+        /// </param>
+        /// <returns>The span representing the decrypted plaintext.</returns>
+        /// <exception cref="ArgumentException">Thrown when buffer sizes are incorrect or parameters are invalid.</exception>
+        /// <exception cref="LibSodiumException">Thrown when MAC verification fails or decryption fails.</exception>
+        public static Span<byte> Decrypt(
+            Span<byte> plaintext,
+            ReadOnlySpan<byte> ciphertext,
+            SecureMemory<byte> key,
             ReadOnlySpan<byte> mac = default,
             ReadOnlySpan<byte> aad = default,
             ReadOnlySpan<byte> nonce = default)
@@ -230,6 +352,37 @@ namespace LibSodium
             ReadOnlySpan<byte> nonce = default)
             => AeadCore<LowLevel.Aes256Gcm>.Encrypt(ciphertext, plaintext, key, mac, aad, nonce);
 
+                /// <summary>
+        /// Encrypts a message using AES256-GCM. Supports combined and detached modes,
+        /// with optional AAD and nonce.
+        /// </summary>
+        /// <param name="ciphertext">The buffer where the ciphertext will be written. It can be longer than needed.</param>
+        /// <param name="plaintext">The message to encrypt.</param>
+        /// <param name="key">The secret encryption key (32 bytes).</param>
+        /// <param name="mac">
+        /// Optional. If provided, the encryption is done in detached mode and the MAC (16 bytes) is written here.
+        /// Otherwise, combined mode is used.
+        /// </param>
+        /// <param name="aad">
+        /// Optional additional authenticated data. Not encrypted, but authenticated.
+        /// </param>
+        /// <param name="nonce">
+        /// Optional nonce (12 bytes). If not provided, a random nonce is generated and prepended.
+        /// </param>
+        /// <returns>
+        /// The span representing the full ciphertext, including MAC and possibly nonce.
+        /// </returns>
+        /// <exception cref="ArgumentException">Thrown when buffer sizes are incorrect or parameters are invalid.</exception>
+        /// <exception cref="LibSodiumException">Thrown when encryption fails.</exception>
+        public static Span<byte> Encrypt(
+            Span<byte> ciphertext,
+            ReadOnlySpan<byte> plaintext,
+            SecureMemory<byte> key,
+            Span<byte> mac = default,
+            ReadOnlySpan<byte> aad = default,
+            ReadOnlySpan<byte> nonce = default)
+            => AeadCore<LowLevel.Aes256Gcm>.Encrypt(ciphertext, plaintext, key, mac, aad, nonce);
+
         /// <summary>
         /// Decrypts a message using AES256-GCM. Supports combined and detached modes,
         /// with optional AAD and nonce.
@@ -255,6 +408,36 @@ namespace LibSodium
             Span<byte> plaintext,
             ReadOnlySpan<byte> ciphertext,
             ReadOnlySpan<byte> key,
+            ReadOnlySpan<byte> mac = default,
+            ReadOnlySpan<byte> aad = default,
+            ReadOnlySpan<byte> nonce = default)
+            => AeadCore<LowLevel.Aes256Gcm>.Decrypt(plaintext, ciphertext, key, mac, aad, nonce);
+
+                /// <summary>
+        /// Decrypts a message using AES256-GCM. Supports combined and detached modes,
+        /// with optional AAD and nonce.
+        /// </summary>
+        /// <param name="plaintext">The buffer where the decrypted message will be written.</param>
+        /// <param name="ciphertext">
+        /// The encrypted message. May include MAC and nonce (combined) or exclude them (detached).
+        /// </param>
+        /// <param name="key">The secret decryption key (32 bytes).</param>
+        /// <param name="mac">
+        /// Optional. If provided, decryption is done in detached mode. Otherwise, combined mode is used..
+        /// </param>
+        /// <param name="aad">
+        /// Optional additional authenticated data. Must match what was used for encryption.
+        /// </param>
+        /// <param name="nonce">
+        /// Optional nonce (12 bytes). Required for manual nonce mode.
+        /// </param>
+        /// <returns>The span representing the decrypted plaintext.</returns>
+        /// <exception cref="ArgumentException">Thrown when buffer sizes are incorrect or parameters are invalid.</exception>
+        /// <exception cref="LibSodiumException">Thrown when MAC verification fails or decryption fails.</exception>
+        public static Span<byte> Decrypt(
+            Span<byte> plaintext,
+            ReadOnlySpan<byte> ciphertext,
+            SecureMemory<byte> key,
             ReadOnlySpan<byte> mac = default,
             ReadOnlySpan<byte> aad = default,
             ReadOnlySpan<byte> nonce = default)
@@ -316,6 +499,37 @@ namespace LibSodium
             ReadOnlySpan<byte> nonce = default)
             => AeadCore<LowLevel.ChaCha20Poly1305Ietf>.Encrypt(ciphertext, plaintext, key, mac, aad, nonce);
 
+                /// <summary>
+        /// Encrypts a message using IETF variant of the ChaCha20-Poly1305. Supports combined and detached modes,
+        /// with optional AAD and nonce.
+        /// </summary>
+        /// <param name="ciphertext">The buffer where the ciphertext will be written. It can be longer than needed.</param>
+        /// <param name="plaintext">The message to encrypt.</param>
+        /// <param name="key">The secret encryption key (32 bytes).</param>
+        /// <param name="mac">
+        /// Optional. If provided, the encryption is done in detached mode and the MAC (16 bytes) is written here.
+        /// Otherwise, combined mode is used.
+        /// </param>
+        /// <param name="aad">
+        /// Optional additional authenticated data. Not encrypted, but authenticated.
+        /// </param>
+        /// <param name="nonce">
+        /// Optional nonce (12 bytes). If not provided, a random nonce is generated and prepended.
+        /// </param>
+        /// <returns>
+        /// The span representing the full ciphertext, including MAC and possibly nonce.
+        /// </returns>
+        /// <exception cref="ArgumentException">Thrown when buffer sizes are incorrect or parameters are invalid.</exception>
+        /// <exception cref="LibSodiumException">Thrown when encryption fails.</exception>
+        public static Span<byte> Encrypt(
+            Span<byte> ciphertext,
+            ReadOnlySpan<byte> plaintext,
+            SecureMemory<byte> key,
+            Span<byte> mac = default,
+            ReadOnlySpan<byte> aad = default,
+            ReadOnlySpan<byte> nonce = default)
+            => AeadCore<LowLevel.ChaCha20Poly1305Ietf>.Encrypt(ciphertext, plaintext, key, mac, aad, nonce);
+
         /// <summary>
         /// Decrypts a message using IETF variant of the ChaCha20-Poly1305. Supports combined and detached modes,
         /// with optional AAD and nonce.
@@ -341,6 +555,36 @@ namespace LibSodium
             Span<byte> plaintext,
             ReadOnlySpan<byte> ciphertext,
             ReadOnlySpan<byte> key,
+            ReadOnlySpan<byte> mac = default,
+            ReadOnlySpan<byte> aad = default,
+            ReadOnlySpan<byte> nonce = default)
+            => AeadCore<LowLevel.ChaCha20Poly1305Ietf>.Decrypt(plaintext, ciphertext, key, mac, aad, nonce);
+
+                /// <summary>
+        /// Decrypts a message using IETF variant of the ChaCha20-Poly1305. Supports combined and detached modes,
+        /// with optional AAD and nonce.
+        /// </summary>
+        /// <param name="plaintext">The buffer where the decrypted message will be written.</param>
+        /// <param name="ciphertext">
+        /// The encrypted message. May include MAC and nonce (combined) or exclude them (detached).
+        /// </param>
+        /// <param name="key">The secret decryption key (32 bytes).</param>
+        /// <param name="mac">
+        /// Optional. If provided, decryption is done in detached mode. Otherwise, combined mode is used..
+        /// </param>
+        /// <param name="aad">
+        /// Optional additional authenticated data. Must match what was used for encryption.
+        /// </param>
+        /// <param name="nonce">
+        /// Optional nonce (12 bytes). Required for manual nonce mode.
+        /// </param>
+        /// <returns>The span representing the decrypted plaintext.</returns>
+        /// <exception cref="ArgumentException">Thrown when buffer sizes are incorrect or parameters are invalid.</exception>
+        /// <exception cref="LibSodiumException">Thrown when MAC verification fails or decryption fails.</exception>
+        public static Span<byte> Decrypt(
+            Span<byte> plaintext,
+            ReadOnlySpan<byte> ciphertext,
+            SecureMemory<byte> key,
             ReadOnlySpan<byte> mac = default,
             ReadOnlySpan<byte> aad = default,
             ReadOnlySpan<byte> nonce = default)
@@ -402,6 +646,37 @@ namespace LibSodium
             ReadOnlySpan<byte> nonce = default)
             => AeadCore<LowLevel.ChaCha20Poly1305>.Encrypt(ciphertext, plaintext, key, mac, aad, nonce);
 
+                /// <summary>
+        /// Encrypts a message using ChaCha20-Poly1305. Supports combined and detached modes,
+        /// with optional AAD and nonce.
+        /// </summary>
+        /// <param name="ciphertext">The buffer where the ciphertext will be written. It can be longer than needed.</param>
+        /// <param name="plaintext">The message to encrypt.</param>
+        /// <param name="key">The secret encryption key (32 bytes).</param>
+        /// <param name="mac">
+        /// Optional. If provided, the encryption is done in detached mode and the MAC (16 bytes) is written here.
+        /// Otherwise, combined mode is used.
+        /// </param>
+        /// <param name="aad">
+        /// Optional additional authenticated data. Not encrypted, but authenticated.
+        /// </param>
+        /// <param name="nonce">
+        /// Optional nonce (8 bytes). If not provided, a random nonce is generated and prepended.
+        /// </param>
+        /// <returns>
+        /// The span representing the full ciphertext, including MAC and possibly nonce.
+        /// </returns>
+        /// <exception cref="ArgumentException">Thrown when buffer sizes are incorrect or parameters are invalid.</exception>
+        /// <exception cref="LibSodiumException">Thrown when encryption fails.</exception>
+        public static Span<byte> Encrypt(
+            Span<byte> ciphertext,
+            ReadOnlySpan<byte> plaintext,
+            SecureMemory<byte> key,
+            Span<byte> mac = default,
+            ReadOnlySpan<byte> aad = default,
+            ReadOnlySpan<byte> nonce = default)
+            => AeadCore<LowLevel.ChaCha20Poly1305>.Encrypt(ciphertext, plaintext, key, mac, aad, nonce);
+
         /// <summary>
         /// Decrypts a message using ChaCha20-Poly1305. Supports combined and detached modes,
         /// with optional AAD and nonce.
@@ -427,6 +702,36 @@ namespace LibSodium
             Span<byte> plaintext,
             ReadOnlySpan<byte> ciphertext,
             ReadOnlySpan<byte> key,
+            ReadOnlySpan<byte> mac = default,
+            ReadOnlySpan<byte> aad = default,
+            ReadOnlySpan<byte> nonce = default)
+            => AeadCore<LowLevel.ChaCha20Poly1305>.Decrypt(plaintext, ciphertext, key, mac, aad, nonce);
+
+                /// <summary>
+        /// Decrypts a message using ChaCha20-Poly1305. Supports combined and detached modes,
+        /// with optional AAD and nonce.
+        /// </summary>
+        /// <param name="plaintext">The buffer where the decrypted message will be written.</param>
+        /// <param name="ciphertext">
+        /// The encrypted message. May include MAC and nonce (combined) or exclude them (detached).
+        /// </param>
+        /// <param name="key">The secret decryption key (32 bytes).</param>
+        /// <param name="mac">
+        /// Optional. If provided, decryption is done in detached mode. Otherwise, combined mode is used..
+        /// </param>
+        /// <param name="aad">
+        /// Optional additional authenticated data. Must match what was used for encryption.
+        /// </param>
+        /// <param name="nonce">
+        /// Optional nonce (8 bytes). Required for manual nonce mode.
+        /// </param>
+        /// <returns>The span representing the decrypted plaintext.</returns>
+        /// <exception cref="ArgumentException">Thrown when buffer sizes are incorrect or parameters are invalid.</exception>
+        /// <exception cref="LibSodiumException">Thrown when MAC verification fails or decryption fails.</exception>
+        public static Span<byte> Decrypt(
+            Span<byte> plaintext,
+            ReadOnlySpan<byte> ciphertext,
+            SecureMemory<byte> key,
             ReadOnlySpan<byte> mac = default,
             ReadOnlySpan<byte> aad = default,
             ReadOnlySpan<byte> nonce = default)
@@ -488,6 +793,37 @@ namespace LibSodium
             ReadOnlySpan<byte> nonce = default)
             => AeadCore<LowLevel.Aegis128L>.Encrypt(ciphertext, plaintext, key, mac, aad, nonce);
 
+                /// <summary>
+        /// Encrypts a message using AEGIS-128L. Supports combined and detached modes,
+        /// with optional AAD and nonce.
+        /// </summary>
+        /// <param name="ciphertext">The buffer where the ciphertext will be written. It can be longer than needed.</param>
+        /// <param name="plaintext">The message to encrypt.</param>
+        /// <param name="key">The secret encryption key (32 bytes).</param>
+        /// <param name="mac">
+        /// Optional. If provided, the encryption is done in detached mode and the MAC (32 bytes) is written here.
+        /// Otherwise, combined mode is used.
+        /// </param>
+        /// <param name="aad">
+        /// Optional additional authenticated data. Not encrypted, but authenticated.
+        /// </param>
+        /// <param name="nonce">
+        /// Optional nonce (16 bytes). If not provided, a random nonce is generated and prepended.
+        /// </param>
+        /// <returns>
+        /// The span representing the full ciphertext, including MAC and possibly nonce.
+        /// </returns>
+        /// <exception cref="ArgumentException">Thrown when buffer sizes are incorrect or parameters are invalid.</exception>
+        /// <exception cref="LibSodiumException">Thrown when encryption fails.</exception>
+        public static Span<byte> Encrypt(
+            Span<byte> ciphertext,
+            ReadOnlySpan<byte> plaintext,
+            SecureMemory<byte> key,
+            Span<byte> mac = default,
+            ReadOnlySpan<byte> aad = default,
+            ReadOnlySpan<byte> nonce = default)
+            => AeadCore<LowLevel.Aegis128L>.Encrypt(ciphertext, plaintext, key, mac, aad, nonce);
+
         /// <summary>
         /// Decrypts a message using AEGIS-128L. Supports combined and detached modes,
         /// with optional AAD and nonce.
@@ -513,6 +849,36 @@ namespace LibSodium
             Span<byte> plaintext,
             ReadOnlySpan<byte> ciphertext,
             ReadOnlySpan<byte> key,
+            ReadOnlySpan<byte> mac = default,
+            ReadOnlySpan<byte> aad = default,
+            ReadOnlySpan<byte> nonce = default)
+            => AeadCore<LowLevel.Aegis128L>.Decrypt(plaintext, ciphertext, key, mac, aad, nonce);
+
+                /// <summary>
+        /// Decrypts a message using AEGIS-128L. Supports combined and detached modes,
+        /// with optional AAD and nonce.
+        /// </summary>
+        /// <param name="plaintext">The buffer where the decrypted message will be written.</param>
+        /// <param name="ciphertext">
+        /// The encrypted message. May include MAC and nonce (combined) or exclude them (detached).
+        /// </param>
+        /// <param name="key">The secret decryption key (32 bytes).</param>
+        /// <param name="mac">
+        /// Optional. If provided, decryption is done in detached mode. Otherwise, combined mode is used..
+        /// </param>
+        /// <param name="aad">
+        /// Optional additional authenticated data. Must match what was used for encryption.
+        /// </param>
+        /// <param name="nonce">
+        /// Optional nonce (16 bytes). Required for manual nonce mode.
+        /// </param>
+        /// <returns>The span representing the decrypted plaintext.</returns>
+        /// <exception cref="ArgumentException">Thrown when buffer sizes are incorrect or parameters are invalid.</exception>
+        /// <exception cref="LibSodiumException">Thrown when MAC verification fails or decryption fails.</exception>
+        public static Span<byte> Decrypt(
+            Span<byte> plaintext,
+            ReadOnlySpan<byte> ciphertext,
+            SecureMemory<byte> key,
             ReadOnlySpan<byte> mac = default,
             ReadOnlySpan<byte> aad = default,
             ReadOnlySpan<byte> nonce = default)

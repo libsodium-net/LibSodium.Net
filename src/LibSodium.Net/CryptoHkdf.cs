@@ -6,7 +6,7 @@ namespace LibSodium
 	/// <summary>
 	/// Provides HKDF key derivation (RFC 5869) using SHA-256 or SHA-512.
 	/// </summary>
-	public static class HKDF
+	public static class CryptoHkdf
 	{
 		/// <summary>
 		/// Length of the pseudorandom key (PRK) for SHA256 in bytes (32).
@@ -72,6 +72,21 @@ namespace LibSodium
 		}
 
 		/// <summary>
+		/// Performs the extract step of HKDF (RFC 5869), using the specified hash algorithm.
+		/// </summary>
+		/// <param name="hashAlgorithmName">Hash algorithm to use (SHA-256 or SHA-512).</param>
+		/// <param name="ikm">Input keying material.</param>
+		/// <param name="salt">Optional salt value (can be empty).</param>
+		/// <param name="prk">Buffer to receive the pseudorandom key (32 bytes for SHA256 and 64 bytes for SHA512).</param>
+		/// <exception cref="ArgumentException">Thrown if <paramref name="prk"/> is not exactly the required size.</exception>
+		/// <exception cref="NotSupportedException">Thrown if the hash algorithm is unsupported.</exception>
+		/// <exception cref="LibSodiumException">Thrown if the underlying native call fails.</exception>
+		public static void Extract(HashAlgorithmName hashAlgorithmName, SecureMemory<byte> ikm, ReadOnlySpan<byte> salt, SecureMemory<byte> prk)
+		{
+			Extract(hashAlgorithmName, ikm.AsReadOnlySpan(), salt, prk.AsSpan());
+		}
+
+		/// <summary>
 		/// Performs the expand step of HKDF (RFC 5869), using the specified hash algorithm.
 		/// </summary>
 		/// <param name="hashAlgorithmName">Hash algorithm to use (SHA-256 or SHA-512).</param>
@@ -111,6 +126,22 @@ namespace LibSodium
 		}
 
 		/// <summary>
+		/// Performs the expand step of HKDF (RFC 5869), using the specified hash algorithm.
+		/// </summary>
+		/// <param name="hashAlgorithmName">Hash algorithm to use (SHA-256 or SHA-512).</param>
+		/// <param name="prk">Pseudorandom key obtained from the extract step (32 or 64 bytes).</param>
+		/// <param name="okm">Output buffer to receive the derived keying material (4–8160 or 16320 bytes).</param>
+		/// <param name="info">Optional context and application-specific information.</param>
+		/// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="okm"/> is not in valid range.</exception>
+		/// <exception cref="ArgumentException">Thrown if <paramref name="prk"/> is not valid size for the selected hash.</exception>
+		/// <exception cref="NotSupportedException">Thrown if the hash algorithm is unsupported.</exception>
+		/// <exception cref="LibSodiumException">Thrown if the underlying native call fails.</exception>
+		public static void Expand(HashAlgorithmName hashAlgorithmName, SecureMemory<byte> prk, SecureMemory<byte> okm, ReadOnlySpan<byte> info)
+		{
+			Expand(hashAlgorithmName, prk.AsReadOnlySpan(), okm.AsSpan(), info);
+		}
+
+		/// <summary>
 		/// Derives key material from input key material in one step using HKDF (RFC 5869).
 		/// </summary>
 		/// <param name="hashAlgorithmName">Hash algorithm to use (SHA-256 or SHA-512).</param>
@@ -132,6 +163,22 @@ namespace LibSodium
 			Span<byte> prk = stackalloc byte[prkLen];
 			Extract(hashAlgorithmName, ikm, salt, prk);
 			Expand(hashAlgorithmName, prk, okm, info);
+		}
+
+		/// <summary>
+		/// Derives key material from input key material in one step using HKDF (RFC 5869).
+		/// </summary>
+		/// <param name="hashAlgorithmName">Hash algorithm to use (SHA-256 or SHA-512).</param>
+		/// <param name="ikm">Input keying material.</param>
+		/// <param name="okm">Output buffer to receive the derived keying material (16–64 bytes).</param>
+		/// <param name="salt">Optional salt value (can be empty).</param>
+		/// <param name="info">Optional context and application-specific information.</param>
+		/// <exception cref="ArgumentException">Thrown if <paramref name="okm"/> or internal buffers have invalid lengths.</exception>
+		/// <exception cref="NotSupportedException">Thrown if the hash algorithm is unsupported.</exception>
+		/// <exception cref="LibSodiumException">Thrown if the underlying native call fails.</exception>
+		public static void DeriveKey(HashAlgorithmName hashAlgorithmName, SecureMemory<byte> ikm, SecureMemory<byte> okm, ReadOnlySpan<byte> salt, ReadOnlySpan<byte> info)
+		{
+			DeriveKey(hashAlgorithmName, ikm.AsReadOnlySpan(), okm.AsSpan(), salt, info);
 		}
 
 		/// <summary>
@@ -169,9 +216,9 @@ namespace LibSodium
 			if (result != 0)
 				throw new LibSodiumException($"Failed to initialize extract state for {hashAlgorithmName.Name}");
 
-			byte[] buffer = new byte[4096];
+			byte[] buffer = new byte[Constants.DefaultBufferLen];
 			int read;
-			while ((read = ikm.Fill(buffer, 0, buffer.Length)) > 0)
+			while ((read = ikm.Fill(buffer, 0, Constants.DefaultBufferLen)) > 0)
 			{
 				Span<byte> chunk = buffer.AsSpan(0, read);
 				result = hashAlgorithmName.Name switch
@@ -193,6 +240,22 @@ namespace LibSodium
 
 			if (result != 0)
 				throw new LibSodiumException($"Failed to finalize extract for {hashAlgorithmName.Name}");
+		}
+
+		/// <summary>
+		/// Performs the extract step of HKDF (RFC 5869) using a stream as input keying material.
+		/// </summary>
+		/// <param name="hashAlgorithmName">Hash algorithm to use (SHA-256 or SHA-512).</param>
+		/// <param name="ikm">Stream of input keying material (IKM).</param>
+		/// <param name="salt">Optional salt value (can be empty).</param>
+		/// <param name="prk">Buffer to receive the pseudorandom key (32 bytes for SHA256 and 64 bytes for SHA512).</param>
+		/// <exception cref="ArgumentNullException">Thrown if <paramref name="ikm"/> is null.</exception>
+		/// <exception cref="ArgumentException">Thrown if <paramref name="prk"/> length is incorrect.</exception>
+		/// <exception cref="NotSupportedException">Thrown if the hash algorithm is unsupported.</exception>
+		/// <exception cref="LibSodiumException">Thrown if the underlying native call fails.</exception>
+		public static void Extract(HashAlgorithmName hashAlgorithmName, Stream ikm, ReadOnlySpan<byte> salt, SecureMemory<byte> prk)
+		{
+			Extract(hashAlgorithmName, ikm, salt, prk.AsSpan());
 		}
 
 		/// <summary>
@@ -258,6 +321,24 @@ namespace LibSodium
 		}
 
 		/// <summary>
+		/// Asynchronously performs the extract step of HKDF (RFC 5869) using a stream as input keying material.
+		/// </summary>
+		/// <param name="hashAlgorithmName">Hash algorithm to use (SHA-256 or SHA-512).</param>
+		/// <param name="ikm">Stream of input keying material (IKM).</param>
+		/// <param name="salt">Optional salt value (can be empty).</param>
+		/// <param name="prk">Buffer to receive the pseudorandom key (32 bytes for SHA256 and 64 bytes for SHA512).</param>
+		/// <param name="cancellationToken">Cancellation token.</param>
+		/// <exception cref="ArgumentNullException">Thrown if <paramref name="ikm"/> is null.</exception>
+		/// <exception cref="ArgumentException">Thrown if <paramref name="prk"/> length is incorrect.</exception>
+		/// <exception cref="NotSupportedException">Thrown if the hash algorithm is unsupported.</exception>
+		/// <exception cref="LibSodiumException">Thrown if the underlying native call fails.</exception>
+
+		public static async Task ExtractAsync(HashAlgorithmName hashAlgorithmName, Stream ikm, ReadOnlyMemory<byte> salt, SecureMemory<byte> prk, CancellationToken cancellationToken = default)
+		{
+			await ExtractAsync(hashAlgorithmName, ikm, salt, prk.AsMemory(), cancellationToken).ConfigureAwait(false);
+		}
+
+		/// <summary>
 		/// Derives key material from input key material in one step using HKDF (RFC 5869) from a stream.
 		/// </summary>
 		/// <param name="hashAlgorithmName">Hash algorithm to use (SHA-256 or SHA-512).</param>
@@ -282,6 +363,22 @@ namespace LibSodium
 		}
 
 		/// <summary>
+		/// Derives key material from input key material in one step using HKDF (RFC 5869) from a stream.
+		/// </summary>
+		/// <param name="hashAlgorithmName">Hash algorithm to use (SHA-256 or SHA-512).</param>
+		/// <param name="ikm">Stream of input keying material.</param>
+		/// <param name="okm">Buffer to receive the output keying material.</param>
+		/// <param name="salt">Optional salt value.</param>
+		/// <param name="info">Optional application-specific information.</param>
+		/// <exception cref="NotSupportedException">Thrown if the hash algorithm is unsupported.</exception>
+		/// <exception cref="LibSodiumException">Thrown if the underlying native call fails.</exception>
+
+		public static void DeriveKey(HashAlgorithmName hashAlgorithmName, Stream ikm, SecureMemory<byte> okm, ReadOnlySpan<byte> salt, ReadOnlySpan<byte> info)
+		{
+			DeriveKey(hashAlgorithmName, ikm, okm.AsSpan(), salt, info);
+		}
+
+		/// <summary>
 		/// Asynchronously derives key material from input key material in one step using HKDF (RFC 5869) from a stream.
 		/// </summary>
 		/// <param name="hashAlgorithmName">Hash algorithm to use (SHA-256 or SHA-512).</param>
@@ -303,6 +400,22 @@ namespace LibSodium
 			var prk = new byte[prkLen];
 			await ExtractAsync(hashAlgorithmName, ikm, salt, prk, cancellationToken).ConfigureAwait(false);
 			Expand(hashAlgorithmName, prk, okm.Span, info.Span);
+		}
+
+		/// <summary>
+		/// Asynchronously derives key material from input key material in one step using HKDF (RFC 5869) from a stream.
+		/// </summary>
+		/// <param name="hashAlgorithmName">Hash algorithm to use (SHA-256 or SHA-512).</param>
+		/// <param name="ikm">Stream of input keying material.</param>
+		/// <param name="okm">Buffer to receive the output keying material.</param>
+		/// <param name="salt">Optional salt value.</param>
+		/// <param name="info">Optional application-specific information.</param>
+		/// <param name="cancellationToken">Cancellation token.</param>
+		/// <exception cref="NotSupportedException">Thrown if the hash algorithm is unsupported.</exception>
+		/// <exception cref="LibSodiumException">Thrown if the underlying native call fails.</exception>
+		public static async Task DeriveKeyAsync(HashAlgorithmName hashAlgorithmName, Stream ikm, SecureMemory<byte> okm, ReadOnlyMemory<byte> salt, ReadOnlyMemory<byte> info, CancellationToken cancellationToken = default)
+		{
+			await DeriveKeyAsync(hashAlgorithmName, ikm, okm.AsMemory(), salt, info, cancellationToken).ConfigureAwait(false);
 		}
 	}
 }

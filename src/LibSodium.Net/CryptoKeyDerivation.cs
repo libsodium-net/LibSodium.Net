@@ -44,6 +44,16 @@ namespace LibSodium
 		}
 
 		/// <summary>
+		/// Fills the given buffer with a new random master key (32 bytes).
+		/// </summary>
+		/// <param name="masterKey">The buffer to fill. Must be 32 bytes.</param>
+		/// <exception cref="ArgumentException">Thrown when <paramref name="masterKey"/> is not 32 bytes.</exception>
+		public static void GenerateMasterKey(SecureMemory<byte> masterKey)
+		{
+			GenerateMasterKey(masterKey.AsSpan());
+		}
+
+		/// <summary>
 		/// Deterministically derives a subkey from a master key, context, and subkey ID.
 		/// Uses the BLAKE2b hash function internally.
 		/// </summary>
@@ -74,6 +84,28 @@ namespace LibSodium
 			int rc = Native.crypto_kdf_derive_from_key(subkey, (nuint)subkey.Length, subkeyId, context, masterKey);
 			if (rc != 0)
 				throw new LibSodiumException("Key derivation failed.");
+		}
+
+		/// <summary>
+		/// Deterministically derives a subkey from a master key, context, and subkey ID.
+		/// Uses the BLAKE2b hash function internally.
+		/// </summary>
+		/// <param name="subkey">The buffer where the derived subkey will be written. Its length must be between 16 and 64 bytes.</param>
+		/// <param name="subkeyId">The identifier for the subkey (application-defined).</param>
+		/// <param name="context">8-byte context describing the usage.</param>
+		/// <param name="masterKey">The master key (32 bytes).</param>
+		/// <exception cref="ArgumentException">
+		/// Thrown when <paramref name="subkey"/> is out of bounds, <paramref name="context"/> is not 8 bytes,
+		/// or <paramref name="masterKey"/> is not 32 bytes.
+		/// </exception>
+		/// <exception cref="LibSodiumException">Thrown if the native key derivation fails.</exception>
+		public static void DeriveSubkey(
+			SecureMemory<byte> subkey,
+			ulong subkeyId,
+			ReadOnlySpan<byte> context,
+			SecureMemory<byte> masterKey)
+		{
+			DeriveSubkey(subkey.AsSpan(), subkeyId, context, masterKey.AsReadOnlySpan());
 		}
 
 		/// <summary>
@@ -109,6 +141,29 @@ namespace LibSodium
 			}
 
 			DeriveSubkey(subkey, subkeyId, utf8Context, masterKey);
+		}
+
+		/// <summary>
+		/// Deterministically derives a subkey from a master key, using a context string whose UTF-8 representation is at most 8 bytes,
+		/// and a subkey ID. If the string is shorter, it is padded with zeros. Uses the BLAKE2b hash function internally.
+		/// </summary>
+		/// <param name="subkey">The buffer where the derived subkey will be written. Its length must be between 16 and 64 bytes.</param>
+		/// <param name="subkeyId">The identifier for the subkey (application-defined).</param>
+		/// <param name="context">A string whose UTF-8 representation must be at most 8 bytes and describes the usage context.</param>
+		/// <param name="masterKey">The master key (32 bytes).</param>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="context"/> is null.</exception>
+		/// <exception cref="ArgumentException">
+		/// Thrown when <paramref name="context"/> exceeds 8 UTF-8 bytes,
+		/// or <paramref name="subkey"/> or <paramref name="masterKey"/> are of invalid length.
+		/// </exception>
+		/// <exception cref="LibSodiumException">Thrown if the native key derivation fails.</exception>
+		public static void DeriveSubkey(
+			SecureMemory<byte> subkey,
+			ulong subkeyId,
+			string context,
+			SecureMemory<byte> masterKey)
+		{
+			DeriveSubkey(subkey.AsSpan(), subkeyId, context, masterKey.AsReadOnlySpan());
 		}
 	}
 }

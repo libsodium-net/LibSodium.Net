@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Text;
 
 namespace LibSodium.Tests;
 
@@ -233,4 +234,61 @@ public class CryptoSignTests
 		clientTx.ShouldBe(serverRx);
 		clientRx.ShouldBe(serverTx);
 	}
+
+	[Test]
+	public void GenerateKeyPair_WithSecureMemory_Succeeds()
+	{
+		Span<byte> pk = stackalloc byte[CryptoSign.PublicKeyLen];
+		using var sk = SecureMemory.Create<byte>(CryptoSign.PrivateKeyLen);
+		CryptoSign.GenerateKeyPair(pk, sk);
+
+		pk.ShouldNotBeZero();
+		sk.AsSpan().ShouldNotBeZero();
+	}
+
+	[Test]
+	public void GenerateKeyPairDeterministically_WithSecureMemory_Succeeds()
+	{
+		Span<byte> pk1 = stackalloc byte[CryptoSign.PublicKeyLen];
+		Span<byte> pk2 = stackalloc byte[CryptoSign.PublicKeyLen];
+		using var sk1 = SecureMemory.Create<byte>(CryptoSign.PrivateKeyLen);
+		using var sk2 = SecureMemory.Create<byte>(CryptoSign.PrivateKeyLen);
+		using var seed = SecureMemory.Create<byte>(CryptoSign.SeedLen);
+		RandomGenerator.Fill(seed);
+
+		CryptoSign.GenerateKeyPairDeterministically(pk1, sk1, seed);
+		CryptoSign.GenerateKeyPairDeterministically(pk2, sk2, seed);
+
+		pk1.ShouldBe(pk2);
+		sk1.AsSpan().ShouldBe(sk2.AsSpan());
+	}
+
+	[Test]
+	public void SignAndVerify_WithSecureMemoryPrivateKey_Succeeds()
+	{
+		Span<byte> pk = stackalloc byte[CryptoSign.PublicKeyLen];
+		using var sk = SecureMemory.Create<byte>(CryptoSign.PrivateKeyLen);
+		CryptoSign.GenerateKeyPair(pk, sk);
+
+		byte[] message = Encoding.UTF8.GetBytes("secure sign");
+		Span<byte> sig = stackalloc byte[CryptoSign.SignatureLen];
+
+		CryptoSign.Sign(message, sig, sk);
+		bool isValid = CryptoSign.TryVerify(message, sig, pk);
+		isValid.ShouldBeTrue();
+	}
+
+	[Test]
+	public void PrivateKeyToCurve_WithSecureMemoryInputs_ProducesValidKey()
+	{
+		Span<byte> edPk = stackalloc byte[CryptoSign.PublicKeyLen];
+		using var edSk = SecureMemory.Create<byte>(CryptoSign.PrivateKeyLen);
+		CryptoSign.GenerateKeyPair(edPk, edSk);
+
+		using var curveSk = SecureMemory.Create<byte>(CryptoBox.PrivateKeyLen);
+		curveSk.MemZero();
+		CryptoSign.PrivateKeyToCurve(curveSk, edSk);
+		curveSk.AsSpan().ShouldNotBeZero();
+	}
+
 }

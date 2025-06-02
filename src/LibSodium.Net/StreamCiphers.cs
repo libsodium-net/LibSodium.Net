@@ -37,6 +37,25 @@ namespace LibSodium
 		public static void Encrypt(ReadOnlySpan<byte> key, ReadOnlySpan<byte> nonce, ReadOnlySpan<byte> plaintext, Span<byte> ciphertext, ulong initialCounter = 0L)
 			=> CryptoStreamCipher<LowLevel.XSalsa20Cipher>.Encrypt(key, nonce, plaintext, ciphertext);
 
+        /// <summary>
+        /// Encrypts the given plaintext using the <c>XSalsa20</c> stream cipher, with the provided key and nonce.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c>32</c> bytes long.</param>
+        /// <param name="nonce">The nonce. Must be exactly <c>24</c> bytes long. Must never be reused with the same key.</param>
+        /// <param name="plaintext">The plaintext data to encrypt.</param>
+        /// <param name="ciphertext">The output buffer to receive the encrypted data. Must be at least as long as <paramref name="plaintext"/>.</param>
+        /// <param name="initialCounter">
+        /// The starting block index for the keystream (each block is 64 bytes).
+        /// Use this to skip blocks, resume encryption, or decrypt from a specific offset.
+        /// Defaults to 0.
+        /// </param>
+        /// <exception cref="ArgumentException">Thrown if any input length is invalid.</exception>
+        /// <remarks>
+        /// This method XORs the plaintext with a keystream derived from the key and nonce.
+        /// </remarks>
+		public static void Encrypt(SecureMemory<byte> key, ReadOnlySpan<byte> nonce, ReadOnlySpan<byte> plaintext, Span<byte> ciphertext, ulong initialCounter = 0L)
+			=> CryptoStreamCipher<LowLevel.XSalsa20Cipher>.Encrypt(key.AsReadOnlySpan(), nonce, plaintext, ciphertext);
+
 		/// <summary>
         /// Decrypts the given ciphertext using the <c>XSalsa20</c> stream cipher, with the provided key and nonce.
         /// </summary>
@@ -57,6 +76,26 @@ namespace LibSodium
 			=> CryptoStreamCipher<LowLevel.XSalsa20Cipher>.Decrypt(key, nonce, ciphertext, plaintext);
 
 		/// <summary>
+        /// Decrypts the given ciphertext using the <c>XSalsa20</c> stream cipher, with the provided key and nonce.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c>32</c> bytes long.</param>
+        /// <param name="nonce">The nonce used during encryption. Must be exactly <c>24</c> bytes long.</param>
+        /// <param name="ciphertext">The ciphertext to decrypt (produced by XOR with keystream).</param>
+        /// <param name="plaintext">The output buffer to receive the decrypted plaintext. Must be at least as long as <paramref name="ciphertext"/>.</param>
+        /// <param name="initialCounter">
+        /// The starting block index for the keystream (each block is 64 bytes).
+        /// Use this to skip blocks, resume encryption, or decrypt from a specific offset.
+        /// Defaults to 0.
+        /// </param>
+        /// <exception cref="ArgumentException">Thrown if any input length is invalid.</exception>
+        /// <remarks>
+        /// Decryption is symmetric: it re-generates the same keystream and XORs it with the ciphertext.
+        /// </remarks>
+		public static void Decrypt(SecureMemory<byte> key, ReadOnlySpan<byte> nonce, ReadOnlySpan<byte> ciphertext, Span<byte> plaintext, ulong initialCounter = 0L)
+			=> CryptoStreamCipher<LowLevel.XSalsa20Cipher>.Decrypt(key.AsReadOnlySpan(), nonce, ciphertext, plaintext);
+
+
+		/// <summary>
         /// Encrypts a stream using the <c>XSalsa20</c> stream cipher.
         /// </summary>
         /// <param name="key">The secret key. Must be exactly <c>32</c> bytes long.</param>
@@ -66,6 +105,18 @@ namespace LibSodium
         /// <exception cref="ArgumentException">Thrown if key or nonce are invalid.</exception>
 		public static void Encrypt(ReadOnlySpan<byte> key, ReadOnlySpan<byte> nonce, Stream input, Stream output)
 			=> CryptoStreamCipher<LowLevel.XSalsa20Cipher>.Encrypt(key, nonce, input, output);
+
+
+        /// <summary>
+        /// Encrypts a stream using the <c>XSalsa20</c> stream cipher.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c>32</c> bytes long.</param>
+        /// <param name="nonce">The nonce. Must be exactly <c>24</c> bytes long.</param>
+        /// <param name="input">The stream containing plaintext data to encrypt.</param>
+        /// <param name="output">The stream to receive the encrypted data.</param>
+        /// <exception cref="ArgumentException">Thrown if key or nonce are invalid.</exception>
+		public static void Encrypt(SecureMemory<byte> key, ReadOnlySpan<byte> nonce, Stream input, Stream output)
+			=> CryptoStreamCipher<LowLevel.XSalsa20Cipher>.Encrypt(key.AsReadOnlySpan(), nonce, input, output);
 
 		/// <summary>
         /// Decrypts a stream using the <c>XSalsa20</c> stream cipher.
@@ -77,6 +128,17 @@ namespace LibSodium
         /// <exception cref="ArgumentException">Thrown if key or nonce are invalid.</exception>
 		public static void Decrypt(ReadOnlySpan<byte> key, ReadOnlySpan<byte> nonce, Stream input, Stream output)
 			=> CryptoStreamCipher<LowLevel.XSalsa20Cipher>.Decrypt(key, nonce, input, output);
+
+        /// <summary>
+        /// Decrypts a stream using the <c>XSalsa20</c> stream cipher.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c>32</c> bytes long.</param>
+        /// <param name="nonce">The nonce used during encryption. Must be exactly <c>24</c> bytes long.</param>
+        /// <param name="input">The stream containing ciphertext to decrypt.</param>
+        /// <param name="output">The stream to receive the decrypted data.</param>
+        /// <exception cref="ArgumentException">Thrown if key or nonce are invalid.</exception>
+		public static void Decrypt(SecureMemory<byte> key, ReadOnlySpan<byte> nonce, Stream input, Stream output)
+			=> CryptoStreamCipher<LowLevel.XSalsa20Cipher>.Decrypt(key.AsReadOnlySpan(), nonce, input, output);
 
 		/// <summary>
         /// Asynchronously encrypts a stream using the <c>XSalsa20</c> stream cipher.
@@ -91,6 +153,19 @@ namespace LibSodium
 			=> CryptoStreamCipher<LowLevel.XSalsa20Cipher>.EncryptAsync(key, nonce, input, output, cancellationToken);
 
 		/// <summary>
+        /// Asynchronously encrypts a stream using the <c>XSalsa20</c> stream cipher.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c>32</c> bytes.</param>
+        /// <param name="nonce">The nonce. Must be exactly <c>24</c> bytes.</param>
+        /// <param name="input">The readable stream with plaintext data.</param>
+        /// <param name="output">The writable stream to receive ciphertext.</param>
+        /// <param name="cancellationToken">Optional token to cancel the async operation.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+		public static Task EncryptAsync(SecureMemory<byte> key, ReadOnlyMemory<byte> nonce, Stream input, Stream output, CancellationToken cancellationToken = default)
+			=> CryptoStreamCipher<LowLevel.XSalsa20Cipher>.EncryptAsync(key.AsReadOnlyMemory(), nonce, input, output, cancellationToken);
+
+
+		/// <summary>
         /// Asynchronously decrypts a stream using the <c>XSalsa20</c> stream cipher.
         /// </summary>
         /// <param name="key">The secret key. Must be exactly <c>32</c> bytes.</param>
@@ -103,6 +178,19 @@ namespace LibSodium
 			=> CryptoStreamCipher<LowLevel.XSalsa20Cipher>.DecryptAsync(key, nonce, input, output, cancellationToken);
 
 		/// <summary>
+        /// Asynchronously decrypts a stream using the <c>XSalsa20</c> stream cipher.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c>32</c> bytes.</param>
+        /// <param name="nonce">The nonce used during encryption. Must be <c>24</c> bytes.</param>
+        /// <param name="input">The readable stream with ciphertext.</param>
+        /// <param name="output">The writable stream to receive decrypted data.</param>
+        /// <param name="cancellationToken">Optional token to cancel the async operation.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+		public static Task DecryptAsync(SecureMemory<byte> key, ReadOnlyMemory<byte> nonce, Stream input, Stream output, CancellationToken cancellationToken = default)
+			=> CryptoStreamCipher<LowLevel.XSalsa20Cipher>.DecryptAsync(key.AsReadOnlyMemory(), nonce, input, output, cancellationToken);
+
+
+		/// <summary>
         /// Generates a keystream of the specified length using the <c>XSalsa20</c> stream cipher.
         /// </summary>
         /// <param name="output">The buffer to receive the generated keystream.</param>
@@ -111,6 +199,17 @@ namespace LibSodium
         /// <exception cref="ArgumentException">Thrown if <paramref name="output"/> is empty or lengths are invalid.</exception>
 		public static void GenerateKeystream(Span<byte> output, ReadOnlySpan<byte> nonce, ReadOnlySpan<byte> key)
 			=> CryptoStreamCipher<LowLevel.XSalsa20Cipher>.GenerateKeystream(output, nonce, key);
+
+		/// <summary>
+        /// Generates a keystream of the specified length using the <c>XSalsa20</c> stream cipher.
+        /// </summary>
+        /// <param name="output">The buffer to receive the generated keystream.</param>
+        /// <param name="nonce">The nonce. Must be exactly <c>24</c> bytes.</param>
+        /// <param name="key">The key. Must be exactly <c>32</c> bytes.</param>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="output"/> is empty or lengths are invalid.</exception>
+		public static void GenerateKeystream(SecureMemory<byte> output, ReadOnlySpan<byte> nonce, SecureMemory<byte> key)
+			=> CryptoStreamCipher<LowLevel.XSalsa20Cipher>.GenerateKeystream(output.AsSpan(), nonce, key.AsReadOnlySpan());
+
 	}
 	/// <summary>
 	/// Provides high-level access to the <c>Salsa20</c> stream cipher.
@@ -145,6 +244,25 @@ namespace LibSodium
 		public static void Encrypt(ReadOnlySpan<byte> key, ReadOnlySpan<byte> nonce, ReadOnlySpan<byte> plaintext, Span<byte> ciphertext, ulong initialCounter = 0L)
 			=> CryptoStreamCipher<LowLevel.Salsa20Cipher>.Encrypt(key, nonce, plaintext, ciphertext);
 
+        /// <summary>
+        /// Encrypts the given plaintext using the <c>Salsa20</c> stream cipher, with the provided key and nonce.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c>32</c> bytes long.</param>
+        /// <param name="nonce">The nonce. Must be exactly <c>8</c> bytes long. Must never be reused with the same key.</param>
+        /// <param name="plaintext">The plaintext data to encrypt.</param>
+        /// <param name="ciphertext">The output buffer to receive the encrypted data. Must be at least as long as <paramref name="plaintext"/>.</param>
+        /// <param name="initialCounter">
+        /// The starting block index for the keystream (each block is 64 bytes).
+        /// Use this to skip blocks, resume encryption, or decrypt from a specific offset.
+        /// Defaults to 0.
+        /// </param>
+        /// <exception cref="ArgumentException">Thrown if any input length is invalid.</exception>
+        /// <remarks>
+        /// This method XORs the plaintext with a keystream derived from the key and nonce.
+        /// </remarks>
+		public static void Encrypt(SecureMemory<byte> key, ReadOnlySpan<byte> nonce, ReadOnlySpan<byte> plaintext, Span<byte> ciphertext, ulong initialCounter = 0L)
+			=> CryptoStreamCipher<LowLevel.Salsa20Cipher>.Encrypt(key.AsReadOnlySpan(), nonce, plaintext, ciphertext);
+
 		/// <summary>
         /// Decrypts the given ciphertext using the <c>Salsa20</c> stream cipher, with the provided key and nonce.
         /// </summary>
@@ -165,6 +283,26 @@ namespace LibSodium
 			=> CryptoStreamCipher<LowLevel.Salsa20Cipher>.Decrypt(key, nonce, ciphertext, plaintext);
 
 		/// <summary>
+        /// Decrypts the given ciphertext using the <c>Salsa20</c> stream cipher, with the provided key and nonce.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c>32</c> bytes long.</param>
+        /// <param name="nonce">The nonce used during encryption. Must be exactly <c>8</c> bytes long.</param>
+        /// <param name="ciphertext">The ciphertext to decrypt (produced by XOR with keystream).</param>
+        /// <param name="plaintext">The output buffer to receive the decrypted plaintext. Must be at least as long as <paramref name="ciphertext"/>.</param>
+        /// <param name="initialCounter">
+        /// The starting block index for the keystream (each block is 64 bytes).
+        /// Use this to skip blocks, resume encryption, or decrypt from a specific offset.
+        /// Defaults to 0.
+        /// </param>
+        /// <exception cref="ArgumentException">Thrown if any input length is invalid.</exception>
+        /// <remarks>
+        /// Decryption is symmetric: it re-generates the same keystream and XORs it with the ciphertext.
+        /// </remarks>
+		public static void Decrypt(SecureMemory<byte> key, ReadOnlySpan<byte> nonce, ReadOnlySpan<byte> ciphertext, Span<byte> plaintext, ulong initialCounter = 0L)
+			=> CryptoStreamCipher<LowLevel.Salsa20Cipher>.Decrypt(key.AsReadOnlySpan(), nonce, ciphertext, plaintext);
+
+
+		/// <summary>
         /// Encrypts a stream using the <c>Salsa20</c> stream cipher.
         /// </summary>
         /// <param name="key">The secret key. Must be exactly <c>32</c> bytes long.</param>
@@ -174,6 +312,18 @@ namespace LibSodium
         /// <exception cref="ArgumentException">Thrown if key or nonce are invalid.</exception>
 		public static void Encrypt(ReadOnlySpan<byte> key, ReadOnlySpan<byte> nonce, Stream input, Stream output)
 			=> CryptoStreamCipher<LowLevel.Salsa20Cipher>.Encrypt(key, nonce, input, output);
+
+
+        /// <summary>
+        /// Encrypts a stream using the <c>Salsa20</c> stream cipher.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c>32</c> bytes long.</param>
+        /// <param name="nonce">The nonce. Must be exactly <c>8</c> bytes long.</param>
+        /// <param name="input">The stream containing plaintext data to encrypt.</param>
+        /// <param name="output">The stream to receive the encrypted data.</param>
+        /// <exception cref="ArgumentException">Thrown if key or nonce are invalid.</exception>
+		public static void Encrypt(SecureMemory<byte> key, ReadOnlySpan<byte> nonce, Stream input, Stream output)
+			=> CryptoStreamCipher<LowLevel.Salsa20Cipher>.Encrypt(key.AsReadOnlySpan(), nonce, input, output);
 
 		/// <summary>
         /// Decrypts a stream using the <c>Salsa20</c> stream cipher.
@@ -185,6 +335,17 @@ namespace LibSodium
         /// <exception cref="ArgumentException">Thrown if key or nonce are invalid.</exception>
 		public static void Decrypt(ReadOnlySpan<byte> key, ReadOnlySpan<byte> nonce, Stream input, Stream output)
 			=> CryptoStreamCipher<LowLevel.Salsa20Cipher>.Decrypt(key, nonce, input, output);
+
+        /// <summary>
+        /// Decrypts a stream using the <c>Salsa20</c> stream cipher.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c>32</c> bytes long.</param>
+        /// <param name="nonce">The nonce used during encryption. Must be exactly <c>8</c> bytes long.</param>
+        /// <param name="input">The stream containing ciphertext to decrypt.</param>
+        /// <param name="output">The stream to receive the decrypted data.</param>
+        /// <exception cref="ArgumentException">Thrown if key or nonce are invalid.</exception>
+		public static void Decrypt(SecureMemory<byte> key, ReadOnlySpan<byte> nonce, Stream input, Stream output)
+			=> CryptoStreamCipher<LowLevel.Salsa20Cipher>.Decrypt(key.AsReadOnlySpan(), nonce, input, output);
 
 		/// <summary>
         /// Asynchronously encrypts a stream using the <c>Salsa20</c> stream cipher.
@@ -199,6 +360,19 @@ namespace LibSodium
 			=> CryptoStreamCipher<LowLevel.Salsa20Cipher>.EncryptAsync(key, nonce, input, output, cancellationToken);
 
 		/// <summary>
+        /// Asynchronously encrypts a stream using the <c>Salsa20</c> stream cipher.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c>32</c> bytes.</param>
+        /// <param name="nonce">The nonce. Must be exactly <c>8</c> bytes.</param>
+        /// <param name="input">The readable stream with plaintext data.</param>
+        /// <param name="output">The writable stream to receive ciphertext.</param>
+        /// <param name="cancellationToken">Optional token to cancel the async operation.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+		public static Task EncryptAsync(SecureMemory<byte> key, ReadOnlyMemory<byte> nonce, Stream input, Stream output, CancellationToken cancellationToken = default)
+			=> CryptoStreamCipher<LowLevel.Salsa20Cipher>.EncryptAsync(key.AsReadOnlyMemory(), nonce, input, output, cancellationToken);
+
+
+		/// <summary>
         /// Asynchronously decrypts a stream using the <c>Salsa20</c> stream cipher.
         /// </summary>
         /// <param name="key">The secret key. Must be exactly <c>32</c> bytes.</param>
@@ -211,6 +385,19 @@ namespace LibSodium
 			=> CryptoStreamCipher<LowLevel.Salsa20Cipher>.DecryptAsync(key, nonce, input, output, cancellationToken);
 
 		/// <summary>
+        /// Asynchronously decrypts a stream using the <c>Salsa20</c> stream cipher.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c>32</c> bytes.</param>
+        /// <param name="nonce">The nonce used during encryption. Must be <c>8</c> bytes.</param>
+        /// <param name="input">The readable stream with ciphertext.</param>
+        /// <param name="output">The writable stream to receive decrypted data.</param>
+        /// <param name="cancellationToken">Optional token to cancel the async operation.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+		public static Task DecryptAsync(SecureMemory<byte> key, ReadOnlyMemory<byte> nonce, Stream input, Stream output, CancellationToken cancellationToken = default)
+			=> CryptoStreamCipher<LowLevel.Salsa20Cipher>.DecryptAsync(key.AsReadOnlyMemory(), nonce, input, output, cancellationToken);
+
+
+		/// <summary>
         /// Generates a keystream of the specified length using the <c>Salsa20</c> stream cipher.
         /// </summary>
         /// <param name="output">The buffer to receive the generated keystream.</param>
@@ -219,6 +406,17 @@ namespace LibSodium
         /// <exception cref="ArgumentException">Thrown if <paramref name="output"/> is empty or lengths are invalid.</exception>
 		public static void GenerateKeystream(Span<byte> output, ReadOnlySpan<byte> nonce, ReadOnlySpan<byte> key)
 			=> CryptoStreamCipher<LowLevel.Salsa20Cipher>.GenerateKeystream(output, nonce, key);
+
+		/// <summary>
+        /// Generates a keystream of the specified length using the <c>Salsa20</c> stream cipher.
+        /// </summary>
+        /// <param name="output">The buffer to receive the generated keystream.</param>
+        /// <param name="nonce">The nonce. Must be exactly <c>8</c> bytes.</param>
+        /// <param name="key">The key. Must be exactly <c>32</c> bytes.</param>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="output"/> is empty or lengths are invalid.</exception>
+		public static void GenerateKeystream(SecureMemory<byte> output, ReadOnlySpan<byte> nonce, SecureMemory<byte> key)
+			=> CryptoStreamCipher<LowLevel.Salsa20Cipher>.GenerateKeystream(output.AsSpan(), nonce, key.AsReadOnlySpan());
+
 	}
 	/// <summary>
 	/// Provides high-level access to the <c>ChaCha20</c> stream cipher.
@@ -253,6 +451,25 @@ namespace LibSodium
 		public static void Encrypt(ReadOnlySpan<byte> key, ReadOnlySpan<byte> nonce, ReadOnlySpan<byte> plaintext, Span<byte> ciphertext, ulong initialCounter = 0L)
 			=> CryptoStreamCipher<LowLevel.ChaCha20Cipher>.Encrypt(key, nonce, plaintext, ciphertext);
 
+        /// <summary>
+        /// Encrypts the given plaintext using the <c>ChaCha20</c> stream cipher, with the provided key and nonce.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c>32</c> bytes long.</param>
+        /// <param name="nonce">The nonce. Must be exactly <c>8</c> bytes long. Must never be reused with the same key.</param>
+        /// <param name="plaintext">The plaintext data to encrypt.</param>
+        /// <param name="ciphertext">The output buffer to receive the encrypted data. Must be at least as long as <paramref name="plaintext"/>.</param>
+        /// <param name="initialCounter">
+        /// The starting block index for the keystream (each block is 64 bytes).
+        /// Use this to skip blocks, resume encryption, or decrypt from a specific offset.
+        /// Defaults to 0.
+        /// </param>
+        /// <exception cref="ArgumentException">Thrown if any input length is invalid.</exception>
+        /// <remarks>
+        /// This method XORs the plaintext with a keystream derived from the key and nonce.
+        /// </remarks>
+		public static void Encrypt(SecureMemory<byte> key, ReadOnlySpan<byte> nonce, ReadOnlySpan<byte> plaintext, Span<byte> ciphertext, ulong initialCounter = 0L)
+			=> CryptoStreamCipher<LowLevel.ChaCha20Cipher>.Encrypt(key.AsReadOnlySpan(), nonce, plaintext, ciphertext);
+
 		/// <summary>
         /// Decrypts the given ciphertext using the <c>ChaCha20</c> stream cipher, with the provided key and nonce.
         /// </summary>
@@ -273,6 +490,26 @@ namespace LibSodium
 			=> CryptoStreamCipher<LowLevel.ChaCha20Cipher>.Decrypt(key, nonce, ciphertext, plaintext);
 
 		/// <summary>
+        /// Decrypts the given ciphertext using the <c>ChaCha20</c> stream cipher, with the provided key and nonce.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c>32</c> bytes long.</param>
+        /// <param name="nonce">The nonce used during encryption. Must be exactly <c>8</c> bytes long.</param>
+        /// <param name="ciphertext">The ciphertext to decrypt (produced by XOR with keystream).</param>
+        /// <param name="plaintext">The output buffer to receive the decrypted plaintext. Must be at least as long as <paramref name="ciphertext"/>.</param>
+        /// <param name="initialCounter">
+        /// The starting block index for the keystream (each block is 64 bytes).
+        /// Use this to skip blocks, resume encryption, or decrypt from a specific offset.
+        /// Defaults to 0.
+        /// </param>
+        /// <exception cref="ArgumentException">Thrown if any input length is invalid.</exception>
+        /// <remarks>
+        /// Decryption is symmetric: it re-generates the same keystream and XORs it with the ciphertext.
+        /// </remarks>
+		public static void Decrypt(SecureMemory<byte> key, ReadOnlySpan<byte> nonce, ReadOnlySpan<byte> ciphertext, Span<byte> plaintext, ulong initialCounter = 0L)
+			=> CryptoStreamCipher<LowLevel.ChaCha20Cipher>.Decrypt(key.AsReadOnlySpan(), nonce, ciphertext, plaintext);
+
+
+		/// <summary>
         /// Encrypts a stream using the <c>ChaCha20</c> stream cipher.
         /// </summary>
         /// <param name="key">The secret key. Must be exactly <c>32</c> bytes long.</param>
@@ -282,6 +519,18 @@ namespace LibSodium
         /// <exception cref="ArgumentException">Thrown if key or nonce are invalid.</exception>
 		public static void Encrypt(ReadOnlySpan<byte> key, ReadOnlySpan<byte> nonce, Stream input, Stream output)
 			=> CryptoStreamCipher<LowLevel.ChaCha20Cipher>.Encrypt(key, nonce, input, output);
+
+
+        /// <summary>
+        /// Encrypts a stream using the <c>ChaCha20</c> stream cipher.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c>32</c> bytes long.</param>
+        /// <param name="nonce">The nonce. Must be exactly <c>8</c> bytes long.</param>
+        /// <param name="input">The stream containing plaintext data to encrypt.</param>
+        /// <param name="output">The stream to receive the encrypted data.</param>
+        /// <exception cref="ArgumentException">Thrown if key or nonce are invalid.</exception>
+		public static void Encrypt(SecureMemory<byte> key, ReadOnlySpan<byte> nonce, Stream input, Stream output)
+			=> CryptoStreamCipher<LowLevel.ChaCha20Cipher>.Encrypt(key.AsReadOnlySpan(), nonce, input, output);
 
 		/// <summary>
         /// Decrypts a stream using the <c>ChaCha20</c> stream cipher.
@@ -293,6 +542,17 @@ namespace LibSodium
         /// <exception cref="ArgumentException">Thrown if key or nonce are invalid.</exception>
 		public static void Decrypt(ReadOnlySpan<byte> key, ReadOnlySpan<byte> nonce, Stream input, Stream output)
 			=> CryptoStreamCipher<LowLevel.ChaCha20Cipher>.Decrypt(key, nonce, input, output);
+
+        /// <summary>
+        /// Decrypts a stream using the <c>ChaCha20</c> stream cipher.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c>32</c> bytes long.</param>
+        /// <param name="nonce">The nonce used during encryption. Must be exactly <c>8</c> bytes long.</param>
+        /// <param name="input">The stream containing ciphertext to decrypt.</param>
+        /// <param name="output">The stream to receive the decrypted data.</param>
+        /// <exception cref="ArgumentException">Thrown if key or nonce are invalid.</exception>
+		public static void Decrypt(SecureMemory<byte> key, ReadOnlySpan<byte> nonce, Stream input, Stream output)
+			=> CryptoStreamCipher<LowLevel.ChaCha20Cipher>.Decrypt(key.AsReadOnlySpan(), nonce, input, output);
 
 		/// <summary>
         /// Asynchronously encrypts a stream using the <c>ChaCha20</c> stream cipher.
@@ -307,6 +567,19 @@ namespace LibSodium
 			=> CryptoStreamCipher<LowLevel.ChaCha20Cipher>.EncryptAsync(key, nonce, input, output, cancellationToken);
 
 		/// <summary>
+        /// Asynchronously encrypts a stream using the <c>ChaCha20</c> stream cipher.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c>32</c> bytes.</param>
+        /// <param name="nonce">The nonce. Must be exactly <c>8</c> bytes.</param>
+        /// <param name="input">The readable stream with plaintext data.</param>
+        /// <param name="output">The writable stream to receive ciphertext.</param>
+        /// <param name="cancellationToken">Optional token to cancel the async operation.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+		public static Task EncryptAsync(SecureMemory<byte> key, ReadOnlyMemory<byte> nonce, Stream input, Stream output, CancellationToken cancellationToken = default)
+			=> CryptoStreamCipher<LowLevel.ChaCha20Cipher>.EncryptAsync(key.AsReadOnlyMemory(), nonce, input, output, cancellationToken);
+
+
+		/// <summary>
         /// Asynchronously decrypts a stream using the <c>ChaCha20</c> stream cipher.
         /// </summary>
         /// <param name="key">The secret key. Must be exactly <c>32</c> bytes.</param>
@@ -319,6 +592,19 @@ namespace LibSodium
 			=> CryptoStreamCipher<LowLevel.ChaCha20Cipher>.DecryptAsync(key, nonce, input, output, cancellationToken);
 
 		/// <summary>
+        /// Asynchronously decrypts a stream using the <c>ChaCha20</c> stream cipher.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c>32</c> bytes.</param>
+        /// <param name="nonce">The nonce used during encryption. Must be <c>8</c> bytes.</param>
+        /// <param name="input">The readable stream with ciphertext.</param>
+        /// <param name="output">The writable stream to receive decrypted data.</param>
+        /// <param name="cancellationToken">Optional token to cancel the async operation.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+		public static Task DecryptAsync(SecureMemory<byte> key, ReadOnlyMemory<byte> nonce, Stream input, Stream output, CancellationToken cancellationToken = default)
+			=> CryptoStreamCipher<LowLevel.ChaCha20Cipher>.DecryptAsync(key.AsReadOnlyMemory(), nonce, input, output, cancellationToken);
+
+
+		/// <summary>
         /// Generates a keystream of the specified length using the <c>ChaCha20</c> stream cipher.
         /// </summary>
         /// <param name="output">The buffer to receive the generated keystream.</param>
@@ -327,6 +613,17 @@ namespace LibSodium
         /// <exception cref="ArgumentException">Thrown if <paramref name="output"/> is empty or lengths are invalid.</exception>
 		public static void GenerateKeystream(Span<byte> output, ReadOnlySpan<byte> nonce, ReadOnlySpan<byte> key)
 			=> CryptoStreamCipher<LowLevel.ChaCha20Cipher>.GenerateKeystream(output, nonce, key);
+
+		/// <summary>
+        /// Generates a keystream of the specified length using the <c>ChaCha20</c> stream cipher.
+        /// </summary>
+        /// <param name="output">The buffer to receive the generated keystream.</param>
+        /// <param name="nonce">The nonce. Must be exactly <c>8</c> bytes.</param>
+        /// <param name="key">The key. Must be exactly <c>32</c> bytes.</param>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="output"/> is empty or lengths are invalid.</exception>
+		public static void GenerateKeystream(SecureMemory<byte> output, ReadOnlySpan<byte> nonce, SecureMemory<byte> key)
+			=> CryptoStreamCipher<LowLevel.ChaCha20Cipher>.GenerateKeystream(output.AsSpan(), nonce, key.AsReadOnlySpan());
+
 	}
 	/// <summary>
 	/// Provides high-level access to the <c>XChaCha20</c> stream cipher.
@@ -361,6 +658,25 @@ namespace LibSodium
 		public static void Encrypt(ReadOnlySpan<byte> key, ReadOnlySpan<byte> nonce, ReadOnlySpan<byte> plaintext, Span<byte> ciphertext, ulong initialCounter = 0L)
 			=> CryptoStreamCipher<LowLevel.XChaCha20Cipher>.Encrypt(key, nonce, plaintext, ciphertext);
 
+        /// <summary>
+        /// Encrypts the given plaintext using the <c>XChaCha20</c> stream cipher, with the provided key and nonce.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c>32</c> bytes long.</param>
+        /// <param name="nonce">The nonce. Must be exactly <c>24</c> bytes long. Must never be reused with the same key.</param>
+        /// <param name="plaintext">The plaintext data to encrypt.</param>
+        /// <param name="ciphertext">The output buffer to receive the encrypted data. Must be at least as long as <paramref name="plaintext"/>.</param>
+        /// <param name="initialCounter">
+        /// The starting block index for the keystream (each block is 64 bytes).
+        /// Use this to skip blocks, resume encryption, or decrypt from a specific offset.
+        /// Defaults to 0.
+        /// </param>
+        /// <exception cref="ArgumentException">Thrown if any input length is invalid.</exception>
+        /// <remarks>
+        /// This method XORs the plaintext with a keystream derived from the key and nonce.
+        /// </remarks>
+		public static void Encrypt(SecureMemory<byte> key, ReadOnlySpan<byte> nonce, ReadOnlySpan<byte> plaintext, Span<byte> ciphertext, ulong initialCounter = 0L)
+			=> CryptoStreamCipher<LowLevel.XChaCha20Cipher>.Encrypt(key.AsReadOnlySpan(), nonce, plaintext, ciphertext);
+
 		/// <summary>
         /// Decrypts the given ciphertext using the <c>XChaCha20</c> stream cipher, with the provided key and nonce.
         /// </summary>
@@ -381,6 +697,26 @@ namespace LibSodium
 			=> CryptoStreamCipher<LowLevel.XChaCha20Cipher>.Decrypt(key, nonce, ciphertext, plaintext);
 
 		/// <summary>
+        /// Decrypts the given ciphertext using the <c>XChaCha20</c> stream cipher, with the provided key and nonce.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c>32</c> bytes long.</param>
+        /// <param name="nonce">The nonce used during encryption. Must be exactly <c>24</c> bytes long.</param>
+        /// <param name="ciphertext">The ciphertext to decrypt (produced by XOR with keystream).</param>
+        /// <param name="plaintext">The output buffer to receive the decrypted plaintext. Must be at least as long as <paramref name="ciphertext"/>.</param>
+        /// <param name="initialCounter">
+        /// The starting block index for the keystream (each block is 64 bytes).
+        /// Use this to skip blocks, resume encryption, or decrypt from a specific offset.
+        /// Defaults to 0.
+        /// </param>
+        /// <exception cref="ArgumentException">Thrown if any input length is invalid.</exception>
+        /// <remarks>
+        /// Decryption is symmetric: it re-generates the same keystream and XORs it with the ciphertext.
+        /// </remarks>
+		public static void Decrypt(SecureMemory<byte> key, ReadOnlySpan<byte> nonce, ReadOnlySpan<byte> ciphertext, Span<byte> plaintext, ulong initialCounter = 0L)
+			=> CryptoStreamCipher<LowLevel.XChaCha20Cipher>.Decrypt(key.AsReadOnlySpan(), nonce, ciphertext, plaintext);
+
+
+		/// <summary>
         /// Encrypts a stream using the <c>XChaCha20</c> stream cipher.
         /// </summary>
         /// <param name="key">The secret key. Must be exactly <c>32</c> bytes long.</param>
@@ -390,6 +726,18 @@ namespace LibSodium
         /// <exception cref="ArgumentException">Thrown if key or nonce are invalid.</exception>
 		public static void Encrypt(ReadOnlySpan<byte> key, ReadOnlySpan<byte> nonce, Stream input, Stream output)
 			=> CryptoStreamCipher<LowLevel.XChaCha20Cipher>.Encrypt(key, nonce, input, output);
+
+
+        /// <summary>
+        /// Encrypts a stream using the <c>XChaCha20</c> stream cipher.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c>32</c> bytes long.</param>
+        /// <param name="nonce">The nonce. Must be exactly <c>24</c> bytes long.</param>
+        /// <param name="input">The stream containing plaintext data to encrypt.</param>
+        /// <param name="output">The stream to receive the encrypted data.</param>
+        /// <exception cref="ArgumentException">Thrown if key or nonce are invalid.</exception>
+		public static void Encrypt(SecureMemory<byte> key, ReadOnlySpan<byte> nonce, Stream input, Stream output)
+			=> CryptoStreamCipher<LowLevel.XChaCha20Cipher>.Encrypt(key.AsReadOnlySpan(), nonce, input, output);
 
 		/// <summary>
         /// Decrypts a stream using the <c>XChaCha20</c> stream cipher.
@@ -401,6 +749,17 @@ namespace LibSodium
         /// <exception cref="ArgumentException">Thrown if key or nonce are invalid.</exception>
 		public static void Decrypt(ReadOnlySpan<byte> key, ReadOnlySpan<byte> nonce, Stream input, Stream output)
 			=> CryptoStreamCipher<LowLevel.XChaCha20Cipher>.Decrypt(key, nonce, input, output);
+
+        /// <summary>
+        /// Decrypts a stream using the <c>XChaCha20</c> stream cipher.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c>32</c> bytes long.</param>
+        /// <param name="nonce">The nonce used during encryption. Must be exactly <c>24</c> bytes long.</param>
+        /// <param name="input">The stream containing ciphertext to decrypt.</param>
+        /// <param name="output">The stream to receive the decrypted data.</param>
+        /// <exception cref="ArgumentException">Thrown if key or nonce are invalid.</exception>
+		public static void Decrypt(SecureMemory<byte> key, ReadOnlySpan<byte> nonce, Stream input, Stream output)
+			=> CryptoStreamCipher<LowLevel.XChaCha20Cipher>.Decrypt(key.AsReadOnlySpan(), nonce, input, output);
 
 		/// <summary>
         /// Asynchronously encrypts a stream using the <c>XChaCha20</c> stream cipher.
@@ -415,6 +774,19 @@ namespace LibSodium
 			=> CryptoStreamCipher<LowLevel.XChaCha20Cipher>.EncryptAsync(key, nonce, input, output, cancellationToken);
 
 		/// <summary>
+        /// Asynchronously encrypts a stream using the <c>XChaCha20</c> stream cipher.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c>32</c> bytes.</param>
+        /// <param name="nonce">The nonce. Must be exactly <c>24</c> bytes.</param>
+        /// <param name="input">The readable stream with plaintext data.</param>
+        /// <param name="output">The writable stream to receive ciphertext.</param>
+        /// <param name="cancellationToken">Optional token to cancel the async operation.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+		public static Task EncryptAsync(SecureMemory<byte> key, ReadOnlyMemory<byte> nonce, Stream input, Stream output, CancellationToken cancellationToken = default)
+			=> CryptoStreamCipher<LowLevel.XChaCha20Cipher>.EncryptAsync(key.AsReadOnlyMemory(), nonce, input, output, cancellationToken);
+
+
+		/// <summary>
         /// Asynchronously decrypts a stream using the <c>XChaCha20</c> stream cipher.
         /// </summary>
         /// <param name="key">The secret key. Must be exactly <c>32</c> bytes.</param>
@@ -427,6 +799,19 @@ namespace LibSodium
 			=> CryptoStreamCipher<LowLevel.XChaCha20Cipher>.DecryptAsync(key, nonce, input, output, cancellationToken);
 
 		/// <summary>
+        /// Asynchronously decrypts a stream using the <c>XChaCha20</c> stream cipher.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c>32</c> bytes.</param>
+        /// <param name="nonce">The nonce used during encryption. Must be <c>24</c> bytes.</param>
+        /// <param name="input">The readable stream with ciphertext.</param>
+        /// <param name="output">The writable stream to receive decrypted data.</param>
+        /// <param name="cancellationToken">Optional token to cancel the async operation.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+		public static Task DecryptAsync(SecureMemory<byte> key, ReadOnlyMemory<byte> nonce, Stream input, Stream output, CancellationToken cancellationToken = default)
+			=> CryptoStreamCipher<LowLevel.XChaCha20Cipher>.DecryptAsync(key.AsReadOnlyMemory(), nonce, input, output, cancellationToken);
+
+
+		/// <summary>
         /// Generates a keystream of the specified length using the <c>XChaCha20</c> stream cipher.
         /// </summary>
         /// <param name="output">The buffer to receive the generated keystream.</param>
@@ -435,6 +820,17 @@ namespace LibSodium
         /// <exception cref="ArgumentException">Thrown if <paramref name="output"/> is empty or lengths are invalid.</exception>
 		public static void GenerateKeystream(Span<byte> output, ReadOnlySpan<byte> nonce, ReadOnlySpan<byte> key)
 			=> CryptoStreamCipher<LowLevel.XChaCha20Cipher>.GenerateKeystream(output, nonce, key);
+
+		/// <summary>
+        /// Generates a keystream of the specified length using the <c>XChaCha20</c> stream cipher.
+        /// </summary>
+        /// <param name="output">The buffer to receive the generated keystream.</param>
+        /// <param name="nonce">The nonce. Must be exactly <c>24</c> bytes.</param>
+        /// <param name="key">The key. Must be exactly <c>32</c> bytes.</param>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="output"/> is empty or lengths are invalid.</exception>
+		public static void GenerateKeystream(SecureMemory<byte> output, ReadOnlySpan<byte> nonce, SecureMemory<byte> key)
+			=> CryptoStreamCipher<LowLevel.XChaCha20Cipher>.GenerateKeystream(output.AsSpan(), nonce, key.AsReadOnlySpan());
+
 	}
 	/// <summary>
 	/// Provides high-level access to the <c>ChaCha20Ietf</c> stream cipher.
@@ -469,6 +865,25 @@ namespace LibSodium
 		public static void Encrypt(ReadOnlySpan<byte> key, ReadOnlySpan<byte> nonce, ReadOnlySpan<byte> plaintext, Span<byte> ciphertext, ulong initialCounter = 0L)
 			=> CryptoStreamCipher<LowLevel.ChaCha20IetfCipher>.Encrypt(key, nonce, plaintext, ciphertext);
 
+        /// <summary>
+        /// Encrypts the given plaintext using the <c>ChaCha20Ietf</c> stream cipher, with the provided key and nonce.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c>32</c> bytes long.</param>
+        /// <param name="nonce">The nonce. Must be exactly <c>12</c> bytes long. Must never be reused with the same key.</param>
+        /// <param name="plaintext">The plaintext data to encrypt.</param>
+        /// <param name="ciphertext">The output buffer to receive the encrypted data. Must be at least as long as <paramref name="plaintext"/>.</param>
+        /// <param name="initialCounter">
+        /// The starting block index for the keystream (each block is 64 bytes).
+        /// Use this to skip blocks, resume encryption, or decrypt from a specific offset.
+        /// Defaults to 0.
+        /// </param>
+        /// <exception cref="ArgumentException">Thrown if any input length is invalid.</exception>
+        /// <remarks>
+        /// This method XORs the plaintext with a keystream derived from the key and nonce.
+        /// </remarks>
+		public static void Encrypt(SecureMemory<byte> key, ReadOnlySpan<byte> nonce, ReadOnlySpan<byte> plaintext, Span<byte> ciphertext, ulong initialCounter = 0L)
+			=> CryptoStreamCipher<LowLevel.ChaCha20IetfCipher>.Encrypt(key.AsReadOnlySpan(), nonce, plaintext, ciphertext);
+
 		/// <summary>
         /// Decrypts the given ciphertext using the <c>ChaCha20Ietf</c> stream cipher, with the provided key and nonce.
         /// </summary>
@@ -489,6 +904,26 @@ namespace LibSodium
 			=> CryptoStreamCipher<LowLevel.ChaCha20IetfCipher>.Decrypt(key, nonce, ciphertext, plaintext);
 
 		/// <summary>
+        /// Decrypts the given ciphertext using the <c>ChaCha20Ietf</c> stream cipher, with the provided key and nonce.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c>32</c> bytes long.</param>
+        /// <param name="nonce">The nonce used during encryption. Must be exactly <c>12</c> bytes long.</param>
+        /// <param name="ciphertext">The ciphertext to decrypt (produced by XOR with keystream).</param>
+        /// <param name="plaintext">The output buffer to receive the decrypted plaintext. Must be at least as long as <paramref name="ciphertext"/>.</param>
+        /// <param name="initialCounter">
+        /// The starting block index for the keystream (each block is 64 bytes).
+        /// Use this to skip blocks, resume encryption, or decrypt from a specific offset.
+        /// Defaults to 0.
+        /// </param>
+        /// <exception cref="ArgumentException">Thrown if any input length is invalid.</exception>
+        /// <remarks>
+        /// Decryption is symmetric: it re-generates the same keystream and XORs it with the ciphertext.
+        /// </remarks>
+		public static void Decrypt(SecureMemory<byte> key, ReadOnlySpan<byte> nonce, ReadOnlySpan<byte> ciphertext, Span<byte> plaintext, ulong initialCounter = 0L)
+			=> CryptoStreamCipher<LowLevel.ChaCha20IetfCipher>.Decrypt(key.AsReadOnlySpan(), nonce, ciphertext, plaintext);
+
+
+		/// <summary>
         /// Encrypts a stream using the <c>ChaCha20Ietf</c> stream cipher.
         /// </summary>
         /// <param name="key">The secret key. Must be exactly <c>32</c> bytes long.</param>
@@ -498,6 +933,18 @@ namespace LibSodium
         /// <exception cref="ArgumentException">Thrown if key or nonce are invalid.</exception>
 		public static void Encrypt(ReadOnlySpan<byte> key, ReadOnlySpan<byte> nonce, Stream input, Stream output)
 			=> CryptoStreamCipher<LowLevel.ChaCha20IetfCipher>.Encrypt(key, nonce, input, output);
+
+
+        /// <summary>
+        /// Encrypts a stream using the <c>ChaCha20Ietf</c> stream cipher.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c>32</c> bytes long.</param>
+        /// <param name="nonce">The nonce. Must be exactly <c>12</c> bytes long.</param>
+        /// <param name="input">The stream containing plaintext data to encrypt.</param>
+        /// <param name="output">The stream to receive the encrypted data.</param>
+        /// <exception cref="ArgumentException">Thrown if key or nonce are invalid.</exception>
+		public static void Encrypt(SecureMemory<byte> key, ReadOnlySpan<byte> nonce, Stream input, Stream output)
+			=> CryptoStreamCipher<LowLevel.ChaCha20IetfCipher>.Encrypt(key.AsReadOnlySpan(), nonce, input, output);
 
 		/// <summary>
         /// Decrypts a stream using the <c>ChaCha20Ietf</c> stream cipher.
@@ -509,6 +956,17 @@ namespace LibSodium
         /// <exception cref="ArgumentException">Thrown if key or nonce are invalid.</exception>
 		public static void Decrypt(ReadOnlySpan<byte> key, ReadOnlySpan<byte> nonce, Stream input, Stream output)
 			=> CryptoStreamCipher<LowLevel.ChaCha20IetfCipher>.Decrypt(key, nonce, input, output);
+
+        /// <summary>
+        /// Decrypts a stream using the <c>ChaCha20Ietf</c> stream cipher.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c>32</c> bytes long.</param>
+        /// <param name="nonce">The nonce used during encryption. Must be exactly <c>12</c> bytes long.</param>
+        /// <param name="input">The stream containing ciphertext to decrypt.</param>
+        /// <param name="output">The stream to receive the decrypted data.</param>
+        /// <exception cref="ArgumentException">Thrown if key or nonce are invalid.</exception>
+		public static void Decrypt(SecureMemory<byte> key, ReadOnlySpan<byte> nonce, Stream input, Stream output)
+			=> CryptoStreamCipher<LowLevel.ChaCha20IetfCipher>.Decrypt(key.AsReadOnlySpan(), nonce, input, output);
 
 		/// <summary>
         /// Asynchronously encrypts a stream using the <c>ChaCha20Ietf</c> stream cipher.
@@ -523,6 +981,19 @@ namespace LibSodium
 			=> CryptoStreamCipher<LowLevel.ChaCha20IetfCipher>.EncryptAsync(key, nonce, input, output, cancellationToken);
 
 		/// <summary>
+        /// Asynchronously encrypts a stream using the <c>ChaCha20Ietf</c> stream cipher.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c>32</c> bytes.</param>
+        /// <param name="nonce">The nonce. Must be exactly <c>12</c> bytes.</param>
+        /// <param name="input">The readable stream with plaintext data.</param>
+        /// <param name="output">The writable stream to receive ciphertext.</param>
+        /// <param name="cancellationToken">Optional token to cancel the async operation.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+		public static Task EncryptAsync(SecureMemory<byte> key, ReadOnlyMemory<byte> nonce, Stream input, Stream output, CancellationToken cancellationToken = default)
+			=> CryptoStreamCipher<LowLevel.ChaCha20IetfCipher>.EncryptAsync(key.AsReadOnlyMemory(), nonce, input, output, cancellationToken);
+
+
+		/// <summary>
         /// Asynchronously decrypts a stream using the <c>ChaCha20Ietf</c> stream cipher.
         /// </summary>
         /// <param name="key">The secret key. Must be exactly <c>32</c> bytes.</param>
@@ -535,6 +1006,19 @@ namespace LibSodium
 			=> CryptoStreamCipher<LowLevel.ChaCha20IetfCipher>.DecryptAsync(key, nonce, input, output, cancellationToken);
 
 		/// <summary>
+        /// Asynchronously decrypts a stream using the <c>ChaCha20Ietf</c> stream cipher.
+        /// </summary>
+        /// <param name="key">The secret key. Must be exactly <c>32</c> bytes.</param>
+        /// <param name="nonce">The nonce used during encryption. Must be <c>12</c> bytes.</param>
+        /// <param name="input">The readable stream with ciphertext.</param>
+        /// <param name="output">The writable stream to receive decrypted data.</param>
+        /// <param name="cancellationToken">Optional token to cancel the async operation.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+		public static Task DecryptAsync(SecureMemory<byte> key, ReadOnlyMemory<byte> nonce, Stream input, Stream output, CancellationToken cancellationToken = default)
+			=> CryptoStreamCipher<LowLevel.ChaCha20IetfCipher>.DecryptAsync(key.AsReadOnlyMemory(), nonce, input, output, cancellationToken);
+
+
+		/// <summary>
         /// Generates a keystream of the specified length using the <c>ChaCha20Ietf</c> stream cipher.
         /// </summary>
         /// <param name="output">The buffer to receive the generated keystream.</param>
@@ -543,5 +1027,16 @@ namespace LibSodium
         /// <exception cref="ArgumentException">Thrown if <paramref name="output"/> is empty or lengths are invalid.</exception>
 		public static void GenerateKeystream(Span<byte> output, ReadOnlySpan<byte> nonce, ReadOnlySpan<byte> key)
 			=> CryptoStreamCipher<LowLevel.ChaCha20IetfCipher>.GenerateKeystream(output, nonce, key);
+
+		/// <summary>
+        /// Generates a keystream of the specified length using the <c>ChaCha20Ietf</c> stream cipher.
+        /// </summary>
+        /// <param name="output">The buffer to receive the generated keystream.</param>
+        /// <param name="nonce">The nonce. Must be exactly <c>12</c> bytes.</param>
+        /// <param name="key">The key. Must be exactly <c>32</c> bytes.</param>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="output"/> is empty or lengths are invalid.</exception>
+		public static void GenerateKeystream(SecureMemory<byte> output, ReadOnlySpan<byte> nonce, SecureMemory<byte> key)
+			=> CryptoStreamCipher<LowLevel.ChaCha20IetfCipher>.GenerateKeystream(output.AsSpan(), nonce, key.AsReadOnlySpan());
+
 	}
 } // namespace

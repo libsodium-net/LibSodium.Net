@@ -1,18 +1,11 @@
-﻿using LibSodium.Interop;
-using LibSodium.LowLevel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
+﻿using LibSodium.LowLevel;
 
 namespace LibSodium
 {
 	internal sealed class CryptoMacIncremental<T> : ICryptoIncrementalHash where T : IMac
 	{
 
-		private readonly byte[] state = new byte[T.StateLen];
+		private readonly SecureMemory<byte> state = SecureMemory.Create<byte>(T.StateLen);
 		private bool isDisposed = false;
 		private bool isFinalized = false;
 
@@ -22,7 +15,7 @@ namespace LibSodium
 			{
 				throw new ArgumentOutOfRangeException($"Key length must be exactly {T.KeyLen} bytes.", nameof(key));
 			}
-			if (T.Init(state, key) != 0)
+			if (T.Init(state.AsSpan(), key) != 0)
 			{
 				throw new LibSodiumException("Failed to initialize incremental hashing.");
 			}
@@ -41,7 +34,7 @@ namespace LibSodium
 			isDisposed = true;
 			if (!isFinalized)
 			{
-				SecureMemory.MemZero(state); // Clear the state to prevent sensitive data leakage
+				state.Dispose(); // Clear the state to prevent sensitive data leakage
 			}
 		}
 
@@ -56,12 +49,12 @@ namespace LibSodium
 			{
 				throw new ArgumentException($"Hash must be exactly {T.MacLen} bytes.", nameof(hash));
 			}
-			int result = T.Final(state, hash);
+			int result = T.Final(state.AsSpan(), hash);
 			if (result != 0)
 			{
 				throw new LibSodiumException("Failed to finalize the incremental hashing operation.");
 			}
-			SecureMemory.MemZero(state); // Clear the state to prevent sensitive data leakage
+			state.Dispose(); // Clear the state to prevent sensitive data leakage
 			isFinalized = true;
 		}
 
@@ -72,7 +65,7 @@ namespace LibSodium
 			{
 				throw new InvalidOperationException("Cannot update a finalized hash");
 			}
-			int result = T.Update(state, data);
+			int result = T.Update(state.AsSpan(), data);
 			if (result != 0)
 				throw new LibSodiumException("Failed to update the incremental hashing operation.");
 		}

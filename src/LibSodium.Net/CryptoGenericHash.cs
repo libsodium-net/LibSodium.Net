@@ -75,6 +75,22 @@ namespace LibSodium
 				throw new LibSodiumException("Hashing failed.");
 		}
 
+		/// <summary>
+		/// Computes a generic hash of the specified message.
+		/// </summary>
+		/// <param name="hash">The buffer where the computed hash will be written. Its length defines the output size.</param>
+		/// <param name="message">The input message to hash.</param>
+		/// <param name="key">An optional key for keyed hashing (HMAC-like). May be null for unkeyed mode.</param>
+		/// <exception cref="ArgumentException">
+		/// Thrown if <paramref name="hash"/> has an invalid length, or if <paramref name="key"/> is too long.
+		/// </exception>
+		/// <exception cref="LibSodiumException">Thrown if the hashing operation fails internally.</exception>
+
+		public static void ComputeHash(Span<byte> hash, ReadOnlySpan<byte> message, SecureMemory<byte>? key = null)
+		{
+			ComputeHash(hash, message, key == null ? default : key.AsReadOnlySpan());
+		}
+
 
 		/// <summary>
 		/// Computes a generic hash from the contents of a stream.
@@ -95,6 +111,22 @@ namespace LibSodium
 			{
 				incrementalHash.Compute(input, hash);
 			}
+		}
+
+		/// <summary>
+		/// Computes a generic hash from the contents of a stream.
+		/// </summary>
+		/// <param name="hash">The buffer where the computed hash will be written. Its length defines the output size.</param>
+		/// <param name="input">The input stream to read and hash.</param>
+		/// <param name="key">An optional key for keyed hashing (HMAC-like). May be empty for unkeyed mode.</param>
+		/// <exception cref="ArgumentException">
+		/// Thrown if <paramref name="hash"/> has an invalid length, or if <paramref name="key"/> is too long.
+		/// </exception>
+		/// <exception cref="LibSodiumException">Thrown if the hashing operation fails internally.</exception>
+
+		public static void ComputeHash(Span<byte> hash, Stream input, SecureMemory<byte>? key = null)
+		{
+			ComputeHash(hash, input, key == null ? default : key.AsReadOnlySpan());
 		}
 
 		/// <summary>
@@ -120,9 +152,32 @@ namespace LibSodium
 			}
 		}
 
+		/// <summary>
+		/// Asynchronously computes a generic hash from the contents of a stream.
+		/// </summary>
+		/// <param name="hash">The memory buffer where the computed hash will be written. Its length defines the output size.</param>
+		/// <param name="input">The input stream to read and hash.</param>
+		/// <param name="key">An optional key for keyed hashing (HMAC-like). May be empty for unkeyed mode.</param>
+		/// <param name="cancellationToken">A cancellation token to cancel the operation.</param>
+		/// <returns>A task representing the asynchronous hash computation.</returns>
+		/// <exception cref="ArgumentException">
+		/// Thrown if <paramref name="hash"/> has an invalid length, or if <paramref name="key"/> is too long.
+		/// </exception>
+		/// <exception cref="LibSodiumException">Thrown if the hashing operation fails internally.</exception>
+
+		public static async Task ComputeHashAsync(Memory<byte> hash, Stream input, SecureMemory<byte>? key = null, CancellationToken cancellationToken = default)
+		{
+			await ComputeHashAsync(hash, input, key == null ? default : key.AsReadOnlyMemory(), cancellationToken).ConfigureAwait(false);
+		}
+
 		public static ICryptoIncrementalHash CreateIncrementalHash(ReadOnlySpan<byte> key = default, int hashLen = HashLen)
 		{
 			return new CryptoGenericHashIncremental(key, hashLen);
+		}
+
+		public static ICryptoIncrementalHash CreateIncrementalHash(SecureMemory<byte>? key = null, int hashLen = HashLen)
+		{
+			return new CryptoGenericHashIncremental(key == null ? default : key.AsReadOnlySpan(), hashLen);
 		}
 
 	}

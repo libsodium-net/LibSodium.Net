@@ -331,4 +331,66 @@ public class CryptoPasswordHashArgonTests
 
 		CryptoPasswordHashArgon.VerifyPassword(hash, password).ShouldBeFalse();
 	}
+
+	[Test]
+	public void DeriveKey_WithSecureMemoryInputs_ShouldSucceed()
+	{
+		using var key = SecureMemory.Create<byte>(32);
+		using var pwd = SecureMemory.Create<byte>(16);
+		Span<byte> salt = stackalloc byte[CryptoPasswordHashArgon.SaltLen];
+		RandomGenerator.Fill(pwd);
+		RandomGenerator.Fill(salt);
+
+		CryptoPasswordHashArgon.DeriveKey(key, pwd, salt);
+		key.AsSpan().ShouldNotBeZero();
+	}
+
+	[Test]
+	public void DeriveKey_WithSecureMemoryInputs_SameInputs_ProducesSameKey()
+	{
+		using var key1 = SecureMemory.Create<byte>(32);
+		using var key2 = SecureMemory.Create<byte>(32);
+		using var pwd = SecureMemory.Create<byte>(16);
+		Span<byte> salt = stackalloc byte[CryptoPasswordHashArgon.SaltLen];
+		RandomGenerator.Fill(pwd);
+		RandomGenerator.Fill(salt);
+
+		CryptoPasswordHashArgon.DeriveKey(key1, pwd, salt);
+		CryptoPasswordHashArgon.DeriveKey(key2, pwd, salt);
+
+		key1.AsSpan().ShouldBe(key2.AsSpan());
+	}
+
+	[Test]
+	public void HashPassword_WithSecureMemory_Succeeds()
+	{
+		using var pwd = SecureMemory.Create<byte>(16);
+		RandomGenerator.Fill(pwd);
+
+		string hash = CryptoPasswordHashArgon.HashPassword(pwd);
+		hash.ShouldStartWith(CryptoPasswordHashArgon.Prefix);
+	}
+
+	[Test]
+	public void VerifyPassword_WithSecureMemory_Succeeds()
+	{
+		using var pwd = SecureMemory.Create<byte>(16);
+		RandomGenerator.Fill(pwd);
+
+		string hash = CryptoPasswordHashArgon.HashPassword(pwd);
+		CryptoPasswordHashArgon.VerifyPassword(hash, pwd).ShouldBeTrue();
+	}
+
+	[Test]
+	public void VerifyPassword_WithWrongSecureMemory_ShouldFail()
+	{
+		using var pwd1 = SecureMemory.Create<byte>(16);
+		using var pwd2 = SecureMemory.Create<byte>(16);
+		RandomGenerator.Fill(pwd1);
+		RandomGenerator.Fill(pwd2);
+
+		string hash = CryptoPasswordHashArgon.HashPassword(pwd1);
+		CryptoPasswordHashArgon.VerifyPassword(hash, pwd2).ShouldBeFalse();
+	}
+
 }

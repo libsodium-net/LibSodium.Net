@@ -40,15 +40,19 @@ namespace LibSodium.Tests
             CryptoBox.GenerateKeypair(alicePublicKey, alicePrivateKey);
             CryptoBox.GenerateKeypair(bobPublicKey, bobPrivateKey);
 
-            Span<byte> sharedKey = stackalloc byte[CryptoBox.SharedKeyLen];
-            CryptoBox.CalculateSharedKey(sharedKey, bobPublicKey, alicePrivateKey);
+            Span<byte> sharedKey1 = stackalloc byte[CryptoBox.SharedKeyLen];
+			Span<byte> sharedKey2 = stackalloc byte[CryptoBox.SharedKeyLen];
+			CryptoBox.CalculateSharedKey(sharedKey1, bobPublicKey, alicePrivateKey);
+			CryptoBox.CalculateSharedKey(sharedKey2, alicePublicKey, bobPrivateKey);
 
-            byte[] message = RandomBytes(MessageLen);
+            sharedKey1.ShouldBe(sharedKey2); // Verificar que ambos cálculos coinciden
+
+			byte[] message = RandomBytes(MessageLen);
             byte[] ciphertext = new byte[message.Length + CryptoBox.MacLen + CryptoBox.NonceLen];
             byte[] decrypted = new byte[message.Length];
 
-            var enc = CryptoBox.EncryptWithSharedKey(ciphertext, message, sharedKey);
-            var dec = CryptoBox.DecryptWithSharedKey(decrypted, enc, sharedKey);
+            var enc = CryptoBox.EncryptWithSharedKey(ciphertext, message, sharedKey1);
+            var dec = CryptoBox.DecryptWithSharedKey(decrypted, enc, sharedKey2);
 
             dec.SequenceEqual(message).ShouldBeTrue();
         }
@@ -373,6 +377,86 @@ namespace LibSodium.Tests
 			});
 		}
 
+		[Test]
+		public void EncryptWithKeypair_SecureMemory_ShouldMatchPlaintext()
+		{
+			Span<byte> recipientPk = stackalloc byte[CryptoBox.PublicKeyLen];
+			using var senderSk = SecureMemory.Create<byte>(CryptoBox.PrivateKeyLen);
+			CryptoBox.GenerateKeypair(recipientPk, senderSk);
 
+			byte[] message = RandomBytes(MessageLen);
+			byte[] ciphertext = new byte[message.Length + CryptoBox.MacLen + CryptoBox.NonceLen];
+			byte[] decrypted = new byte[message.Length];
+
+			var enc = CryptoBox.EncryptWithKeypair(ciphertext, message, recipientPk, senderSk);
+			var dec = CryptoBox.DecryptWithKeypair(decrypted, enc, recipientPk, senderSk);
+
+			dec.ShouldBe(message);
+		}
+
+		[Test]
+		public void Encrypt_And_Decrypt_WithKeypair_SecureMemory_ShouldMatchPlaintext()
+		{
+			Span<byte> recipientPk = stackalloc byte[CryptoBox.PublicKeyLen];
+			using var recipientSk = SecureMemory.Create<byte>(CryptoBox.PrivateKeyLen);
+			CryptoBox.GenerateKeypair(recipientPk, recipientSk);
+
+			Span<byte> senderPk = stackalloc byte[CryptoBox.PublicKeyLen];
+			using var senderSk = SecureMemory.Create<byte>(CryptoBox.PrivateKeyLen);
+			CryptoBox.GenerateKeypair(senderPk, senderSk);
+
+			byte[] message = RandomBytes(MessageLen);
+			byte[] ciphertext = new byte[message.Length + CryptoBox.MacLen + CryptoBox.NonceLen];
+			byte[] decrypted = new byte[message.Length];
+
+			var enc = CryptoBox.EncryptWithKeypair(ciphertext, message, recipientPk, senderSk);
+			var dec = CryptoBox.DecryptWithKeypair(decrypted, enc, senderPk, recipientSk);
+
+			dec.ShouldBe(message);
+		}
+
+        [Test]
+        public void DecryptWithSharedKey_SecureMemory_ShouldMatchPlaintext()
+        {
+            Span<byte> pkA = stackalloc byte[CryptoBox.PublicKeyLen];
+            using var skA = SecureMemory.Create<byte>(CryptoBox.PrivateKeyLen);
+            Span<byte> pkB = stackalloc byte[CryptoBox.PublicKeyLen];
+            using var skB = SecureMemory.Create<byte>(CryptoBox.PrivateKeyLen);
+            CryptoBox.GenerateKeypair(pkA, skA);
+            CryptoBox.GenerateKeypair(pkB, skB);
+
+            using var sharedKey1 = SecureMemory.Create<byte>(CryptoBox.SharedKeyLen);
+            using var sharedKey2 = SecureMemory.Create<byte>(CryptoBox.SharedKeyLen);
+            CryptoBox.CalculateSharedKey(sharedKey1, pkB, skA);
+            CryptoBox.CalculateSharedKey(sharedKey2, pkA, skB);
+
+            sharedKey1.AsSpan().ShouldBe(sharedKey2.AsSpan()); // Verificar que ambos cálculos coinciden
+
+            byte[] message = RandomBytes(MessageLen);
+            byte[] ciphertext = new byte[message.Length + CryptoBox.MacLen + CryptoBox.NonceLen];
+            byte[] decrypted = new byte[message.Length];
+
+            var enc = CryptoBox.EncryptWithSharedKey(ciphertext, message, sharedKey1);
+            var dec = CryptoBox.DecryptWithSharedKey(decrypted, enc, sharedKey2);
+
+            dec.ShouldBe(message);
+        }
+
+        [Test]
+		public void EncryptWithPublicKey_And_DecryptWithPrivateKey_SecureMemory_ShouldMatchPlaintext()
+		{
+			Span<byte> pk = stackalloc byte[CryptoBox.PublicKeyLen];
+			using var sk = SecureMemory.Create<byte>(CryptoBox.PrivateKeyLen);
+			CryptoBox.GenerateKeypair(pk, sk);
+
+			Span<byte> message = stackalloc byte[64];
+			Span<byte> ciphertext = stackalloc byte[message.Length + CryptoBox.SealOverheadLen];
+			Span<byte> decrypted = stackalloc byte[message.Length];
+
+			var enc = CryptoBox.EncryptWithPublicKey(ciphertext, message, pk);
+			var dec = CryptoBox.DecryptWithPrivateKey(decrypted, enc, sk);
+
+			dec.ShouldBe(message);
+		}
 	}
 }

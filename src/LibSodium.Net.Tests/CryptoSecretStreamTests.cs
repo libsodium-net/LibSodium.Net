@@ -314,5 +314,89 @@ namespace LibSodium.Tests
 			var additionalDataWrong = GenerateRandomBytes(16);
 			AssertLite.Throws<LibSodiumException>(() => CryptoSecretStream.DecryptChunk(stateDecrypt, cleartextDecrypted, out _, encrypted, additionalDataWrong));
 		}
+
+		[Test]
+		public void GenerateKey_WithSecureMemory_Succeeds()
+		{
+			using var key = SecureMemory.Create<byte>(CryptoSecretStream.KeyLen);
+			CryptoSecretStream.GenerateKey(key);
+			key.AsSpan().ShouldNotBeZero();
+		}
+
+		[Test]
+		public void InitializeEncryption_WithSecureMemory_Succeeds()
+		{
+			using var key = SecureMemory.Create<byte>(CryptoSecretStream.KeyLen);
+			using var state = SecureMemory.Create<byte>(CryptoSecretStream.StateLen);
+			Span<byte> header = stackalloc byte[CryptoSecretStream.HeaderLen];
+
+			CryptoSecretStream.GenerateKey(key);
+			key.AsSpan().ShouldNotBeZero();
+			CryptoSecretStream.InitializeEncryption(state, header, key);
+			header.ShouldNotBeZero();
+		}
+
+		[Test]
+		public void InitializeDecryption_WithSecureMemory_Succeeds()
+		{
+			using var key = SecureMemory.Create<byte>(CryptoSecretStream.KeyLen);
+			using var state = SecureMemory.Create<byte>(CryptoSecretStream.StateLen);
+			Span<byte> header = stackalloc byte[CryptoSecretStream.HeaderLen];
+
+			CryptoSecretStream.GenerateKey(key);
+			CryptoSecretStream.InitializeEncryption(state, header, key);
+			CryptoSecretStream.InitializeDecryption(state, header, key);
+		}
+
+		[Test]
+		public void EncryptAndDecryptChunk_WithSecureMemoryKey_Succeeds()
+		{
+			using var key = SecureMemory.Create<byte>(CryptoSecretStream.KeyLen);
+			using var state = SecureMemory.Create<byte>(CryptoSecretStream.StateLen);
+			Span<byte> header = stackalloc byte[CryptoSecretStream.HeaderLen];
+
+			CryptoSecretStream.GenerateKey(key);
+			CryptoSecretStream.InitializeEncryption(state, header, key);
+
+			Span<byte> cleartext = stackalloc byte[48];
+			RandomGenerator.Fill(cleartext);
+
+			Span<byte> ciphertext = stackalloc byte[cleartext.Length + CryptoSecretStream.OverheadLen];
+			var encrypted = CryptoSecretStream.EncryptChunk(state, ciphertext, cleartext, CryptoSecretStreamTag.Message);
+
+			CryptoSecretStream.InitializeDecryption(state, header, key);
+			Span<byte> decrypted = stackalloc byte[cleartext.Length];
+			var result = CryptoSecretStream.DecryptChunk(state, decrypted, out var tag, encrypted);
+
+			result.ShouldBe(cleartext);
+			(tag == CryptoSecretStreamTag.Message).ShouldBeTrue();
+		}
+
+		[Test]
+		public void EncryptAndDecryptChunk_WithSecureMemoryKey_AndAAD_Succeeds()
+		{
+			using var key = SecureMemory.Create<byte>(CryptoSecretStream.KeyLen);
+			using var state = SecureMemory.Create<byte>(CryptoSecretStream.StateLen);
+			Span<byte> header = stackalloc byte[CryptoSecretStream.HeaderLen];
+			Span<byte> ad = stackalloc byte[16];
+			RandomGenerator.Fill(ad);
+
+			CryptoSecretStream.GenerateKey(key);
+			CryptoSecretStream.InitializeEncryption(state, header, key);
+
+			Span<byte> cleartext = stackalloc byte[48];
+			RandomGenerator.Fill(cleartext);
+
+			Span<byte> ciphertext = stackalloc byte[cleartext.Length + CryptoSecretStream.OverheadLen];
+			var encrypted = CryptoSecretStream.EncryptChunk(state, ciphertext, cleartext, CryptoSecretStreamTag.Message, ad);
+
+			CryptoSecretStream.InitializeDecryption(state, header, key);
+			Span<byte> decrypted = stackalloc byte[cleartext.Length];
+			var result = CryptoSecretStream.DecryptChunk(state, decrypted, out var tag, encrypted, ad);
+
+			result.SequenceEqual(cleartext).ShouldBeTrue();
+			(tag == CryptoSecretStreamTag.Message).ShouldBeTrue();
+		}
+
 	}
 }

@@ -15,18 +15,43 @@ The `SecretBox` API in **LibSodium.Net** provides a simple and secure way to per
 - Built-in MAC verification (tamper detection).
 - Unified `Encrypt` / `Decrypt` API with optional parameters.
 - Safe and efficient `Span<T>`-based implementation.
+- Accepts `SecureMemory<byte>` as key input.
 
 ---
 
-## ✨ Encrypting and Decrypting Messages
+## 📋 Usage
 
-Use the `Encrypt` and `Decrypt` methods. The behavior depends on whether you pass a `mac` buffer (detached) and/or a `nonce` (manual).
+**Key Management:**
 
-### 📋 Combined Mode (Auto Nonce)
+LibSodium.Net accepts `Span<byte>`, `byte[]`, or `SecureMemory<byte>` as key inputs. Using `SecureMemory<byte>` is strongly recommended, as it protects key material in unmanaged memory with automatic zeroing and access control.
 
 ```csharp
 Span<byte> key = stackalloc byte[SecretBox.KeyLen];
+```
+
+```csharp
+var key = new byte[SecretBox.KeyLen];
+```
+
+```csharp
+using var key = new SecureMemory<byte>(SecretBox.KeyLen);
+```
+
+To generate a random key use `RandomGenerator.Fill`
+
+```csharp
 RandomGenerator.Fill(key);
+```
+
+If you're using `SecureMemory<byte>`, it's recommended to call `ProtectReadOnly()` after initializing the key, to prevent further modifications.
+
+```csharp
+key.ProtectReadOnly();
+```
+
+**Combined Mode (Auto Nonce):**
+
+```csharp
 
 var plaintext = Encoding.UTF8.GetBytes("Hello, auto-nonce world!");
 Span<byte> ciphertext = stackalloc byte[plaintext.Length + SecretBox.MacLen + SecretBox.NonceLen];
@@ -38,12 +63,10 @@ SecretBox.Decrypt(decrypted, ciphertext, key);
 Console.WriteLine(Encoding.UTF8.GetString(decrypted));
 ```
 
-### 📋 Combined Mode (Manual Nonce)
+**Combined Mode (Manual Nonce):**
 
 ```csharp
-Span<byte> key = stackalloc byte[SecretBox.KeyLen];
 Span<byte> nonce = stackalloc byte[SecretBox.NonceLen];
-RandomGenerator.Fill(key);
 RandomGenerator.Fill(nonce);
 
 var plaintext = Encoding.UTF8.GetBytes("Manual nonce combined");
@@ -56,12 +79,9 @@ SecretBox.Decrypt(decrypted, ciphertext, key, nonce: nonce);
 Console.WriteLine(Encoding.UTF8.GetString(decrypted));
 ```
 
-### 📋 Detached Mode (Auto Nonce)
+**Detached Mode (Auto Nonce):**
 
 ```csharp
-Span<byte> key = stackalloc byte[SecretBox.KeyLen];
-RandomGenerator.Fill(key);
-
 var plaintext = Encoding.UTF8.GetBytes("Detached + auto nonce");
 Span<byte> ciphertext = stackalloc byte[plaintext.Length + SecretBox.NonceLen];
 Span<byte> mac = stackalloc byte[SecretBox.MacLen];
@@ -73,12 +93,10 @@ SecretBox.Decrypt(decrypted, ciphertext, key, mac);
 Console.WriteLine(Encoding.UTF8.GetString(decrypted));
 ```
 
-### 📋 Detached Mode (Manual Nonce)
+**Detached Mode (Manual Nonce)**
 
 ```csharp
-Span<byte> key = stackalloc byte[SecretBox.KeyLen];
 Span<byte> nonce = stackalloc byte[SecretBox.NonceLen];
-RandomGenerator.Fill(key);
 RandomGenerator.Fill(nonce);
 
 var plaintext = Encoding.UTF8.GetBytes("Detached with nonce");
@@ -108,7 +126,8 @@ Console.WriteLine(Encoding.UTF8.GetString(decrypted));
 - Combined mode outputs ciphertext + MAC (+ optional nonce).
 - Detached mode separates MAC from ciphertext.
 - Buffers can be larger than required.
-- Always use `RandomGenerator.Fill()` for secure key and nonce generation.
+- Use `RandomGenerator.Fill()` to generate cryptographically secure random keys and nonces. Alternatively, keys may be securely stored or derived using a key derivation function.
+- Use `SecureMemory<byte>` for keys.
 
 ---
 

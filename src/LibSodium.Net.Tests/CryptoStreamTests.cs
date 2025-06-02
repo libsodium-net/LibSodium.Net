@@ -111,6 +111,68 @@ public class CryptoStreamXSalsa20Tests
 		var result = decrypted.ToArray();
 		result.ShouldBe(plaintext);
 	}
+
+	[Test]
+	public void EncryptDecrypt_WithSecureMemoryKey_ShouldRoundtrip()
+	{
+		using var key = SecureMemory.Create<byte>(CryptoStreamXSalsa20.KeyLen);
+		Span<byte> nonce = stackalloc byte[CryptoStreamXSalsa20.NonceLen];
+		RandomGenerator.Fill(key);
+		RandomGenerator.Fill(nonce);
+
+		var plaintext = Encoding.UTF8.GetBytes("secure stream test");
+		Span<byte> ciphertext = stackalloc byte[plaintext.Length];
+		Span<byte> decrypted = stackalloc byte[plaintext.Length];
+
+		CryptoStreamXSalsa20.Encrypt(key, nonce, plaintext, ciphertext);
+		CryptoStreamXSalsa20.Decrypt(key, nonce, ciphertext, decrypted);
+
+		decrypted.ShouldBe(plaintext);
+	}
+
+	[Test]
+	public void EncryptDecrypt_Stream_WithSecureMemoryKey_ShouldRoundtrip()
+	{
+		using var key = SecureMemory.Create<byte>(CryptoStreamXSalsa20.KeyLen);
+		Span<byte> nonce = stackalloc byte[CryptoStreamXSalsa20.NonceLen];
+		RandomGenerator.Fill(key);
+		RandomGenerator.Fill(nonce);
+
+		var plaintext = Encoding.UTF8.GetBytes("stream encryption test");
+		using var input = new MemoryStream(plaintext);
+		using var encrypted = new MemoryStream();
+		using var decrypted = new MemoryStream();
+
+		CryptoStreamXSalsa20.Encrypt(key, nonce, input, encrypted);
+
+		encrypted.Position = 0;
+		CryptoStreamXSalsa20.Decrypt(key, nonce, encrypted, decrypted);
+
+		var result = decrypted.ToArray();
+		result.ShouldBe(plaintext);
+	}
+
+	[Test]
+	public async Task EncryptDecrypt_StreamAsync_WithSecureMemoryKey_ShouldRoundtrip()
+	{
+		using var key = SecureMemory.Create<byte>(CryptoStreamXSalsa20.KeyLen);
+		byte[] nonce = new byte[CryptoStreamXSalsa20.NonceLen];
+		RandomGenerator.Fill(key);
+		RandomGenerator.Fill(nonce);
+
+		var plaintext = Encoding.UTF8.GetBytes("secure async stream");
+		await using var input = new MemoryStream(plaintext);
+		await using var encrypted = new MemoryStream();
+		await using var decrypted = new MemoryStream();
+
+		await CryptoStreamXSalsa20.EncryptAsync(key, nonce, input, encrypted);
+
+		encrypted.Position = 0;
+		await CryptoStreamXSalsa20.DecryptAsync(key, nonce, encrypted, decrypted);
+
+		var result = decrypted.ToArray();
+		result.ShouldBe(plaintext);
+	}
 }
 public class CryptoStreamSalsa20Tests
 {
@@ -206,6 +268,68 @@ public class CryptoStreamSalsa20Tests
 		RandomGenerator.Fill(nonce);
 
 		var plaintext = Encoding.UTF8.GetBytes("async stream encryption test");
+		await using var input = new MemoryStream(plaintext);
+		await using var encrypted = new MemoryStream();
+		await using var decrypted = new MemoryStream();
+
+		await CryptoStreamSalsa20.EncryptAsync(key, nonce, input, encrypted);
+
+		encrypted.Position = 0;
+		await CryptoStreamSalsa20.DecryptAsync(key, nonce, encrypted, decrypted);
+
+		var result = decrypted.ToArray();
+		result.ShouldBe(plaintext);
+	}
+
+	[Test]
+	public void EncryptDecrypt_WithSecureMemoryKey_ShouldRoundtrip()
+	{
+		using var key = SecureMemory.Create<byte>(CryptoStreamSalsa20.KeyLen);
+		Span<byte> nonce = stackalloc byte[CryptoStreamSalsa20.NonceLen];
+		RandomGenerator.Fill(key);
+		RandomGenerator.Fill(nonce);
+
+		var plaintext = Encoding.UTF8.GetBytes("secure stream test");
+		Span<byte> ciphertext = stackalloc byte[plaintext.Length];
+		Span<byte> decrypted = stackalloc byte[plaintext.Length];
+
+		CryptoStreamSalsa20.Encrypt(key, nonce, plaintext, ciphertext);
+		CryptoStreamSalsa20.Decrypt(key, nonce, ciphertext, decrypted);
+
+		decrypted.ShouldBe(plaintext);
+	}
+
+	[Test]
+	public void EncryptDecrypt_Stream_WithSecureMemoryKey_ShouldRoundtrip()
+	{
+		using var key = SecureMemory.Create<byte>(CryptoStreamSalsa20.KeyLen);
+		Span<byte> nonce = stackalloc byte[CryptoStreamSalsa20.NonceLen];
+		RandomGenerator.Fill(key);
+		RandomGenerator.Fill(nonce);
+
+		var plaintext = Encoding.UTF8.GetBytes("stream encryption test");
+		using var input = new MemoryStream(plaintext);
+		using var encrypted = new MemoryStream();
+		using var decrypted = new MemoryStream();
+
+		CryptoStreamSalsa20.Encrypt(key, nonce, input, encrypted);
+
+		encrypted.Position = 0;
+		CryptoStreamSalsa20.Decrypt(key, nonce, encrypted, decrypted);
+
+		var result = decrypted.ToArray();
+		result.ShouldBe(plaintext);
+	}
+
+	[Test]
+	public async Task EncryptDecrypt_StreamAsync_WithSecureMemoryKey_ShouldRoundtrip()
+	{
+		using var key = SecureMemory.Create<byte>(CryptoStreamSalsa20.KeyLen);
+		byte[] nonce = new byte[CryptoStreamSalsa20.NonceLen];
+		RandomGenerator.Fill(key);
+		RandomGenerator.Fill(nonce);
+
+		var plaintext = Encoding.UTF8.GetBytes("secure async stream");
 		await using var input = new MemoryStream(plaintext);
 		await using var encrypted = new MemoryStream();
 		await using var decrypted = new MemoryStream();
@@ -325,6 +449,68 @@ public class CryptoStreamChaCha20Tests
 		var result = decrypted.ToArray();
 		result.ShouldBe(plaintext);
 	}
+
+	[Test]
+	public void EncryptDecrypt_WithSecureMemoryKey_ShouldRoundtrip()
+	{
+		using var key = SecureMemory.Create<byte>(CryptoStreamChaCha20.KeyLen);
+		Span<byte> nonce = stackalloc byte[CryptoStreamChaCha20.NonceLen];
+		RandomGenerator.Fill(key);
+		RandomGenerator.Fill(nonce);
+
+		var plaintext = Encoding.UTF8.GetBytes("secure stream test");
+		Span<byte> ciphertext = stackalloc byte[plaintext.Length];
+		Span<byte> decrypted = stackalloc byte[plaintext.Length];
+
+		CryptoStreamChaCha20.Encrypt(key, nonce, plaintext, ciphertext);
+		CryptoStreamChaCha20.Decrypt(key, nonce, ciphertext, decrypted);
+
+		decrypted.ShouldBe(plaintext);
+	}
+
+	[Test]
+	public void EncryptDecrypt_Stream_WithSecureMemoryKey_ShouldRoundtrip()
+	{
+		using var key = SecureMemory.Create<byte>(CryptoStreamChaCha20.KeyLen);
+		Span<byte> nonce = stackalloc byte[CryptoStreamChaCha20.NonceLen];
+		RandomGenerator.Fill(key);
+		RandomGenerator.Fill(nonce);
+
+		var plaintext = Encoding.UTF8.GetBytes("stream encryption test");
+		using var input = new MemoryStream(plaintext);
+		using var encrypted = new MemoryStream();
+		using var decrypted = new MemoryStream();
+
+		CryptoStreamChaCha20.Encrypt(key, nonce, input, encrypted);
+
+		encrypted.Position = 0;
+		CryptoStreamChaCha20.Decrypt(key, nonce, encrypted, decrypted);
+
+		var result = decrypted.ToArray();
+		result.ShouldBe(plaintext);
+	}
+
+	[Test]
+	public async Task EncryptDecrypt_StreamAsync_WithSecureMemoryKey_ShouldRoundtrip()
+	{
+		using var key = SecureMemory.Create<byte>(CryptoStreamChaCha20.KeyLen);
+		byte[] nonce = new byte[CryptoStreamChaCha20.NonceLen];
+		RandomGenerator.Fill(key);
+		RandomGenerator.Fill(nonce);
+
+		var plaintext = Encoding.UTF8.GetBytes("secure async stream");
+		await using var input = new MemoryStream(plaintext);
+		await using var encrypted = new MemoryStream();
+		await using var decrypted = new MemoryStream();
+
+		await CryptoStreamChaCha20.EncryptAsync(key, nonce, input, encrypted);
+
+		encrypted.Position = 0;
+		await CryptoStreamChaCha20.DecryptAsync(key, nonce, encrypted, decrypted);
+
+		var result = decrypted.ToArray();
+		result.ShouldBe(plaintext);
+	}
 }
 public class CryptoStreamXChaCha20Tests
 {
@@ -432,6 +618,68 @@ public class CryptoStreamXChaCha20Tests
 		var result = decrypted.ToArray();
 		result.ShouldBe(plaintext);
 	}
+
+	[Test]
+	public void EncryptDecrypt_WithSecureMemoryKey_ShouldRoundtrip()
+	{
+		using var key = SecureMemory.Create<byte>(CryptoStreamXChaCha20.KeyLen);
+		Span<byte> nonce = stackalloc byte[CryptoStreamXChaCha20.NonceLen];
+		RandomGenerator.Fill(key);
+		RandomGenerator.Fill(nonce);
+
+		var plaintext = Encoding.UTF8.GetBytes("secure stream test");
+		Span<byte> ciphertext = stackalloc byte[plaintext.Length];
+		Span<byte> decrypted = stackalloc byte[plaintext.Length];
+
+		CryptoStreamXChaCha20.Encrypt(key, nonce, plaintext, ciphertext);
+		CryptoStreamXChaCha20.Decrypt(key, nonce, ciphertext, decrypted);
+
+		decrypted.ShouldBe(plaintext);
+	}
+
+	[Test]
+	public void EncryptDecrypt_Stream_WithSecureMemoryKey_ShouldRoundtrip()
+	{
+		using var key = SecureMemory.Create<byte>(CryptoStreamXChaCha20.KeyLen);
+		Span<byte> nonce = stackalloc byte[CryptoStreamXChaCha20.NonceLen];
+		RandomGenerator.Fill(key);
+		RandomGenerator.Fill(nonce);
+
+		var plaintext = Encoding.UTF8.GetBytes("stream encryption test");
+		using var input = new MemoryStream(plaintext);
+		using var encrypted = new MemoryStream();
+		using var decrypted = new MemoryStream();
+
+		CryptoStreamXChaCha20.Encrypt(key, nonce, input, encrypted);
+
+		encrypted.Position = 0;
+		CryptoStreamXChaCha20.Decrypt(key, nonce, encrypted, decrypted);
+
+		var result = decrypted.ToArray();
+		result.ShouldBe(plaintext);
+	}
+
+	[Test]
+	public async Task EncryptDecrypt_StreamAsync_WithSecureMemoryKey_ShouldRoundtrip()
+	{
+		using var key = SecureMemory.Create<byte>(CryptoStreamXChaCha20.KeyLen);
+		byte[] nonce = new byte[CryptoStreamXChaCha20.NonceLen];
+		RandomGenerator.Fill(key);
+		RandomGenerator.Fill(nonce);
+
+		var plaintext = Encoding.UTF8.GetBytes("secure async stream");
+		await using var input = new MemoryStream(plaintext);
+		await using var encrypted = new MemoryStream();
+		await using var decrypted = new MemoryStream();
+
+		await CryptoStreamXChaCha20.EncryptAsync(key, nonce, input, encrypted);
+
+		encrypted.Position = 0;
+		await CryptoStreamXChaCha20.DecryptAsync(key, nonce, encrypted, decrypted);
+
+		var result = decrypted.ToArray();
+		result.ShouldBe(plaintext);
+	}
 }
 public class CryptoStreamChaCha20IetfTests
 {
@@ -527,6 +775,68 @@ public class CryptoStreamChaCha20IetfTests
 		RandomGenerator.Fill(nonce);
 
 		var plaintext = Encoding.UTF8.GetBytes("async stream encryption test");
+		await using var input = new MemoryStream(plaintext);
+		await using var encrypted = new MemoryStream();
+		await using var decrypted = new MemoryStream();
+
+		await CryptoStreamChaCha20Ietf.EncryptAsync(key, nonce, input, encrypted);
+
+		encrypted.Position = 0;
+		await CryptoStreamChaCha20Ietf.DecryptAsync(key, nonce, encrypted, decrypted);
+
+		var result = decrypted.ToArray();
+		result.ShouldBe(plaintext);
+	}
+
+	[Test]
+	public void EncryptDecrypt_WithSecureMemoryKey_ShouldRoundtrip()
+	{
+		using var key = SecureMemory.Create<byte>(CryptoStreamChaCha20Ietf.KeyLen);
+		Span<byte> nonce = stackalloc byte[CryptoStreamChaCha20Ietf.NonceLen];
+		RandomGenerator.Fill(key);
+		RandomGenerator.Fill(nonce);
+
+		var plaintext = Encoding.UTF8.GetBytes("secure stream test");
+		Span<byte> ciphertext = stackalloc byte[plaintext.Length];
+		Span<byte> decrypted = stackalloc byte[plaintext.Length];
+
+		CryptoStreamChaCha20Ietf.Encrypt(key, nonce, plaintext, ciphertext);
+		CryptoStreamChaCha20Ietf.Decrypt(key, nonce, ciphertext, decrypted);
+
+		decrypted.ShouldBe(plaintext);
+	}
+
+	[Test]
+	public void EncryptDecrypt_Stream_WithSecureMemoryKey_ShouldRoundtrip()
+	{
+		using var key = SecureMemory.Create<byte>(CryptoStreamChaCha20Ietf.KeyLen);
+		Span<byte> nonce = stackalloc byte[CryptoStreamChaCha20Ietf.NonceLen];
+		RandomGenerator.Fill(key);
+		RandomGenerator.Fill(nonce);
+
+		var plaintext = Encoding.UTF8.GetBytes("stream encryption test");
+		using var input = new MemoryStream(plaintext);
+		using var encrypted = new MemoryStream();
+		using var decrypted = new MemoryStream();
+
+		CryptoStreamChaCha20Ietf.Encrypt(key, nonce, input, encrypted);
+
+		encrypted.Position = 0;
+		CryptoStreamChaCha20Ietf.Decrypt(key, nonce, encrypted, decrypted);
+
+		var result = decrypted.ToArray();
+		result.ShouldBe(plaintext);
+	}
+
+	[Test]
+	public async Task EncryptDecrypt_StreamAsync_WithSecureMemoryKey_ShouldRoundtrip()
+	{
+		using var key = SecureMemory.Create<byte>(CryptoStreamChaCha20Ietf.KeyLen);
+		byte[] nonce = new byte[CryptoStreamChaCha20Ietf.NonceLen];
+		RandomGenerator.Fill(key);
+		RandomGenerator.Fill(nonce);
+
+		var plaintext = Encoding.UTF8.GetBytes("secure async stream");
 		await using var input = new MemoryStream(plaintext);
 		await using var encrypted = new MemoryStream();
 		await using var decrypted = new MemoryStream();

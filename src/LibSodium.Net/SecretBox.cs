@@ -410,6 +410,34 @@ namespace LibSodium
 		}
 
 		/// <summary>
+		/// Encrypts a message using XSalsa20-Poly1305. Supports combined and detached modes, with optional manual nonce.
+		/// </summary>
+		/// <param name="ciphertext">
+		/// The output buffer. In combined mode, it must include space for the MAC and, if auto-nonce is used, also for the nonce.
+		/// In detached mode with auto-nonce, the nonce is prepended.
+		/// It can be longer than needed.
+		/// </param>
+		/// <param name="plaintext">The plaintext to encrypt.</param>
+		/// <param name="key">The secret key (32 bytes).</param>
+		/// <param name="mac">
+		/// Optional. If provided, encryption is done in detached mode and the MAC is written to this buffer.
+		/// Otherwise, combined mode is used.
+		/// </param>
+		/// <param name="nonce">
+		/// Optional nonce (24 bytes). If not provided, a random nonce is generated and prepended to the ciphertext.
+		/// </param>
+		/// <returns>The span representing the encrypted ciphertext, which may include MAC and nonce depending on the mode.</returns>
+		public static Span<byte> Encrypt(
+			Span<byte> ciphertext,
+			ReadOnlySpan<byte> plaintext,
+			SecureMemory<byte> key,
+			Span<byte> mac = default,
+			ReadOnlySpan<byte> nonce = default)
+		{
+			return Encrypt(ciphertext, plaintext, key.AsReadOnlySpan(), mac, nonce);
+		}
+
+		/// <summary>
 		/// Decrypts a message using XSalsa20-Poly1305. Supports combined and detached modes, with optional manual nonce.
 		/// </summary>
 		/// <param name="plaintext">
@@ -452,6 +480,36 @@ namespace LibSodium
 				else
 					return DecryptDetached(plaintext, ciphertext, key, mac, nonce);
 			}
+		}
+
+		/// <summary>
+		/// Decrypts a message using XSalsa20-Poly1305. Supports combined and detached modes, with optional manual nonce.
+		/// </summary>
+		/// <param name="plaintext">
+		/// The buffer to receive the decrypted message.
+		/// Must be at least ciphertext length minus MAC and/or nonce depending on mode.
+		/// It can be longer than needed.
+		/// </param>
+		/// <param name="ciphertext">
+		/// The encrypted message. May include MAC and/or nonce depending on the mode.
+		/// </param>
+		/// <param name="key">The secret key (32 bytes).</param>
+		/// <param name="mac">
+		/// Optional. If provided, decryption is done in detached mode using this MAC.
+		/// Otherwise, combined mode is used.
+		/// </param>
+		/// <param name="nonce">
+		/// Optional nonce (24 bytes). If not provided, it is extracted from the ciphertext (auto-nonce mode).
+		/// </param>
+		/// <returns>The span representing the recovered plaintext.</returns>
+		public static Span<byte> Decrypt(
+			Span<byte> plaintext,
+			ReadOnlySpan<byte> ciphertext,
+			SecureMemory<byte> key,
+			ReadOnlySpan<byte> mac = default,
+			ReadOnlySpan<byte> nonce = default)
+		{
+			return Decrypt(plaintext, ciphertext, key.AsReadOnlySpan(), mac, nonce);
 		}
 	}
 }

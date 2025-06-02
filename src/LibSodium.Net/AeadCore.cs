@@ -238,6 +238,43 @@
 		}
 
 		/// <summary>
+		/// Encrypts a message using <typeparamref name="T"/>. Supports combined and detached modes,
+		/// with optional AAD and nonce.
+		/// </summary>
+		/// <param name="ciphertext">
+		/// The buffer where the ciphertext will be written. It can be longer than needed.
+		/// In combined mode, it must include space for the MAC and, if auto-nonce is used, the nonce as well.
+		/// </param>
+		/// <param name="plaintext">The message to encrypt.</param>
+		/// <param name="key">The secret encryption key (32 bytes).</param>
+		/// <param name="mac">
+		/// Optional. If provided, the encryption is done in detached mode and the MAC is written here.
+		/// Otherwise, combined mode is used.
+		/// </param>
+		/// <param name="aad">
+		/// Optional additional authenticated data. Not encrypted, but authenticated.
+		/// </param>
+		/// <param name="nonce">
+		/// Optional nonce. If not provided, a random nonce is generated and prepended.
+		/// </param>
+		/// <returns>
+		/// The span representing the full ciphertext, including MAC and possibly nonce.
+		/// </returns>
+		/// <exception cref="ArgumentException">Thrown when buffer sizes are incorrect or parameters are invalid.</exception>
+		/// <exception cref="LibSodiumException">Thrown when encryption fails.</exception>
+
+		public static Span<byte> Encrypt(
+			Span<byte> ciphertext,
+			ReadOnlySpan<byte> plaintext,
+			SecureMemory<byte> key,
+			Span<byte> mac = default,
+			ReadOnlySpan<byte> aad = default,
+			ReadOnlySpan<byte> nonce = default)
+		{
+			return Encrypt(ciphertext, plaintext, key.AsReadOnlySpan(), mac, aad, nonce);
+		}
+
+		/// <summary>
 		/// Decrypts a message using <typeparamref name="T"/>. Supports combined and detached modes,
 		/// with optional AAD and nonce.
 		/// </summary>
@@ -282,6 +319,38 @@
 				else
 					return DecryptDetached(plaintext, ciphertext, key, mac, aad, nonce);
 			}
+		}
+
+		/// <summary>
+		/// Decrypts a message using <typeparamref name="T"/>. Supports combined and detached modes,
+		/// with optional AAD and nonce.
+		/// </summary>
+		/// <param name="plaintext">The buffer where the decrypted message will be written. It can be longer than needed</param>
+		/// <param name="ciphertext">
+		/// The encrypted message. May include MAC and nonce (combined) or exclude them (detached).
+		/// </param>
+		/// <param name="key">The secret decryption key</param>
+		/// <param name="mac">
+		/// Optional. If provided, decryption is done in detached mode. If null, combined mode is used.
+		/// </param>
+		/// <param name="aad">
+		/// Optional additional authenticated data. Must match what was used for encryption.
+		/// </param>
+		/// <param name="nonce">
+		/// Optional nonce. Required for manual nonce mode.
+		/// </param>
+		/// <returns>The span representing the decrypted plaintext.</returns>
+		/// <exception cref="ArgumentException">Thrown when buffer sizes are incorrect or parameters are invalid.</exception>
+		/// <exception cref="LibSodiumException">Thrown when MAC verification fails or decryption fails.</exception>
+		public static Span<byte> Decrypt(
+			Span<byte> plaintext,
+			ReadOnlySpan<byte> ciphertext,
+			SecureMemory<byte> key,
+			ReadOnlySpan<byte> mac = default,
+			ReadOnlySpan<byte> aad = default,
+			ReadOnlySpan<byte> nonce = default)
+		{
+			return Decrypt(plaintext, ciphertext, key.AsReadOnlySpan(), mac, aad, nonce);
 		}
 	}
 }

@@ -154,4 +154,251 @@ public class SecretStreamTests
 		isWorking.ShouldBeTrue();
 
 	}
+
+	[Test]
+	public async Task EncryptAndDecryptAsync_WithAdditionalData_Success()
+	{
+		var key = new byte[CryptoSecretStream.KeyLen];
+		CryptoSecretStream.GenerateKey(key);
+
+		var plaintext = GenerateRandomBytes(12345);
+		var aad = Encoding.UTF8.GetBytes("file:invoice.pdf");
+		using var input = new MemoryStream(plaintext);
+		using var encryptedOutput = new MemoryStream();
+
+		await SecretStream.EncryptAsync(input, encryptedOutput, key, aad: aad);
+
+		encryptedOutput.Position = 0;
+		using var decryptedOutput = new MemoryStream();
+		await SecretStream.DecryptAsync(encryptedOutput, decryptedOutput, key, aad: aad);
+
+		decryptedOutput.ToArray().ShouldBe(plaintext);
+	}
+
+	[Test]
+	public void EncryptAndDecrypt_Sync_WithAdditionalData_Success()
+	{
+		var key = new byte[CryptoSecretStream.KeyLen];
+		CryptoSecretStream.GenerateKey(key);
+
+		var plaintext = GenerateRandomBytes(2048);
+		var aad = Encoding.UTF8.GetBytes("context:auth-token");
+
+		using var input = new MemoryStream(plaintext);
+		using var encryptedOutput = new MemoryStream();
+
+		SecretStream.Encrypt(input, encryptedOutput, key, aad: aad);
+
+		encryptedOutput.Position = 0;
+		using var decryptedOutput = new MemoryStream();
+		SecretStream.Decrypt(encryptedOutput, decryptedOutput, key, aad: aad);
+
+		decryptedOutput.ToArray().ShouldBe(plaintext);
+	}
+
+	[Test]
+	public async Task DecryptAsync_WithIncorrectAdditionalData_Fails()
+	{
+		var key = new byte[CryptoSecretStream.KeyLen];
+		CryptoSecretStream.GenerateKey(key);
+
+		var plaintext = GenerateRandomBytes(500);
+		var aad = Encoding.UTF8.GetBytes("session:A");
+		using var input = new MemoryStream(plaintext);
+		using var encryptedOutput = new MemoryStream();
+
+		await SecretStream.EncryptAsync(input, encryptedOutput, key, aad: aad);
+
+		encryptedOutput.Position = 0;
+		using var decryptedOutput = new MemoryStream();
+		var wrongAad = Encoding.UTF8.GetBytes("session:B");
+
+		await AssertLite.ThrowsAsync<LibSodiumException>(() =>
+			SecretStream.DecryptAsync(encryptedOutput, decryptedOutput, key, aad: wrongAad));
+	}
+
+	[Test]
+	public void EncryptAndDecrypt_Sync_WithAdditionalData_Span_Success()
+	{
+		Span<byte> key = stackalloc byte[CryptoSecretStream.KeyLen];
+		RandomGenerator.Fill(key);
+
+		var plaintext = GenerateRandomBytes(8192);
+		ReadOnlySpan<byte> aad = "context"u8;
+
+		using var input = new MemoryStream(plaintext);
+		using var encryptedOutput = new MemoryStream();
+
+		SecretStream.Encrypt(input, encryptedOutput, key, aad: aad);
+
+		encryptedOutput.Position = 0;
+		using var decryptedOutput = new MemoryStream();
+		SecretStream.Decrypt(encryptedOutput, decryptedOutput, key, aad: aad);
+
+		decryptedOutput.ToArray().ShouldBe(plaintext);
+	}
+
+	[Test]
+	public async Task EncryptAndDecryptAsync_WithAdditionalData_Memory_Success()
+	{
+		var key = new byte[CryptoSecretStream.KeyLen];
+		RandomGenerator.Fill(key);
+
+		var plaintext = GenerateRandomBytes(4321);
+		var aad = new byte[] { 1, 2, 3, 4, 5 };
+
+		using var input = new MemoryStream(plaintext);
+		using var encryptedOutput = new MemoryStream();
+
+		await SecretStream.EncryptAsync(input, encryptedOutput, key, aad: aad);
+
+		encryptedOutput.Position = 0;
+		using var decryptedOutput = new MemoryStream();
+		await SecretStream.DecryptAsync(encryptedOutput, decryptedOutput, key, aad: aad);
+
+		decryptedOutput.ToArray().ShouldBe(plaintext);
+	}
+
+	[Test]
+	public async Task DecryptAsync_WithWrongAdditionalData_Memory_Fails()
+	{
+		var key = new byte[CryptoSecretStream.KeyLen];
+		RandomGenerator.Fill(key);
+
+		var plaintext = GenerateRandomBytes(1024);
+		var aad = new byte[] { 42, 42, 42 };
+		var wrongAad = new byte[] { 0, 0, 0 };
+
+		using var input = new MemoryStream(plaintext);
+		using var encryptedOutput = new MemoryStream();
+
+		await SecretStream.EncryptAsync(input, encryptedOutput, key, aad: aad);
+
+		encryptedOutput.Position = 0;
+		using var decryptedOutput = new MemoryStream();
+
+		await AssertLite.ThrowsAsync<LibSodiumException>(() =>
+			SecretStream.DecryptAsync(encryptedOutput, decryptedOutput, key, aad: wrongAad));
+	}
+
+	[Test]
+	public void EncryptAndDecrypt_Sync_WithSecureMemoryKeyAndAad_Success()
+	{
+		using var key = SecureMemory.Create<byte>(CryptoSecretStream.KeyLen);
+		RandomGenerator.Fill(key);
+
+		ReadOnlySpan<byte> aad = "some additiional data"u8;
+		
+		var plaintext = GenerateRandomBytes(777);
+		using var input = new MemoryStream(plaintext);
+		using var encryptedOutput = new MemoryStream();
+
+		SecretStream.Encrypt(input, encryptedOutput, key, aad: aad);
+
+		encryptedOutput.Position = 0;
+		using var decryptedOutput = new MemoryStream();
+		SecretStream.Decrypt(encryptedOutput, decryptedOutput, key, aad: aad);
+
+		decryptedOutput.ToArray().ShouldBe(plaintext);
+	}
+
+	[Test]
+	[Arguments(0)]
+	[Arguments(1)]
+	[Arguments(SecretStream.PlainChunkSize - 1)]
+	[Arguments(SecretStream.PlainChunkSize)]
+	[Arguments(SecretStream.PlainChunkSize + 1)]
+	[Arguments(SecretStream.PlainChunkSize * 2 - 1)]
+	[Arguments(SecretStream.PlainChunkSize * 2)]
+	[Arguments(SecretStream.PlainChunkSize * 2 + 1)]
+	public async Task EncryptAndDecryptAsync_WithSecureMemoryKey_Success(int plaintextLen)
+	{
+		using var key = SecureMemory.Create<byte>(CryptoSecretStream.KeyLen);
+		RandomGenerator.Fill(key);
+
+		var plaintext = new byte[plaintextLen];
+		RandomGenerator.Fill(plaintext);
+		using var input = new MemoryStream(plaintext);
+		using var encrypted = new MemoryStream();
+		using var decrypted = new MemoryStream();
+
+		await SecretStream.EncryptAsync(input, encrypted, key);
+
+		encrypted.Position = 0;
+		await SecretStream.DecryptAsync(encrypted, decrypted, key);
+
+		decrypted.ToArray().ShouldBe(plaintext);
+	}
+
+	[Test]
+	[Arguments(0)]
+	[Arguments(1)]
+	[Arguments(SecretStream.PlainChunkSize - 1)]
+	[Arguments(SecretStream.PlainChunkSize)]
+	[Arguments(SecretStream.PlainChunkSize + 1)]
+	[Arguments(SecretStream.PlainChunkSize * 2 - 1)]
+	[Arguments(SecretStream.PlainChunkSize * 2)]
+	[Arguments(SecretStream.PlainChunkSize * 2 + 1)]
+	public void EncryptAndDecrypt_WithSecureMemoryKey_Success(int plaintextLen)
+	{
+		using var key = SecureMemory.Create<byte>(CryptoSecretStream.KeyLen);
+		RandomGenerator.Fill(key);
+
+		var plaintext = new byte[plaintextLen];
+		RandomGenerator.Fill(plaintext);
+		using var input = new MemoryStream(plaintext);
+		using var encrypted = new MemoryStream();
+		using var decrypted = new MemoryStream();
+
+		SecretStream.Encrypt(input, encrypted, key);
+
+		encrypted.Position = 0;
+		SecretStream.Decrypt(encrypted, decrypted, key);
+
+		decrypted.ToArray().ShouldBe(plaintext);
+	}
+
+	[Test]
+	public async Task EncryptAndDecryptAsync_WithSecureMemoryKeyAndAAD_Success()
+	{
+		using var key = SecureMemory.Create<byte>(CryptoSecretStream.KeyLen);
+		RandomGenerator.Fill(key);
+		var aad = "aad:secure"u8.ToArray();
+
+		var plaintext = new byte[9999];
+		RandomGenerator.Fill(plaintext);
+		using var input = new MemoryStream(plaintext);
+		using var encrypted = new MemoryStream();
+		using var decrypted = new MemoryStream();
+
+		await SecretStream.EncryptAsync(input, encrypted, key, aad);
+
+		encrypted.Position = 0;
+		await SecretStream.DecryptAsync(encrypted, decrypted, key, aad);
+
+		decrypted.ToArray().ShouldBe(plaintext);
+	}
+
+	[Test]
+	public void EncryptAndDecrypt_WithSecureMemoryKeyAndAAD_Success()
+	{
+		using var key = SecureMemory.Create<byte>(CryptoSecretStream.KeyLen);
+		RandomGenerator.Fill(key);
+		ReadOnlySpan<byte> aad = "secure aad span"u8;
+
+		var plaintext = new byte[4321];
+		RandomGenerator.Fill(plaintext);
+		using var input = new MemoryStream(plaintext);
+		using var encrypted = new MemoryStream();
+		using var decrypted = new MemoryStream();
+
+		SecretStream.Encrypt(input, encrypted, key, aad);
+
+		encrypted.Position = 0;
+		SecretStream.Decrypt(encrypted, decrypted, key, aad);
+
+		decrypted.ToArray().ShouldBe(plaintext);
+	}
+
+
 }
