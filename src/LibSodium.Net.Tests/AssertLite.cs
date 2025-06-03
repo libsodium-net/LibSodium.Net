@@ -49,6 +49,11 @@ public static class AssertLite
 		}
 	}
 
+	public static void ShouldBe(this SecureMemory<byte> actual, SecureMemory<byte> expected, string? message = null)
+	{
+		actual.AsSpan().ShouldBe(expected.AsSpan(), message);
+	}
+
 	public static void ShouldBeZero(this Span<byte> actual, string? message = null)
 	{
 		if (SecureMemory.IsZero(actual) == false)
@@ -81,6 +86,14 @@ public static class AssertLite
 		}
 	}
 
+	public static void ShouldNotBeZero(this SecureMemory<byte> actual, string? message = null)
+	{
+		if (actual.IsZero())
+		{
+			throw new AssertionException($"Should not be zero, but it is. {message}");
+		}
+	}
+
 	public static void ShouldNotBeZero(this byte[] actual, string? message = null)
 	{
 		if (SecureMemory.IsZero(actual))
@@ -106,6 +119,12 @@ public static class AssertLite
 		{
 			throw new AssertionException($"Should not be {HexEncoding.BinToHex(expected)}, but got {HexEncoding.BinToHex(actual)}. {message}");
 		}
+	}
+
+
+	public static void ShouldNotBe(this SecureMemory<byte> actual, SecureMemory<byte> expected, string? message = null)
+	{
+		actual.AsSpan().ShouldNotBe(expected.AsSpan(), message);
 	}
 
 	public static void ShouldNotBe(this byte[] actual, byte[] expected, string? message = null)

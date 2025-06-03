@@ -33,7 +33,7 @@ public class CryptoKeyDerivationTests
 		RandomGenerator.Fill(masterKey);
 		context[0] = (byte)'A';
 
-		CryptoKeyDerivation.DeriveSubkey(subkey, 42, context, masterKey);
+		CryptoKeyDerivation.DeriveSubkey(masterKey, subkey, 42, context);
 		subkey.ShouldNotBeZero();
 	}
 
@@ -45,7 +45,7 @@ public class CryptoKeyDerivationTests
 			Span<byte> subkey = stackalloc byte[CryptoKeyDerivation.MinSubkeyLen - 1];
 			Span<byte> masterKey = stackalloc byte[CryptoKeyDerivation.MasterKeyLen];
 			Span<byte> context = stackalloc byte[CryptoKeyDerivation.ContextLen];
-			CryptoKeyDerivation.DeriveSubkey(subkey, 0, context, masterKey);
+			CryptoKeyDerivation.DeriveSubkey(masterKey, subkey, 0, context);
 		});
 	}
 
@@ -57,7 +57,7 @@ public class CryptoKeyDerivationTests
 			Span<byte> subkey = stackalloc byte[CryptoKeyDerivation.MinSubkeyLen];
 			Span<byte> masterKey = stackalloc byte[CryptoKeyDerivation.MasterKeyLen];
 			Span<byte> context = stackalloc byte[CryptoKeyDerivation.ContextLen - 1];
-			CryptoKeyDerivation.DeriveSubkey(subkey, 0, context, masterKey);
+			CryptoKeyDerivation.DeriveSubkey(masterKey, subkey, 0, context);
 		});
 	}
 
@@ -69,7 +69,7 @@ public class CryptoKeyDerivationTests
 			Span<byte> subkey = stackalloc byte[CryptoKeyDerivation.MinSubkeyLen];
 			Span<byte> masterKey = stackalloc byte[CryptoKeyDerivation.MasterKeyLen - 1];
 			Span<byte> context = stackalloc byte[CryptoKeyDerivation.ContextLen];
-			CryptoKeyDerivation.DeriveSubkey(subkey, 0, context, masterKey);
+			CryptoKeyDerivation.DeriveSubkey(masterKey, subkey, 0, context);
 		});
 	}
 
@@ -80,7 +80,7 @@ public class CryptoKeyDerivationTests
 		Span<byte> masterKey = stackalloc byte[CryptoKeyDerivation.MasterKeyLen];
 		RandomGenerator.Fill(masterKey);
 
-		CryptoKeyDerivation.DeriveSubkey(subkey, 123, "ctx-prod", masterKey);
+		CryptoKeyDerivation.DeriveSubkey(masterKey, subkey, 123, "ctx-prod");
 		subkey.ShouldNotBeZero();
 	}
 
@@ -91,7 +91,7 @@ public class CryptoKeyDerivationTests
 		Span<byte> masterKey = stackalloc byte[CryptoKeyDerivation.MasterKeyLen];
 		RandomGenerator.Fill(masterKey);
 
-		CryptoKeyDerivation.DeriveSubkey(subkey, 1, string.Empty, masterKey);
+		CryptoKeyDerivation.DeriveSubkey(masterKey, subkey, 1, string.Empty);
 		subkey.ShouldNotBeZero();
 	}
 
@@ -102,7 +102,7 @@ public class CryptoKeyDerivationTests
 		{
 			Span<byte> subkey = stackalloc byte[CryptoKeyDerivation.MinSubkeyLen];
 			Span<byte> masterKey = stackalloc byte[CryptoKeyDerivation.MasterKeyLen];
-			CryptoKeyDerivation.DeriveSubkey(subkey, 0, "áéíóúñ漢字🚀", masterKey);
+			CryptoKeyDerivation.DeriveSubkey(masterKey, subkey, 0, "áéíóúñ漢字🚀");
 		});
 	}
 
@@ -113,7 +113,7 @@ public class CryptoKeyDerivationTests
 		{
 			Span<byte> subkey = stackalloc byte[CryptoKeyDerivation.MinSubkeyLen];
 			Span<byte> masterKey = stackalloc byte[CryptoKeyDerivation.MasterKeyLen];
-			CryptoKeyDerivation.DeriveSubkey(subkey, 0, (string) null!, masterKey);
+			CryptoKeyDerivation.DeriveSubkey(masterKey, subkey, 0, (string)null!);
 		});
 	}
 
@@ -126,8 +126,8 @@ public class CryptoKeyDerivationTests
 		Span<byte> sk1 = stackalloc byte[CryptoKeyDerivation.MinSubkeyLen];
 		Span<byte> sk2 = stackalloc byte[CryptoKeyDerivation.MinSubkeyLen];
 
-		CryptoKeyDerivation.DeriveSubkey(sk1, 77, "abc", key);
-		CryptoKeyDerivation.DeriveSubkey(sk2, 77, "abc", key);
+		CryptoKeyDerivation.DeriveSubkey(key, sk1, 77, "abc");
+		CryptoKeyDerivation.DeriveSubkey(key, sk2, 77, "abc");
 
 		sk1.ShouldBe(sk2);
 	}
@@ -141,8 +141,8 @@ public class CryptoKeyDerivationTests
 		Span<byte> sk1 = stackalloc byte[CryptoKeyDerivation.MinSubkeyLen];
 		Span<byte> sk2 = stackalloc byte[CryptoKeyDerivation.MinSubkeyLen];
 
-		CryptoKeyDerivation.DeriveSubkey(sk1, 42, "abc", key);
-		CryptoKeyDerivation.DeriveSubkey(sk2, 42, "xyz", key);
+		CryptoKeyDerivation.DeriveSubkey(key, sk1, 42, "abc");
+		CryptoKeyDerivation.DeriveSubkey(key, sk2, 42, "xyz");
 
 		sk1.ShouldNotBe(sk2);
 	}
@@ -156,8 +156,8 @@ public class CryptoKeyDerivationTests
 		Span<byte> sk1 = stackalloc byte[CryptoKeyDerivation.MinSubkeyLen];
 		Span<byte> sk2 = stackalloc byte[CryptoKeyDerivation.MinSubkeyLen];
 
-		CryptoKeyDerivation.DeriveSubkey(sk1, 1, "ctx1", key);
-		CryptoKeyDerivation.DeriveSubkey(sk2, 2, "ctx1", key);
+		CryptoKeyDerivation.DeriveSubkey(key, sk1, 1, "ctx1");
+		CryptoKeyDerivation.DeriveSubkey(key, sk2, 2, "ctx1");
 
 		sk1.ShouldNotBe(sk2);
 	}
@@ -167,7 +167,7 @@ public class CryptoKeyDerivationTests
 	{
 		using var masterKey = SecureMemory.Create<byte>(CryptoKeyDerivation.MasterKeyLen);
 		CryptoKeyDerivation.GenerateMasterKey(masterKey);
-		masterKey.AsSpan().ShouldNotBeZero();
+		masterKey.ShouldNotBeZero();
 	}
 
 	[Test]
@@ -180,8 +180,8 @@ public class CryptoKeyDerivationTests
 		Span<byte> context = stackalloc byte[CryptoKeyDerivation.ContextLen];
 		context[0] = (byte)'A';
 
-		CryptoKeyDerivation.DeriveSubkey(subkey, 99, context, masterKey);
-		subkey.AsSpan().ShouldNotBeZero();
+		CryptoKeyDerivation.DeriveSubkey(masterKey, subkey, 99, context);
+		subkey.ShouldNotBeZero();
 	}
 
 	[Test]
@@ -191,8 +191,8 @@ public class CryptoKeyDerivationTests
 		using var subkey = SecureMemory.Create<byte>(CryptoKeyDerivation.MinSubkeyLen);
 		RandomGenerator.Fill(masterKey);
 
-		CryptoKeyDerivation.DeriveSubkey(subkey, 321, "devtest", masterKey);
-		subkey.AsSpan().ShouldNotBeZero();
+		CryptoKeyDerivation.DeriveSubkey(masterKey, subkey, 321, "devtest");
+		subkey.ShouldNotBeZero();
 	}
 
 	[Test]
@@ -203,10 +203,10 @@ public class CryptoKeyDerivationTests
 		using var sk2 = SecureMemory.Create<byte>(CryptoKeyDerivation.MinSubkeyLen);
 		RandomGenerator.Fill(key);
 
-		CryptoKeyDerivation.DeriveSubkey(sk1, 88, "ctx8", key);
-		CryptoKeyDerivation.DeriveSubkey(sk2, 88, "ctx8", key);
+		CryptoKeyDerivation.DeriveSubkey(key, sk1, 88, "ctx8");
+		CryptoKeyDerivation.DeriveSubkey(key, sk2, 88, "ctx8");
 
-		sk1.AsSpan().ShouldBe(sk2.AsSpan());
+		sk1.ShouldBe(sk2);
 	}
 
 	[Test]
@@ -217,10 +217,10 @@ public class CryptoKeyDerivationTests
 		using var sk2 = SecureMemory.Create<byte>(CryptoKeyDerivation.MinSubkeyLen);
 		RandomGenerator.Fill(key);
 
-		CryptoKeyDerivation.DeriveSubkey(sk1, 7, "ctxA", key);
-		CryptoKeyDerivation.DeriveSubkey(sk2, 7, "ctxB", key);
+		CryptoKeyDerivation.DeriveSubkey(key, sk1, 7, "ctxA");
+		CryptoKeyDerivation.DeriveSubkey(key, sk2, 7, "ctxB");
 
-		sk1.AsSpan().ShouldNotBe(sk2.AsSpan());
+		sk1.ShouldNotBe(sk2);
 	}
 
 	[Test]
@@ -231,10 +231,10 @@ public class CryptoKeyDerivationTests
 		using var sk2 = SecureMemory.Create<byte>(CryptoKeyDerivation.MinSubkeyLen);
 		RandomGenerator.Fill(key);
 
-		CryptoKeyDerivation.DeriveSubkey(sk1, 10, "ctx", key);
-		CryptoKeyDerivation.DeriveSubkey(sk2, 11, "ctx", key);
+		CryptoKeyDerivation.DeriveSubkey(key, sk1, 10, "ctx");
+		CryptoKeyDerivation.DeriveSubkey(key, sk2, 11, "ctx");
 
-		sk1.AsSpan().ShouldNotBe(sk2.AsSpan());
+		sk1.ShouldNotBe(sk2);
 	}
 
 }

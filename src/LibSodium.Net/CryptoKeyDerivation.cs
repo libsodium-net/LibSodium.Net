@@ -57,20 +57,21 @@ namespace LibSodium
 		/// Deterministically derives a subkey from a master key, context, and subkey ID.
 		/// Uses the BLAKE2b hash function internally.
 		/// </summary>
+		/// /// <param name="masterKey">The master key (32 bytes).</param>
 		/// <param name="subkey">The buffer where the derived subkey will be written. Its length must be between 16 and 64 bytes.</param>
 		/// <param name="subkeyId">The identifier for the subkey (application-defined).</param>
 		/// <param name="context">8-byte context describing the usage.</param>
-		/// <param name="masterKey">The master key (32 bytes).</param>
+
 		/// <exception cref="ArgumentException">
 		/// Thrown when <paramref name="subkey"/> is out of bounds, <paramref name="context"/> is not 8 bytes,
 		/// or <paramref name="masterKey"/> is not 32 bytes.
 		/// </exception>
 		/// <exception cref="LibSodiumException">Thrown if the native key derivation fails.</exception>
 		public static void DeriveSubkey(
+			ReadOnlySpan<byte> masterKey,
 			Span<byte> subkey,
 			ulong subkeyId,
-			ReadOnlySpan<byte> context,
-			ReadOnlySpan<byte> masterKey)
+			ReadOnlySpan<byte> context)
 		{
 			if (subkey.Length < MinSubkeyLen || subkey.Length > MaxSubkeyLen)
 				throw new ArgumentException($"Subkey length must be between {MinSubkeyLen} and {MaxSubkeyLen} bytes.", nameof(subkey));
@@ -99,6 +100,52 @@ namespace LibSodium
 		/// or <paramref name="masterKey"/> is not 32 bytes.
 		/// </exception>
 		/// <exception cref="LibSodiumException">Thrown if the native key derivation fails.</exception>
+		[Obsolete("Use the other overload instead. This will be removed in a future version.")]
+		public static void DeriveSubkey(
+			Span<byte> subkey,
+			ulong subkeyId,
+			ReadOnlySpan<byte> context,
+			ReadOnlySpan<byte> masterKey)
+		{
+			DeriveSubkey(masterKey, subkey, subkeyId, context);
+		}
+
+		/// <summary>
+		/// Deterministically derives a subkey from a master key, context, and subkey ID.
+		/// Uses the BLAKE2b hash function internally.
+		/// </summary>
+		/// <param name="subkey">The buffer where the derived subkey will be written. Its length must be between 16 and 64 bytes.</param>
+		/// <param name="subkeyId">The identifier for the subkey (application-defined).</param>
+		/// <param name="context">8-byte context describing the usage.</param>
+		/// <param name="masterKey">The master key (32 bytes).</param>
+		/// <exception cref="ArgumentException">
+		/// Thrown when <paramref name="subkey"/> is out of bounds, <paramref name="context"/> is not 8 bytes,
+		/// or <paramref name="masterKey"/> is not 32 bytes.
+		/// </exception>
+		/// <exception cref="LibSodiumException">Thrown if the native key derivation fails.</exception>
+		public static void DeriveSubkey(
+			SecureMemory<byte> masterKey,
+			SecureMemory<byte> subkey,
+			ulong subkeyId,
+			ReadOnlySpan<byte> context)
+		{
+			DeriveSubkey(masterKey.AsReadOnlySpan(), subkey.AsSpan(), subkeyId, context);
+		}
+
+		/// <summary>
+		/// Deterministically derives a subkey from a master key, context, and subkey ID.
+		/// Uses the BLAKE2b hash function internally.
+		/// </summary>
+		/// <param name="subkey">The buffer where the derived subkey will be written. Its length must be between 16 and 64 bytes.</param>
+		/// <param name="subkeyId">The identifier for the subkey (application-defined).</param>
+		/// <param name="context">8-byte context describing the usage.</param>
+		/// <param name="masterKey">The master key (32 bytes).</param>
+		/// <exception cref="ArgumentException">
+		/// Thrown when <paramref name="subkey"/> is out of bounds, <paramref name="context"/> is not 8 bytes,
+		/// or <paramref name="masterKey"/> is not 32 bytes.
+		/// </exception>
+		/// <exception cref="LibSodiumException">Thrown if the native key derivation fails.</exception>
+		[Obsolete("Use the other overload instead. This will be removed in a future version.")]
 		public static void DeriveSubkey(
 			SecureMemory<byte> subkey,
 			ulong subkeyId,
@@ -123,10 +170,11 @@ namespace LibSodium
 		/// </exception>
 		/// <exception cref="LibSodiumException">Thrown if the native key derivation fails.</exception>
 		public static void DeriveSubkey(
+			ReadOnlySpan<byte> masterKey,
 			Span<byte> subkey,
 			ulong subkeyId,
-			string context,
-			ReadOnlySpan<byte> masterKey)
+			string context
+			)
 		{
 			ArgumentNullException.ThrowIfNull(context);
 
@@ -140,7 +188,7 @@ namespace LibSodium
 				throw new ArgumentException($"Context must be a UTF-8 representable string of at most {ContextLen} bytes.", nameof(context), ex);
 			}
 
-			DeriveSubkey(subkey, subkeyId, utf8Context, masterKey);
+			DeriveSubkey(masterKey, subkey, subkeyId, utf8Context);
 		}
 
 		/// <summary>
@@ -157,13 +205,62 @@ namespace LibSodium
 		/// or <paramref name="subkey"/> or <paramref name="masterKey"/> are of invalid length.
 		/// </exception>
 		/// <exception cref="LibSodiumException">Thrown if the native key derivation fails.</exception>
+		[Obsolete("Use the other overload instead. This will be removed in a future version.")]
+		public static void DeriveSubkey(
+			Span<byte> subkey,
+			ulong subkeyId,
+			string context,
+			ReadOnlySpan<byte> masterKey)
+		{
+			DeriveSubkey(masterKey, subkey, subkeyId, context);
+		}
+
+		/// <summary>
+		/// Deterministically derives a subkey from a master key, using a context string whose UTF-8 representation is at most 8 bytes,
+		/// and a subkey ID. If the string is shorter, it is padded with zeros. Uses the BLAKE2b hash function internally.
+		/// </summary>
+		/// <param name="masterKey">The master key (32 bytes).</param>
+		/// <param name="subkey">The buffer where the derived subkey will be written. Its length must be between 16 and 64 bytes.</param>
+		/// <param name="subkeyId">The identifier for the subkey (application-defined).</param>
+		/// <param name="context">A string whose UTF-8 representation must be at most 8 bytes and describes the usage context.</param>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="context"/> is null.</exception>
+		/// <exception cref="ArgumentException">
+		/// Thrown when <paramref name="context"/> exceeds 8 UTF-8 bytes,
+		/// or <paramref name="subkey"/> or <paramref name="masterKey"/> are of invalid length.
+		/// </exception>
+		/// <exception cref="LibSodiumException">Thrown if the native key derivation fails.</exception>
+		public static void DeriveSubkey(
+			SecureMemory<byte> masterKey,
+			SecureMemory<byte> subkey,
+			ulong subkeyId,
+			string context
+			)
+		{
+			DeriveSubkey(masterKey.AsReadOnlySpan(), subkey.AsSpan(), subkeyId, context);
+		}
+
+		/// <summary>
+		/// Deterministically derives a subkey from a master key, using a context string whose UTF-8 representation is at most 8 bytes,
+		/// and a subkey ID. If the string is shorter, it is padded with zeros. Uses the BLAKE2b hash function internally.
+		/// </summary>
+		/// <param name="subkey">The buffer where the derived subkey will be written. Its length must be between 16 and 64 bytes.</param>
+		/// <param name="subkeyId">The identifier for the subkey (application-defined).</param>
+		/// <param name="context">A string whose UTF-8 representation must be at most 8 bytes and describes the usage context.</param>
+		/// <param name="masterKey">The master key (32 bytes).</param>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="context"/> is null.</exception>
+		/// <exception cref="ArgumentException">
+		/// Thrown when <paramref name="context"/> exceeds 8 UTF-8 bytes,
+		/// or <paramref name="subkey"/> or <paramref name="masterKey"/> are of invalid length.
+		/// </exception>
+		/// <exception cref="LibSodiumException">Thrown if the native key derivation fails.</exception>
+		[Obsolete("Use the other overload instead. This will be removed in a future version.")]
 		public static void DeriveSubkey(
 			SecureMemory<byte> subkey,
 			ulong subkeyId,
 			string context,
 			SecureMemory<byte> masterKey)
 		{
-			DeriveSubkey(subkey.AsSpan(), subkeyId, context, masterKey.AsReadOnlySpan());
+			DeriveSubkey(masterKey.AsReadOnlySpan(), subkey.AsSpan(), subkeyId, context);
 		}
 	}
 }

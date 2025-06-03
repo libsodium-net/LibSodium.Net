@@ -174,5 +174,5 @@ AssertLite.Throws<ArgumentException>(() => { LibSodium.X(buffer); });
 ---
 
 ## 🔮 Pending Modules (Planned)
-
+* 🪂 crypto_core_hchacha20: https://doc.libsodium.org/key_derivation#nonce-extension
 * 🪂 [Finite Field Arithmetic](https://doc.libsodium.org/advanced/point-arithmetic)

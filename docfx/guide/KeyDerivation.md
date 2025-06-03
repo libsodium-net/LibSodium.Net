@@ -1,51 +1,43 @@
 # 🔑 Key Derivation in LibSodium.Net
 
-LibSodium.Net provides two powerful primitives for key derivation:
+LibSodium.Net provides three powerful primitives for key derivation:
 
 * `CryptoKeyDerivation`: libsodium's native KDF built on BLAKE2b.
-* `Hkdf`: a standard HKDF implementation based on HMAC (SHA-256 or SHA-512).
+* `CryptoHChaCha20`: a fast, stateless KDF based on the HChaCha20 core function.
+* `CryptoHkdf`: a standard HKDF implementation based on HMAC (SHA-256 or SHA-512).
 
->🧂 Based on libsodium's [Key derivation](https://doc.libsodium.org/key_derivation)<br/>
->🧂 Based on libsodium's [HKDF](https://doc.libsodium.org/key_derivation/hkdf)<br/>
+
+> 🧂 Based on libsodium's [Key derivation](https://doc.libsodium.org/key_derivation)<br/>
+> 🧂 Based on libsodium's [HKDF](https://doc.libsodium.org/key_derivation/hkdf)<br/>
 > ℹ️ *See also*: [API Reference for `CryptoKeyDerivation`](../api/LibSodium.CryptoKeyDerivation.yml)<br/>
-> ℹ️ *See also*: [API Reference for `HKDF`](../api/LibSodium.CryptoHkdf.yml)
+> ℹ️ *See also*: [API Reference for `HKDF`](../api/LibSodium.CryptoHkdf.yml)<br/>
+> ℹ️ *See also*: [API Reference for `CryptoHChaCha20`](../api/LibSodium.CryptoHChaCha20.yml)
 
-This guide compares both options, shows how to choose between them, and offers practical usage advice.
-
----
-
-## 📋 Overview of Alternatives
-
-| Feature          | `CryptoKeyDerivation`        | `Hkdf`                            |
-| ---------------- | ---------------------------- | --------------------------------- |
-| Algorithm        | BLAKE2b                      | HMAC-SHA-256 / HMAC-SHA-512       |
-| Based on         | `crypto_kdf_*` API           | `crypto_kdf_hkdf_{sha256,sha512}` |
-| Standard         | No                           | RFC 5869                          |
-| Derivation style | Single-step                  | Extract-then-expand               |
-| Inputs           | masterKey, subkeyId, context | ikm, salt, info                   |
-| Deterministic    | Yes                          | Yes                               |
-| Performance      | Faster                       | Slower                            |
-| Interoperability | Low                          | High                              |
+This guide compares all options, shows how to choose between them, and offers practical usage advice.
 
 ---
 
-## ⚙️ Practical Differences
+## 📋 Primitives Comparative
 
-### Subkey Identifier and State
+| Feature                    | `CryptoKeyDerivation`               | `Hkdf`                                | `CryptoHChaCha20`                    |
+| -------------------------- | ----------------------------------- | ------------------------------------- | ------------------------------------ |
+| Algorithm                  | BLAKE2b                             | HMAC-SHA-256 / HMAC-SHA-512           | HChaCha20                            |
+| Based on                   | `crypto_kdf_*` API                  | `crypto_kdf_hkdf_{sha256,sha512}`     | `crypto_core_hchacha20`              |
+| Standard                   | No                                  | RFC 5869                              | No                                   |
+| Derivation style           | Single-step                         | Extract-then-expand                   | Single-step                          |
+| Inputs                     | masterKey, subkeyId, context        | ikm, salt, info                       | key, input, \[context]               |
+| Deterministic              | Yes                                 | Yes                                   | Yes                                  |
+| Performance                | Faster                              | Slower                                | Fastest                              |
+| Interoperability           | Low                                 | High                                  | Medium (used in XChaCha20)           |
+| Subkey uniqueness driver   | `ulong subkeyId` + 8-byte `context` | Arbitrary `salt` and `info`           | 16-byte `input` + optional `context` |
+| Max identifier size        | 16 bytes total (id + context)       | Arbitrary                             | 32 bytes (input + context)           |
+| Collisions with random IDs | Realistic risk                      | Practically zero (if inputs are long) | Low risk (if input is random)        |
+| State requirement          | Yes (track last subkeyId)           | No                                    | No                                   |
+| Stateless randomness       | Not safe                            | Safe                                  | Safe                                 |
+| Best practice              | Use a database sequence             | Use long random salt/info             | Use random 16-byte input             |
 
-| Characteristic             | `CryptoKeyDerivation`               | `Hkdf`                                |
-| -------------------------- | ----------------------------------- | ------------------------------------- |
-| Subkey uniqueness driver   | `ulong subkeyId` + 8-byte `context` | Arbitrary `salt` and `info`           |
-| Max identifier size        | 16 bytes total (id + context)       | Arbitrary                             |
-| Collisions with random IDs | Realistic risk                      | Practically zero (if inputs are long) |
-| State requirement          | Yes (track last subkeyId)           | No                                    |
-| Stateless randomness       | Not safe                            | Safe                                  |
-| Best practice              | Use a database sequence             | Use long random salt/info             |
 
-### Performance
-
-* `CryptoKeyDerivation` is faster due to BLAKE2b.
-* `HKDF` (especially SHA-512) is slower but widely standardized.
+---
 
 ### SHA-256 vs SHA-512 in HKDF
 
@@ -73,11 +65,11 @@ Use `SHA-512` unless you have specific compatibility or performance constraints.
 
 📝 Example: For a secure message stream, generate one random `subkeyId` per session, then increment it for each message. This yields high performance and unique keys.
 
----
+### Choose `CryptoHChaCha20` when:
 
-## 🧭 Recommendation
-
-Use `HKDF` (preferably SHA-512) by default unless you have a controlled use case requiring deterministic subkey sequences with high performance.
+* You want **stateless deterministic** derivation from a master key.
+* You need **nonce extension** for AES-GCM or similar AEAD schemes.
+* You want **domain separation** via a fixed 16-byte context.
 
 ---
 
@@ -126,23 +118,90 @@ Subkeys can be `SecureMemory<byte>`, `Span<byte>`, or `byte[]` (implicitly conve
 ```csharp
 // SecureMemory subkey
 using var subkey = new SecureMemory<byte>(32);
-CryptoKeyDerivation.DeriveSubkey(subkey, 42, "MYCTX", masterKey);
+CryptoKeyDerivation.DeriveSubkey(masterKey, subkey, 42, "MYCTX");
 ```
 
 ```csharp
 // Span subkey
 Span<byte> subkey = stackalloc byte[32];
-CryptoKeyDerivation.DeriveSubkey(subkey, 42, "MYCTX", masterKey);
+CryptoKeyDerivation.DeriveSubkey(masterKey, subkey, 42, "MYCTX");
 ```
 
 ```csharp
 // byte[] subkey
 using var subkey = new byte[32];
-CryptoKeyDerivation.DeriveSubkey(subkey, 42, "MYCTX", masterKey);
+CryptoKeyDerivation.DeriveSubkey(masterKey, subkey, 42, "MYCTX");
 ```
 
 📝 Context must be exactly 8 bytes. Strings shorter than 8 are zero-padded.
 
+---
+
+## ✨ CryptoHChaCha20
+
+`CryptoHChaCha20` provides fast, deterministic subkey derivation using the HChaCha20 function, originally designed for use in `XChaCha20`. It is suitable for nonce extension, domain separation and stateless derivation of subkeys from a master key.
+
+🧂 Based on libsodium’s [`crypto_core_hchacha20`](https://doc.libsodium.org/advanced/stream_ciphers/xchacha20#key-derivation-with-hchacha20)
+ℹ️ [API Reference: `CryptoHChaCha20`](../api/LibSodium.CryptoHChaCha20.yml)
+
+---
+
+### 📏 Constants
+
+| Name         | Value | Description                           |
+| ------------ | ----- | ------------------------------------- |
+| `KeyLen`     | 32    | Length of the master key              |
+| `InputLen`   | 16    | Length of the salt-like input         |
+| `ContextLen` | 16    | Length of the optional domain context |
+| `SubKeyLen`  | 32    | Length of the derived subkey          |
+
+---
+
+### 📋 Derive a subkey
+
+You can derive a 32-byte subkey using a 32-byte master key and a 16-byte input. You may optionally provide a 16-byte domain context.
+
+```csharp
+using var  subKey = new SecureMemory<byte>(CryptoHChaCha20.SubKeyLen);
+using var  key =  new SecureMemory<byte>(CryptoHChaCha20.KeyLen);
+Span<byte> input = stackalloc byte[CryptoHChaCha20.InputLen];
+RandomGenerator.Fill(key);
+RandomGenerator.Fill(input);
+
+CryptoHChaCha20.DeriveSubkey(key, subKey, input, "app-context");
+```
+
+---
+
+### 📋 Example: AES256-GCM nonce extension
+
+HChaCha20 can be used to securely extend a nonce for AES256-GCM:
+
+```csharp
+// this is a sample to demonstrate nonce extension using HChaCha20
+// it extends a 12-byte AES256-GCM nonce into a 28-byte nonce
+
+
+Span<byte> key = Convert.FromHexString("000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F");
+
+// 16 + 12 = 28 bytes total
+Span<byte> extendedNonce = stackalloc byte[CryptoHChaCha20.InputLen + Aes256Gcm.NonceLen];
+RandomGenerator.Fill(extendedNonce);
+
+Span<byte> subkey = stackalloc byte[CryptoHChaCha20.SubKeyLen];
+
+// first 16 bytes of nonce are used as input to derive the subkey
+var input = extendedNonce.Slice(0, CryptoHChaCha20.InputLen);
+CryptoHChaCha20.DeriveSubkey(key, subkey, input);
+
+		
+ReadOnlySpan<byte> plaintext = "some plaintext data to encrypt"u8;
+Span<byte> ciphertext = stackalloc byte[plaintext.Length + Aes256Gcm.MacLen];
+// the next 12 bytes of extended nonce are used as the AES256-GCM nonce
+var nonce = extendedNonce.Slice(CryptoHChaCha20.InputLen, Aes256Gcm.NonceLen);
+
+Aes256Gcm.Encrypt(ciphertext, plaintext, subkey, nonce: nonce);
+```
 ---
 
 ## ✨ `HKDF`

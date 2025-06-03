@@ -516,6 +516,16 @@ namespace LibSodium
 		}
 
 		/// <summary>
+		/// Determines whether the current instance contains only zero values.
+		/// </summary>
+		/// <returns><see langword="true"/> if all bytes in the current instance are zero; otherwise, <see langword="false"/>.</returns>
+		public bool IsZero()
+		{
+			ObjectDisposedException.ThrowIf(IsDisposed, this);
+			return SecureMemory.IsZero(AsReadOnlySpan());
+		}
+
+		/// <summary>
 		/// Releases all resources used by the <see cref="SecureMemory{T}"/> object, including the allocated unmanaged secure memory.
 		/// </summary>
 		public void Dispose()
