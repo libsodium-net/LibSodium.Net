@@ -21,7 +21,7 @@ public class CryptoSignTests
 		var actualSig = CryptoSign.Sign(message, signature, privateKey);
 		actualSig.Length.ShouldBe(CryptoSign.SignatureLen);
 
-		bool isValid = CryptoSign.TryVerify(message, actualSig, publicKey);
+		bool isValid = CryptoSign.Verify(message, actualSig, publicKey);
 		isValid.ShouldBeTrue();
 	}
 
@@ -38,21 +38,7 @@ public class CryptoSignTests
 
 		message[0] ^= 1;
 
-		CryptoSign.TryVerify(message, signature, pk).ShouldBeFalse();
-	}
-
-	[Test]
-	public void SignAndVerify_ShouldThrow_OnInvalidSignature()
-	{
-		var pk = new byte[CryptoSign.PublicKeyLen];
-		Span<byte> sk = stackalloc byte[CryptoSign.PrivateKeyLen];
-		CryptoSign.GenerateKeyPair(pk, sk);
-
-		byte[] message = RandomBytes(MessageLen);
-		byte[] signature = RandomBytes(CryptoSign.SignatureLen);
-
-		AssertLite.Throws<LibSodiumException>(() =>
-			CryptoSign.Verify(message, signature, pk));
+		CryptoSign.Verify(message, signature, pk).ShouldBeFalse();
 	}
 
 	[Test]
@@ -121,7 +107,7 @@ public class CryptoSignTests
 		byte[] badSig = new byte[CryptoSign.SignatureLen - 1];
 
 		AssertLite.Throws<ArgumentException>(() =>
-			CryptoSign.TryVerify(msg, badSig, pk));
+			CryptoSign.Verify(msg, badSig, pk));
 	}
 
 	[Test]
@@ -132,7 +118,7 @@ public class CryptoSignTests
 		byte[] sig = RandomBytes(CryptoSign.SignatureLen);
 
 		AssertLite.Throws<ArgumentException>(() =>
-			CryptoSign.TryVerify(msg, sig, pk));
+			CryptoSign.Verify(msg, sig, pk));
 	}
 
 	private static byte[] RandomBytes(int len)
@@ -243,7 +229,7 @@ public class CryptoSignTests
 		CryptoSign.GenerateKeyPair(pk, sk);
 
 		pk.ShouldNotBeZero();
-		sk.AsSpan().ShouldNotBeZero();
+		sk.ShouldNotBeZero();
 	}
 
 	[Test]
@@ -260,7 +246,7 @@ public class CryptoSignTests
 		CryptoSign.GenerateKeyPairDeterministically(pk2, sk2, seed);
 
 		pk1.ShouldBe(pk2);
-		sk1.AsSpan().ShouldBe(sk2.AsSpan());
+		sk1.ShouldBe(sk2);
 	}
 
 	[Test]
@@ -274,7 +260,7 @@ public class CryptoSignTests
 		Span<byte> sig = stackalloc byte[CryptoSign.SignatureLen];
 
 		CryptoSign.Sign(message, sig, sk);
-		bool isValid = CryptoSign.TryVerify(message, sig, pk);
+		bool isValid = CryptoSign.Verify(message, sig, pk);
 		isValid.ShouldBeTrue();
 	}
 
@@ -288,7 +274,43 @@ public class CryptoSignTests
 		using var curveSk = SecureMemory.Create<byte>(CryptoBox.PrivateKeyLen);
 		curveSk.MemZero();
 		CryptoSign.PrivateKeyToCurve(curveSk, edSk);
-		curveSk.AsSpan().ShouldNotBeZero();
+		curveSk.ShouldNotBeZero();
 	}
+
+	[Test]
+	public void SignAndVerify_Stream_ShouldSucceed()
+	{
+		var pk = new byte[CryptoSign.PublicKeyLen];
+		using var sk = SecureMemory.Create<byte>(CryptoSign.PrivateKeyLen);
+		CryptoSign.GenerateKeyPair(pk, sk);
+
+		byte[] message = RandomBytes(256);
+		byte[] signature = new byte[CryptoSign.SignatureLen];
+
+		using var stream = new MemoryStream(message);
+		CryptoSign.PreHashSign(stream, signature, sk);
+		stream.Position = 0;
+
+		CryptoSign.PreHashVerify(stream, signature, pk).ShouldBeTrue();
+	}
+
+	[Test]
+	public async Task SignAndVerifyAsync_Stream_ShouldSucceed()
+	{
+		var pk = new byte[CryptoSign.PublicKeyLen];
+		using var sk = SecureMemory.Create<byte>(CryptoSign.PrivateKeyLen);
+		CryptoSign.GenerateKeyPair(pk, sk);
+
+		byte[] message = RandomBytes(256);
+		byte[] signature = new byte[CryptoSign.SignatureLen];
+
+		using var stream = new MemoryStream(message);
+		await CryptoSign.PreHashSignAsync(stream, signature, sk);
+		stream.Position = 0;
+
+		var isValid = await CryptoSign.PreHashVerifyAsync(stream, signature, pk);
+		isValid.ShouldBeTrue();
+	}
+
 
 }

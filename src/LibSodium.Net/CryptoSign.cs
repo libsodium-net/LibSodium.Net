@@ -1,4 +1,5 @@
 ﻿using LibSodium.Interop;
+using LibSodium.LowLevel;
 
 namespace LibSodium
 {
@@ -26,6 +27,13 @@ namespace LibSodium
 		/// Length in bytes of a seed used to generate key pairs deterministically.
 		/// </summary>
 		public const int SeedLen = Native.CRYPTO_SIGN_SEEDBYTES;
+
+		/// <summary>
+		/// Represents the length, in bytes, of the state buffer used in cryptographic signing operations.
+		/// </summary>
+		/// <remarks>This value is determined by the underlying native cryptographic library and is used to allocate
+		/// buffers for signing state during incremental cryptographic operations.</remarks>
+		internal static readonly int StateLen = (int) Native.crypto_sign_statebytes();
 
 		/// <summary>
 		/// Generates a new Ed25519 public/private key pair.
@@ -100,17 +108,17 @@ namespace LibSodium
 		}
 
 		/// <summary>
-		/// Creates a signature for the given message using the provided private key.
+		/// Creates a Ed25519 signature for the given message using the provided private key.
 		/// </summary>
 		/// <param name="message">The message to be signed.</param>
-		/// <param name="signature">A span to store the signature (must be at least <see cref="SignatureLen"/> bytes).</param>
-		/// <param name="privateKey">The private key to sign with (must be <see cref="PrivateKeyLen"/> bytes).</param>
+		/// <param name="signature">A span to store the Ed25519 signature (must be at least <see cref="SignatureLen"/> bytes).</param>
+		/// <param name="privateKey">The Ed25519 private key to sign with (must be <see cref="PrivateKeyLen"/> bytes).</param>
 		/// <returns>A slice of the signature span containing the actual signature.</returns>
 		/// <exception cref="ArgumentException">Thrown if the signature or private key length is incorrect.</exception>
 		/// <exception cref="LibSodiumException">Thrown if the signing operation fails.</exception>
 		public static Span<byte> Sign(
-			ReadOnlySpan<byte> message, 
-			Span<byte> signature, 
+			ReadOnlySpan<byte> message,
+			Span<byte> signature,
 			ReadOnlySpan<byte> privateKey)
 		{
 			if (signature.Length < SignatureLen)
@@ -126,11 +134,11 @@ namespace LibSodium
 		}
 
 		/// <summary>
-		/// Creates a signature for the given message using the provided private key.
+		/// Creates an Ed25519 signature for the given message using the provided private key.
 		/// </summary>
 		/// <param name="message">The message to be signed.</param>
-		/// <param name="signature">A span to store the signature (must be at least <see cref="SignatureLen"/> bytes).</param>
-		/// <param name="privateKey">The private key to sign with (must be <see cref="PrivateKeyLen"/> bytes).</param>
+		/// <param name="signature">A span to store the Ed25519 signature (must be at least <see cref="SignatureLen"/> bytes).</param>
+		/// <param name="privateKey">The Ed25519 private key to sign with (must be <see cref="PrivateKeyLen"/> bytes).</param>
 		/// <returns>A slice of the signature span containing the actual signature.</returns>
 		/// <exception cref="ArgumentException">Thrown if the signature or private key length is incorrect.</exception>
 		/// <exception cref="LibSodiumException">Thrown if the signing operation fails.</exception>
@@ -143,14 +151,14 @@ namespace LibSodium
 		}
 
 		/// <summary>
-		/// Verifies a signature against a given message and public key.
+		/// Verifies an Ed25519 signature against a given message and public key.
 		/// </summary>
 		/// <param name="message">The original message.</param>
-		/// <param name="signature">The signature to verify (must be <see cref="SignatureLen"/> bytes).</param>
-		/// <param name="publicKey">The public key used to verify the signature (must be <see cref="PublicKeyLen"/> bytes).</param>
+		/// <param name="signature">The Ed25519 signature to verify (must be <see cref="SignatureLen"/> bytes).</param>
+		/// <param name="publicKey">The Ed25519 public key used to verify the signature (must be <see cref="PublicKeyLen"/> bytes).</param>
 		/// <returns><c>true</c> if the signature is valid; otherwise, <c>false</c>.</returns>
 		/// <exception cref="ArgumentException">Thrown if the signature or public key length is incorrect.</exception>
-		public static bool TryVerify(
+		public static bool Verify(
 			ReadOnlySpan<byte> message,
 			ReadOnlySpan<byte> signature,
 			ReadOnlySpan<byte> publicKey)
@@ -164,24 +172,6 @@ namespace LibSodium
 			return result == 0;
 		}
 
-
-		/// <summary>
-		/// Verifies a signature against a given message and public key.
-		/// Throws if the signature is invalid.
-		/// </summary>
-		/// <param name="message">The original message.</param>
-		/// <param name="signature">The signature to verify (must be <see cref="SignatureLen"/> bytes).</param>
-		/// <param name="publicKey">The public key used to verify the signature (must be <see cref="PublicKeyLen"/> bytes).</param>
-		/// <exception cref="ArgumentException">Thrown if the signature or public key length is incorrect.</exception>
-		/// <exception cref="LibSodiumException">Thrown if the signature is invalid.</exception>
-		public static void Verify(
-			ReadOnlySpan<byte> message,
-			ReadOnlySpan<byte> signature,
-			ReadOnlySpan<byte> publicKey)
-		{
-			if (TryVerify(message, signature, publicKey)) return;
-			throw new LibSodiumException("Failed to verify signature.");
-		}
 
 		/// <summary>
 		/// Converts an Ed25519 public key (32 bytes) to a Curve25519 public key (32 bytes).
@@ -240,6 +230,163 @@ namespace LibSodium
 		public static void PrivateKeyToCurve(SecureMemory<byte> curvePrivateKey, SecureMemory<byte> edPrivateKey)
 		{
 			PrivateKeyToCurve(curvePrivateKey.AsSpan(), edPrivateKey.AsReadOnlySpan());
+		}
+
+		/// <summary>
+		/// Creates an Ed25519ph incremental signing operation using the provided private key.
+		/// The key is not copied or disposed. The caller is responsible for its lifecycle and protection.
+		/// </summary>
+		/// <param name="privateKey">The private key used for signing (64 bytes).</param>
+		/// <returns>An incremental operation that produces a signature when finalized.</returns>
+
+		public static ICryptoIncrementalOperation CreateIncrementalPreHashSign(ReadOnlyMemory<byte> privateKey)
+		{
+			return new CryptoSignIncremental(privateKey);
+		}
+
+		/// <summary>
+		/// Creates an Ed25519ph incremental signing operation using a private key stored in secure memory.
+		/// The key is used as-is and not disposed automatically. The caller retains ownership.
+		/// </summary>
+		/// <param name="privateKey">The Ed25519ph private key used for signing, stored in secure memory (64 bytes).</param>
+		/// <returns>An incremental operation that produces a signature when finalized.</returns>
+
+		public static ICryptoIncrementalOperation CreateIncrementalPreHashSign(SecureMemory<byte> privateKey)
+		{
+			return new CryptoSignIncremental(privateKey.AsReadOnlyMemory());
+		}
+
+		/// <summary>
+		/// Creates an Ed25519ph incremental verification operation using the given public key and signature.
+		/// The result of the verification is written to the output span as a single byte: 1 for valid, 0 for invalid.
+		/// </summary>
+		/// <param name="publicKey">The Ed25519ph public key used to verify the signature (32 bytes).</param>
+		/// <param name="signature">The expected Ed25519ph signature to verify against (64 bytes).</param>
+		/// <returns>An incremental operation that validates the message on finalization.</returns>
+
+		public static ICryptoIncrementalOperation CreateIncrementalPreHashVerify(ReadOnlyMemory<byte> publicKey, ReadOnlyMemory<byte> signature)
+		{
+			return new CryptoSignVerifyIncremental(publicKey, signature);
+		}
+
+		/// <summary>
+		/// Signs the contents of a stream using the specified Ed25519ph private key and writes the Ed25519ph signature to the provided buffer.
+		/// </summary>
+		/// <param name="message">The input stream containing the message to sign.</param>
+		/// <param name="signature">A buffer that will receive theEd25519ph signature. Must be at least 64 bytes.</param>
+		/// <param name="privateKey">The Ed25519ph private key (64 bytes).</param>
+		/// <returns>The portion of the signature buffer containing the resulting signature (64 bytes).</returns>
+
+		public static Span<byte> PreHashSign(
+			Stream message,
+			Span<byte> signature,
+			ReadOnlyMemory<byte> privateKey)
+		{
+			using (var incremental = CreateIncrementalPreHashSign(privateKey))
+			{
+				incremental.Compute(message, signature);
+				return signature.Slice(0, SignatureLen);
+			}
+		}
+
+		/// <summary>
+		/// Signs the contents of a stream using a Ed25519ph private key stored in secure memory.
+		/// </summary>
+		/// <param name="message">The input stream containing the message to sign.</param>
+		/// <param name="signature">A buffer that will receive the Ed25519ph signature. Must be at least 64 bytes.</param>
+		/// <param name="privateKey">The Ed25519ph private key in secure memory (64 bytes).</param>
+		/// <returns>The portion of the signature buffer containing the resulting signature (64 bytes).</returns>
+
+		public static Span<byte> PreHashSign(
+			Stream message,
+			Span<byte> signature,
+			SecureMemory<byte> privateKey)
+		{
+			return PreHashSign(message, signature, privateKey.AsReadOnlyMemory());
+		}
+
+		/// <summary>
+		/// Asynchronously signs the contents of a stream using the specified private key and writes the Ed25519ph signature to the provided buffer.
+		/// </summary>
+		/// <param name="message">The input stream containing the message to sign.</param>
+		/// <param name="signature">A memory buffer that will receive the Ed25519ph signature. Must be at least 64 bytes.</param>
+		/// <param name="privateKey">The Ed25519ph private key (64 bytes).</param>
+		/// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
+		/// <returns>The portion of the signature buffer containing the resulting signature (64 bytes).</returns>
+
+		public static async Task<Memory<byte>> PreHashSignAsync(
+			Stream message,
+			Memory<byte> signature,
+			ReadOnlyMemory<byte> privateKey,
+			CancellationToken cancellationToken = default)
+		{
+			using (var incremental = CreateIncrementalPreHashSign(privateKey))
+			{
+				await incremental.ComputeAsync(message, signature, cancellationToken).ConfigureAwait(false);
+				return signature.Slice(0, SignatureLen);
+			}
+		}
+
+		/// <summary>
+		/// Asynchronously signs the contents of a stream using a private key stored in secure memory and Ed25519ph.
+		/// </summary>
+		/// <param name="message">The input stream containing the message to sign.</param>
+		/// <param name="signature">A memory buffer that will receive the Ed25519ph signature. Must be at least 64 bytes.</param>
+		/// <param name="privateKey">The Ed25519ph private key in secure memory (64 bytes).</param>
+		/// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
+		/// <returns>The portion of the signature buffer containing the resulting signature (64 bytes).</returns>
+
+		public static async Task<Memory<byte>> PreHashSignAsync(
+			Stream message,
+			Memory<byte> signature,
+			SecureMemory<byte> privateKey,
+			CancellationToken cancellationToken = default)
+		{
+			return await PreHashSignAsync(message, signature, privateKey.AsReadOnlyMemory(), cancellationToken).ConfigureAwait(false);
+		}
+
+		/// <summary>
+		/// Verifies the signature of a stream using the specified public key and Ed25519ph.
+		/// </summary>
+		/// <param name="message">The input stream containing the message to verify.</param>
+		/// <param name="signature">The Ed25519ph signature to verify (64 bytes).</param>
+		/// <param name="publicKey">The Ed25519ph public key (32 bytes).</param>
+		/// <returns><c>true</c> if the signature is valid; otherwise, <c>false</c>.</returns>
+
+		public static bool PreHashVerify(
+			Stream message,
+			ReadOnlyMemory<byte> signature,
+			ReadOnlyMemory<byte> publicKey)
+		{
+			using (var incremental = CreateIncrementalPreHashVerify(publicKey, signature))
+			{
+				Span<byte> result = stackalloc byte[1];
+				incremental.Compute(message, result);
+				return result[0] == (byte)1; // 1 indicates valid signature
+			}
+		}
+
+		/// <summary>
+		/// Asynchronously verifies the signature of a stream using the specified public key and Ed25519ph.
+		/// </summary>
+		/// <param name="message">The input stream containing the message to verify.</param>
+		/// <param name="signature">The Ed25519ph signature to verify (64 bytes).</param>
+		/// <param name="publicKey">The Ed25519ph public key (32 bytes).</param>
+		/// <param name="cancellationToken">A cancellation token that can be used to cancel the operation.</param>
+		/// <returns><c>true</c> if the signature is valid; otherwise, <c>false</c>.</returns>
+
+		public static async Task<bool> PreHashVerifyAsync(
+			Stream message,
+			ReadOnlyMemory<byte> signature,
+			ReadOnlyMemory<byte> publicKey,
+			CancellationToken cancellationToken = default)
+		{
+			using (var incremental = CreateIncrementalPreHashVerify(publicKey, signature))
+			{
+				var result = new byte[1];
+				await incremental.ComputeAsync(message, result, cancellationToken).ConfigureAwait(false);
+				return result[0] == (byte) 1; // 1 indicates valid signature
+			}
 		}
 	}
 }

@@ -61,14 +61,45 @@ namespace LibSodium.Interop
 			ReadOnlySpan<byte> pk);
 
 		[LibraryImport(LibSodiumNativeLibraryName, EntryPoint = nameof(crypto_sign_ed25519_pk_to_curve25519))]
+		[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+
 		internal static partial int crypto_sign_ed25519_pk_to_curve25519(
 			Span<byte> curve25519PublicKey,
 			ReadOnlySpan<byte> ed25519PublicKey);
 
 		[LibraryImport(LibSodiumNativeLibraryName, EntryPoint = nameof(crypto_sign_ed25519_sk_to_curve25519))]
+		[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
 		internal static partial int crypto_sign_ed25519_sk_to_curve25519(
 			Span<byte> curve25519SecretKey,
 			ReadOnlySpan<byte> ed25519SecretKey);
+
+		[LibraryImport(LibSodiumNativeLibraryName, EntryPoint = nameof(crypto_sign_statebytes))]
+		[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+		internal static partial nuint crypto_sign_statebytes();
+
+
+		[LibraryImport(LibSodiumNativeLibraryName, EntryPoint = nameof(crypto_sign_init))]
+		[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+		internal static partial int crypto_sign_init(Span<byte> state);
+
+		[LibraryImport(LibSodiumNativeLibraryName, EntryPoint = nameof(crypto_sign_update))]
+		[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+		internal static partial int crypto_sign_update(Span<byte> state, ReadOnlySpan<byte> message, nuint messageLength);
+
+		[LibraryImport(LibSodiumNativeLibraryName, EntryPoint = nameof(crypto_sign_final_create))]
+		[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+		internal static partial int crypto_sign_final_create(
+			Span<byte> state,
+			Span<byte> signature,
+			out ulong signatureLength,
+			ReadOnlySpan<byte> privateKey);
+
+		[LibraryImport(LibSodiumNativeLibraryName, EntryPoint = nameof(crypto_sign_final_verify))]
+		[UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+		internal static partial int crypto_sign_final_verify(
+			Span<byte> state, 
+			ReadOnlySpan<byte> signature,
+			ReadOnlySpan<byte> publicKey);
 
 	}
 }

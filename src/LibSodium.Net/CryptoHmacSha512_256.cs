@@ -176,11 +176,11 @@ public static class CryptoHmacSha512_256
 	/// <summary>
 	/// Creates an incremental hash object using the HMAC-SHA512/256 algorithm.
 	/// </summary>
-	/// <remarks>The returned <see cref="ICryptoIncrementalHash"/> can be used to compute the HMAC-SHA512/256 hash
+	/// <remarks>The returned <see cref="ICryptoIncrementalOperation"/> can be used to compute the HMAC-SHA512/256 hash
 	/// incrementally by processing data in chunks.</remarks>
 	/// <param name="key">The cryptographic key (64 bytes) to use for the HMAC-SHA512/256 computation.</param>
-	/// <returns>An <see cref="ICryptoIncrementalHash"/> instance that allows incremental computation of the HMAC-SHA512/256 hash.</returns>
-	public static ICryptoIncrementalHash CreateIncrementalMac(ReadOnlySpan<byte> key)
+	/// <returns>An <see cref="ICryptoIncrementalOperation"/> instance that allows incremental computation of the HMAC-SHA512/256 hash.</returns>
+	public static ICryptoIncrementalOperation CreateIncrementalMac(ReadOnlySpan<byte> key)
 	{
 		return new CryptoMacIncremental<HmacSha512_256>(key);
 	}
@@ -188,11 +188,11 @@ public static class CryptoHmacSha512_256
 	/// <summary>
 	/// Creates an incremental hash object using the HMAC-SHA512/256 algorithm.
 	/// </summary>
-	/// <remarks>The returned <see cref="ICryptoIncrementalHash"/> can be used to compute the HMAC-SHA512/256 hash
+	/// <remarks>The returned <see cref="ICryptoIncrementalOperation"/> can be used to compute the HMAC-SHA512/256 hash
 	/// incrementally by processing data in chunks.</remarks>
 	/// <param name="key">The cryptographic key (64 bytes) to use for the HMAC-SHA512/256 computation.</param>
-	/// <returns>An <see cref="ICryptoIncrementalHash"/> instance that allows incremental computation of the HMAC-SHA512/256 hash.</returns>
-	public static ICryptoIncrementalHash CreateIncrementalMac(SecureMemory<byte> key)
+	/// <returns>An <see cref="ICryptoIncrementalOperation"/> instance that allows incremental computation of the HMAC-SHA512/256 hash.</returns>
+	public static ICryptoIncrementalOperation CreateIncrementalMac(SecureMemory<byte> key)
 	{
 		return new CryptoMacIncremental<HmacSha512_256>(key.AsReadOnlySpan());
 	}

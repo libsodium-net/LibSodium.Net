@@ -184,12 +184,12 @@ public static class CryptoHmacSha256
 	/// <summary>
 	/// Creates an incremental hash object using the HMAC-SHA256 algorithm.
 	/// </summary>
-	/// <remarks>The returned <see cref="ICryptoIncrementalHash"/> can be used to compute the HMAC-SHA256 hash
+	/// <remarks>The returned <see cref="ICryptoIncrementalOperation"/> can be used to compute the HMAC-SHA256 hash
 	/// incrementally by processing data in chunks. This is useful for scenarios where the data to be hashed is too large
 	/// to fit in memory or is received in a streaming fashion.</remarks>
 	/// <param name="key">The cryptographic key (32 bytes) to use for the HMAC-SHA256 computation.</param>
-	/// <returns>An <see cref="ICryptoIncrementalHash"/> instance that allows incremental computation of the HMAC-SHA256 hash.</returns>
-	public static ICryptoIncrementalHash CreateIncrementalMac(ReadOnlySpan<byte> key)
+	/// <returns>An <see cref="ICryptoIncrementalOperation"/> instance that allows incremental computation of the HMAC-SHA256 hash.</returns>
+	public static ICryptoIncrementalOperation CreateIncrementalMac(ReadOnlySpan<byte> key)
 	{
 		return new CryptoMacIncremental<HmacSha256>(key);
 	}
@@ -197,12 +197,12 @@ public static class CryptoHmacSha256
 	/// <summary>
 	/// Creates an incremental hash object using the HMAC-SHA256 algorithm.
 	/// </summary>
-	/// <remarks>The returned <see cref="ICryptoIncrementalHash"/> can be used to compute the HMAC-SHA256 hash
+	/// <remarks>The returned <see cref="ICryptoIncrementalOperation"/> can be used to compute the HMAC-SHA256 hash
 	/// incrementally by processing data in chunks. This is useful for scenarios where the data to be hashed is too large
 	/// to fit in memory or is received in a streaming fashion.</remarks>
 	/// <param name="key">The cryptographic key (32 bytes) to use for the HMAC-SHA256 computation.</param>
-	/// <returns>An <see cref="ICryptoIncrementalHash"/> instance that allows incremental computation of the HMAC-SHA256 hash.</returns>
-	public static ICryptoIncrementalHash CreateIncrementalMac(SecureMemory<byte> key)
+	/// <returns>An <see cref="ICryptoIncrementalOperation"/> instance that allows incremental computation of the HMAC-SHA256 hash.</returns>
+	public static ICryptoIncrementalOperation CreateIncrementalMac(SecureMemory<byte> key)
 	{
 		return CreateIncrementalMac(key.AsReadOnlySpan());
 	}

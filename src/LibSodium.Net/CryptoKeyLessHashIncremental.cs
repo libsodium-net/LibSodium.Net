@@ -6,7 +6,7 @@ namespace LibSodium;
 /// Incremental hashing engine for algorithms that do not require a key (e.g., SHA‑2).
 /// </summary>
 /// <typeparam name="T">The underlying hash algorithm.</typeparam>
-internal sealed class CryptoKeyLessHashIncremental<T> : ICryptoIncrementalHash
+internal sealed class CryptoKeyLessHashIncremental<T> : ICryptoIncrementalOperation
 	where T : IKeyLessHash
 {
 	private readonly byte[] state = new byte[T.StateLen];

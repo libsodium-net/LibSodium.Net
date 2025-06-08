@@ -101,7 +101,7 @@ public class CryptoHChaCha20Tests
 		CryptoHChaCha20.DeriveSubkey(key, key1, input, context1);
 		CryptoHChaCha20.DeriveSubkey(key, key2, input, context2);
 
-		key1.SequenceEqual(key2).ShouldBeFalse();
+		key1.ShouldNotBe(key2);
 	}
 
 	[Test]

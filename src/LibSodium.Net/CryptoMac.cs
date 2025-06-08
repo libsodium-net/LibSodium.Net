@@ -105,9 +105,9 @@ internal static class CryptoMac<T> where T : struct, IMac
 	/// </summary>
 	/// <param name="key">A read-only span containing the key to initialize the hash. The key must be exactly <see cref="IMac.KeyLen"/> bytes in
 	/// length.</param>
-	/// <returns>An <see cref="ICryptoIncrementalHash"/> instance that can be used to compute the hash incrementally.</returns>
+	/// <returns>An <see cref="ICryptoIncrementalOperation"/> instance that can be used to compute the hash incrementally.</returns>
 	/// <exception cref="ArgumentException">Thrown if <paramref name="key"/> is not exactly <see cref="IMac.KeyLen"/> bytes in length.</exception>
-	public static ICryptoIncrementalHash CreateIncrementalHash(ReadOnlySpan<byte> key)
+	public static ICryptoIncrementalOperation CreateIncrementalHash(ReadOnlySpan<byte> key)
 	{
 		return new CryptoMacIncremental<T>(key);
 	}

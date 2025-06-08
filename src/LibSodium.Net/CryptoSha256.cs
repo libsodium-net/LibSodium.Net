@@ -64,9 +64,9 @@ public static class CryptoSha256
 	/// </summary>
 	/// <remarks>This method provides an object for computing a hash incrementally, which is useful for processing
 	/// large data streams or when the data to be hashed is not available all at once.</remarks>
-	/// <returns>An <see cref="ICryptoIncrementalHash"/> instance that allows incremental computation of a SHA-512 hash.</returns>
+	/// <returns>An <see cref="ICryptoIncrementalOperation"/> instance that allows incremental computation of a SHA-512 hash.</returns>
 	/// <exception cref="LibSodiumException">Thrown if the underlying libsodium call fails.</exception>
-	public static ICryptoIncrementalHash CreateIncrementalHash()
+	public static ICryptoIncrementalOperation CreateIncrementalHash()
 	{
 		return new CryptoKeyLessHashIncremental<LowLevel.Sha256>();
 	}

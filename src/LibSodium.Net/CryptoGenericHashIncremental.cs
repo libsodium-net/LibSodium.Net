@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace LibSodium
 {
-	internal sealed class CryptoGenericHashIncremental : ICryptoIncrementalHash
+	internal sealed class CryptoGenericHashIncremental : ICryptoIncrementalOperation
 	{
 		private  Native.crypto_generichash_blake2b_state state;
 		private bool isDisposed = false;

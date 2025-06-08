@@ -20,6 +20,13 @@ namespace LibSodium
 		public const int PublicKeyLen = 32;
 
 		/// <summary>
+		/// Represents the length, in bytes, of a shared point in cryptographic operations (32).
+		/// </summary>
+		/// <remarks>The shared point length is equivalent to the length of a public key, which is 32 bytes. This
+		/// constant can be used to validate or configure cryptographic processes that involve shared points.</remarks>
+		public const int SharedPointLen = PublicKeyLen; // Shared point is also 32 bytes
+
+		/// <summary>
 		/// Computes the scalar multiplication of a private scalar and a public point on Curve25519.
 		/// </summary>
 		/// <param name="sharedPoint">The output buffer where the result (32 bytes) will be stored.</param>
@@ -55,9 +62,9 @@ namespace LibSodium
 		/// <remarks>
 		/// This method wraps <c>crypto_scalarmult</c>. Do not use the output directly as a symmetric key.
 		/// </remarks>
-		public static void Compute(Span<byte> sharedPoint, SecureMemory<byte> privateKey, ReadOnlySpan<byte> publicKey)
+		public static void Compute(SecureMemory<byte> sharedPoint, SecureMemory<byte> privateKey, ReadOnlySpan<byte> publicKey)
 		{
-			Compute(sharedPoint, privateKey.AsReadOnlySpan(), publicKey);
+			Compute(sharedPoint.AsSpan(), privateKey.AsReadOnlySpan(), publicKey);
 		}
 
 		/// <summary>

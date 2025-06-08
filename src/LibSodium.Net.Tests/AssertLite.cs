@@ -49,6 +49,14 @@ public static class AssertLite
 		}
 	}
 
+	public static void ShouldBe(this ReadOnlySpan<byte> actual, ReadOnlySpan<byte> expected, string? message = null)
+	{
+		if (actual.Length != expected.Length || !actual.SequenceEqual(expected))
+		{
+			throw new AssertionException($"Should be {HexEncoding.BinToHex(expected)}, but got {HexEncoding.BinToHex(actual)}. {message}");
+		}
+	}
+
 	public static void ShouldBe(this SecureMemory<byte> actual, SecureMemory<byte> expected, string? message = null)
 	{
 		actual.AsSpan().ShouldBe(expected.AsSpan(), message);

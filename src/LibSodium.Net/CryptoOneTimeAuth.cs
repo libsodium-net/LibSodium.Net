@@ -180,11 +180,11 @@ public static class CryptoOneTimeAuth
 	/// <summary>
 	/// Creates an incremental hash object using the Poly1305 algorithm.
 	/// </summary>
-	/// <remarks>The returned <see cref="ICryptoIncrementalHash"/> can be used to compute the Poly1305 hash
+	/// <remarks>The returned <see cref="ICryptoIncrementalOperation"/> can be used to compute the Poly1305 hash
 	/// incrementally by processing data in chunks.</remarks>
 	/// <param name="key">The cryptographic key (32 bytes) to use for the Poly1305 computation.</param>
-	/// <returns>An <see cref="ICryptoIncrementalHash"/> instance that allows incremental computation of the Poly1305 hash.</returns>
-	public static ICryptoIncrementalHash CreateIncrementalMac(ReadOnlySpan<byte> key)
+	/// <returns>An <see cref="ICryptoIncrementalOperation"/> instance that allows incremental computation of the Poly1305 hash.</returns>
+	public static ICryptoIncrementalOperation CreateIncrementalMac(ReadOnlySpan<byte> key)
 	{
 		return new CryptoMacIncremental<LowLevel.CryptoOneTimeAuth>(key);
 	}
@@ -192,11 +192,11 @@ public static class CryptoOneTimeAuth
 	/// <summary>
 	/// Creates an incremental hash object using the Poly1305 algorithm.
 	/// </summary>
-	/// <remarks>The returned <see cref="ICryptoIncrementalHash"/> can be used to compute the Poly1305 hash
+	/// <remarks>The returned <see cref="ICryptoIncrementalOperation"/> can be used to compute the Poly1305 hash
 	/// incrementally by processing data in chunks.</remarks>
 	/// <param name="key">The cryptographic key (32 bytes) to use for the Poly1305 computation.</param>
-	/// <returns>An <see cref="ICryptoIncrementalHash"/> instance that allows incremental computation of the Poly1305 hash.</returns>
-	public static ICryptoIncrementalHash CreateIncrementalMac(SecureMemory<byte> key)
+	/// <returns>An <see cref="ICryptoIncrementalOperation"/> instance that allows incremental computation of the Poly1305 hash.</returns>
+	public static ICryptoIncrementalOperation CreateIncrementalMac(SecureMemory<byte> key)
 	{
 		return new CryptoMacIncremental<LowLevel.CryptoOneTimeAuth>(key.AsReadOnlySpan());
 	}

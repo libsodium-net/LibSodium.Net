@@ -26,7 +26,7 @@ namespace LibSodium.Tests
             var enc = CryptoBox.EncryptWithKeypair(ciphertext, message, recipientPublicKey, senderPrivateKey);
             var dec = CryptoBox.DecryptWithKeypair(decrypted, enc, senderPublicKey, recipientPrivateKey);
 
-            dec.SequenceEqual(message).ShouldBeTrue();
+            dec.ShouldBe(message);
         }
 
         [Test]
@@ -54,7 +54,7 @@ namespace LibSodium.Tests
             var enc = CryptoBox.EncryptWithSharedKey(ciphertext, message, sharedKey1);
             var dec = CryptoBox.DecryptWithSharedKey(decrypted, enc, sharedKey2);
 
-            dec.SequenceEqual(message).ShouldBeTrue();
+            dec.ShouldBe(message);
         }
 
         [Test]
@@ -76,7 +76,7 @@ namespace LibSodium.Tests
 
             CryptoBox.EncryptWithKeypair(ciphertext, message, recipientPublicKey, senderPrivateKey, mac, nonce);
             CryptoBox.DecryptWithKeypair(decrypted, ciphertext, senderPublicKey, recipientPrivateKey, mac, nonce)
-                     .SequenceEqual(message).ShouldBeTrue();
+                     .ShouldBe(message);
         }
 
         [Test]
@@ -128,7 +128,7 @@ namespace LibSodium.Tests
             var enc = CryptoBox.EncryptWithKeypair(ciphertext, message, recipientPublicKey, senderPrivateKey, mac);
             var dec = CryptoBox.DecryptWithKeypair(decrypted, enc, senderPublicKey, recipientPrivateKey, mac);
 
-            dec.SequenceEqual(message).ShouldBeTrue();
+            dec.ShouldBe(message);
         }
 
         [Test]
@@ -151,7 +151,8 @@ namespace LibSodium.Tests
             byte[] decrypted = new byte[message.Length];
 
             CryptoBox.EncryptWithSharedKey(ciphertext, message, shared, nonce: nonce);
-            CryptoBox.DecryptWithSharedKey(decrypted, ciphertext, shared, nonce: nonce).SequenceEqual(message).ShouldBeTrue();
+            CryptoBox.DecryptWithSharedKey(decrypted, ciphertext, shared, nonce: nonce)
+                .ShouldBe(message);
         }
 
         [Test]

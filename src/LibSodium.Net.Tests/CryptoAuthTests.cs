@@ -15,9 +15,8 @@ public class CryptoAuthTests
 	{
 
 		Span<byte> key = stackalloc byte[CryptoAuth.KeyLen];
-
 		CryptoAuth.GenerateKey(key);
-		SecureMemory.IsZero(key).ShouldBeFalse();
+		key.ShouldNotBeZero();
 	}
 
 	[Test]

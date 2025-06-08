@@ -65,7 +65,7 @@ internal static class CryptoKeyLessHash<T> where T : IKeyLessHash
 	/// <summary>
 	/// Creates an incremental hashing engine for algorithm <typeparamref name="T"/>.
 	/// </summary>
-	/// <returns>A new <see cref="ICryptoIncrementalHash"/> instance.</returns>
-	public static ICryptoIncrementalHash CreateIncrementalHash()
+	/// <returns>A new <see cref="ICryptoIncrementalOperation"/> instance.</returns>
+	public static ICryptoIncrementalOperation CreateIncrementalHash()
 		=> new CryptoKeyLessHashIncremental<T>();
 }

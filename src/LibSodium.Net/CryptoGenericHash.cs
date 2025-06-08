@@ -170,12 +170,12 @@ namespace LibSodium
 			await ComputeHashAsync(hash, input, key == null ? default : key.AsReadOnlyMemory(), cancellationToken).ConfigureAwait(false);
 		}
 
-		public static ICryptoIncrementalHash CreateIncrementalHash(ReadOnlySpan<byte> key = default, int hashLen = HashLen)
+		public static ICryptoIncrementalOperation CreateIncrementalHash(ReadOnlySpan<byte> key = default, int hashLen = HashLen)
 		{
 			return new CryptoGenericHashIncremental(key, hashLen);
 		}
 
-		public static ICryptoIncrementalHash CreateIncrementalHash(SecureMemory<byte>? key = null, int hashLen = HashLen)
+		public static ICryptoIncrementalOperation CreateIncrementalHash(SecureMemory<byte>? key, int hashLen = HashLen)
 		{
 			return new CryptoGenericHashIncremental(key == null ? default : key.AsReadOnlySpan(), hashLen);
 		}

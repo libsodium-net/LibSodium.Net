@@ -1,4 +1,6 @@
-﻿using TUnit;
+﻿using System.Diagnostics;
+using System.Security.Cryptography;
+using TUnit;
 using static LibSodium.CryptoScalarMult;
 
 namespace LibSodium.Tests;
@@ -137,8 +139,8 @@ public class CryptoScalarMultTests
 		using var bobPriv = SecureMemory.Create<byte>(PrivateKeyLen);
 		Span<byte> alicePub = stackalloc byte[PublicKeyLen];
 		Span<byte> bobPub = stackalloc byte[PublicKeyLen];
-		Span<byte> shared1 = stackalloc byte[PublicKeyLen];
-		Span<byte> shared2 = stackalloc byte[PublicKeyLen];
+		using var shared1 = new SecureMemory<byte>(PublicKeyLen);
+		using var shared2 = new SecureMemory<byte>(PublicKeyLen);
 
 		RandomGenerator.Fill(alicePriv);
 		RandomGenerator.Fill(bobPriv);
@@ -159,7 +161,7 @@ public class CryptoScalarMultTests
 		{
 			using var priv = SecureMemory.Create<byte>(PrivateKeyLen - 1);
 			Span<byte> pub = stackalloc byte[PublicKeyLen];
-			Span<byte> shared = stackalloc byte[PublicKeyLen];
+			using var shared = new SecureMemory<byte>(PublicKeyLen);
 			Compute(shared, priv, pub);
 		});
 	}
@@ -175,6 +177,44 @@ public class CryptoScalarMultTests
 		Span<byte> expected = stackalloc byte[PublicKeyLen];
 		HexEncoding.HexToBin("2fe57da347cd62431528daac5fbb290730fff684afc4cfc2ed90995f58cb3b74", expected);
 		pub.ShouldBe(expected);
+	}
+
+	[Test]
+	public void ComputeSharedKeyExample()
+	{
+using var alicePrivateKey = new SecureMemory<byte>(CryptoScalarMult.PrivateKeyLen);
+Span<byte> alicePublicKey = stackalloc byte[CryptoScalarMult.PublicKeyLen];
+RandomGenerator.Fill(alicePrivateKey);
+CryptoScalarMult.CalculatePublicKey(alicePublicKey, alicePrivateKey);
+
+
+using var bobPrivateKey = new SecureMemory<byte>(CryptoScalarMult.PrivateKeyLen);
+Span<byte> bobPublicKey = stackalloc byte[CryptoScalarMult.PublicKeyLen];
+RandomGenerator.Fill(bobPrivateKey);
+CryptoScalarMult.CalculatePublicKey(bobPublicKey, bobPrivateKey);
+
+using var aliceSharedSecret = new SecureMemory<byte>(CryptoScalarMult.PublicKeyLen);
+CryptoScalarMult.Compute(aliceSharedSecret, alicePrivateKey, bobPublicKey);
+
+using var bobSharedSecret = new SecureMemory<byte>(CryptoScalarMult.PublicKeyLen);
+CryptoScalarMult.Compute(bobSharedSecret, bobPrivateKey, alicePublicKey);
+
+bool isTheSameSharedSecret = aliceSharedSecret.AsReadOnlySpan().SequenceEqual(bobSharedSecret.AsReadOnlySpan());
+
+Debug.Assert(isTheSameSharedSecret, "Shared secrets should match between Alice and Bob.");
+
+using var aliceTxKey = new SecureMemory<byte>(XChaCha20Poly1305.KeyLen);
+CryptoHkdf.DeriveKey(HashAlgorithmName.SHA512, ikm: aliceSharedSecret, okm: aliceTxKey, 
+	salt: alicePublicKey, info: bobPublicKey);
+
+using var bobRxKey = new SecureMemory<byte>(XChaCha20Poly1305.KeyLen);
+CryptoHkdf.DeriveKey(HashAlgorithmName.SHA512, ikm: bobSharedSecret, okm: bobRxKey, 
+	salt: alicePublicKey, info: bobPublicKey);
+
+bool isTheSameTxRxKey = aliceTxKey.AsReadOnlySpan().SequenceEqual(bobRxKey.AsReadOnlySpan());
+
+Debug.Assert(isTheSameTxRxKey, "Transmission key derived by Alice should match receive key derived by Bob.");
+
 	}
 
 }

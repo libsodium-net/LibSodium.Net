@@ -2,7 +2,7 @@
 
 namespace LibSodium
 {
-	internal sealed class CryptoMacIncremental<T> : ICryptoIncrementalHash where T : IMac
+	internal sealed class CryptoMacIncremental<T> : ICryptoIncrementalOperation where T : IMac
 	{
 
 		private readonly SecureMemory<byte> state = SecureMemory.Create<byte>(T.StateLen);

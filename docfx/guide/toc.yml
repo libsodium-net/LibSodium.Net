@@ -14,6 +14,9 @@
     - name: SecureBigUnsignedInteger
       href: SecureBigUnsignedInteger.md
 
+- name: Key Derivation
+  href: KeyDerivation.md
+
 - name: Symmetric Encryption
   items:
     - name: SecretBox
@@ -25,13 +28,6 @@
     - name: Stream Ciphers
       href: StreamCiphers.md
 
-- name: Key Management
-  items:
-    - name: Key Derivation
-      href: KeyDerivation.md
-    - name: Key Exchange
-      href: KeyExchange.md
-
 - name: Hashing & Authentication
   items:
     - name: MAC
@@ -42,4 +38,14 @@
       href: DualPhasePasswordHashing.md
 
 - name: Public Key Cryptography
-  href: PublicKeyCrypto.md
+  items:
+    - name: Authenticated Encryption
+      href: CryptoBox.md
+    - name: Digital Signatures
+      href: CryptoSign.md
+    - name: Key Exchange
+      href: KeyExchange.md
+    - name: Curve25519 Scalar Multiplication
+      href: CryptoScalarMult.md
+    - name: Ristretto
+      href: CryptoRistretto.md
